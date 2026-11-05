@@ -1,0 +1,22 @@
+{
+  "global": {
+    "online": "Online",
+    "offline": "Offline",
+    "syncing": "Syncing…",
+    "failed": "Sync failed"
+  },
+  "item": {
+    "draft": "Draft",
+    "pending": "Pending",
+    "sent": "Sent",
+    "failed": "Failed",
+    "attention": "Needs attention"
+  },
+  "savedOffline": "Saved offline – will send when internet is available",
+  "createdOffline": "Created {{time}} (offline)",
+  "sentAt": "Sent {{time}}",
+  "offlineCopy": "Offline copy – last updated {{time}}",
+  "needsSignIn": "Sign in again to send your saved work",
+  "conflict": "This was changed elsewhere. Review the latest version and apply your change again.",
+  "storageNotPersistent": "This browser may delete saved work (private browsing or low storage). Keep the page open until it's sent."
+}

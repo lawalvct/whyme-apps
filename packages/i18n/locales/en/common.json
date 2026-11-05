@@ -1,0 +1,13 @@
+{
+  "appName": "WHY ME",
+  "welcome": "Welcome",
+  "tagline": "Products, services and jobs near you",
+  "continue": "Continue",
+  "cancel": "Cancel",
+  "save": "Save",
+  "retry": "Try again",
+  "back": "Back",
+  "loading": "Loading…",
+  "empty": "Nothing here yet",
+  "lastUpdated": "Last updated {{time}}"
+}

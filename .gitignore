@@ -1,0 +1,28 @@
+node_modules/
+.turbo/
+dist/
+coverage/
+*.log
+.env
+.env.*
+!.env.example
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+
+# Expo
+.expo/
+web-build/
+ios/
+android/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# OS / editors
+.DS_Store
+Thumbs.db

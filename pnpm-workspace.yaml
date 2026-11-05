@@ -1,0 +1,13 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+# pnpm 10 skips dependency install scripts unless the package is allowed here.
+onlyBuiltDependencies:
+  - "@tailwindcss/oxide"
+  - esbuild
+
+# Kept from create-next-app: we serve pre-generated image sizes, so sharp isn't needed.
+ignoredBuiltDependencies:
+  - sharp
+  - unrs-resolver

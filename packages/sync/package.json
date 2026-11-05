@@ -1,0 +1,27 @@
+{
+  "name": "@whyme/sync",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./dexie": "./src/adapters/dexie.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "dexie": "^4"
+  },
+  "peerDependenciesMeta": {
+    "dexie": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "dexie": "^4",
+    "fake-indexeddb": "^6",
+    "vitest": "^3"
+  }
+}

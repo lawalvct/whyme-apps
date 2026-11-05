@@ -1,0 +1,10 @@
+{
+  "title": "Settings",
+  "language": "Language",
+  "languageHint": "Choose the language for WHY ME on this account.",
+  "languageOffer": "Would you like to use WHY ME in Igbo?",
+  "languageOfferYes": "Yes, use Igbo",
+  "languageOfferNo": "No, keep English",
+  "dataSaver": "Data saver",
+  "dataSaverHint": "Load images only when you tap them."
+}
