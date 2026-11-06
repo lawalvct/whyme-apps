@@ -148,6 +148,134 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/listings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["me.listings.index"];
+        put?: never;
+        post: operations["me.listings.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/listings/{listing}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["me.listings.show"];
+        put?: never;
+        post?: never;
+        delete: operations["me.listings.destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["me.listings.update"];
+        trace?: never;
+    };
+    "/v1/me/listings/{listing}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["me.listings.submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/listings/{listing}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["me.listings.resume"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/listings/{listing}/pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["me.listings.pause"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/listings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listings.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/listings/{listing}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listings.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/taxonomy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["taxonomy.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -179,6 +307,25 @@ export interface components {
          * @enum {string}
          */
         DevicePlatform: "android" | "ios" | "web";
+        /**
+         * ListingKind
+         * @enum {string}
+         */
+        ListingKind: "product" | "service";
+        /**
+         * ListingStatus
+         * @description draft → pending_review (when review applies) → published → paused / expired, with rejected and hidden set by moderators (LST06). Removed listings are soft-deleted and stay as tombstones for offline caches (OFF06).
+         * @enum {string}
+         */
+        ListingStatus: "draft" | "pending_review" | "published" | "paused" | "rejected" | "hidden" | "expired" | "removed";
+        /**
+         * ListingTransitionRequest
+         * @description Submit, pause and resume send the version they acted on, so a stale action
+         *     from an offline device is refused and refreshed (OFF06).
+         */
+        ListingTransitionRequest: {
+            version: number;
+        };
         /** LoginRequest */
         LoginRequest: {
             phone: string;
@@ -196,6 +343,61 @@ export interface components {
          * @enum {string}
          */
         OtpPurpose: "register" | "reset_password" | "new_device";
+        /** OwnerListingResource */
+        OwnerListingResource: {
+            id: string;
+            client_id: string | null;
+            /** @enum {string} */
+            kind: "product" | "service";
+            /** @enum {string} */
+            status: "draft" | "pending_review" | "published" | "paused" | "rejected" | "hidden" | "expired" | "removed";
+            status_reason: string | null;
+            moderation_flags: unknown[];
+            category_id: number;
+            location_id: number;
+            title: string;
+            description: string;
+            price_kobo: number | null;
+            currency: string;
+            quantity: number | null;
+            fulfilment: unknown[];
+            service_area_ids: unknown[];
+            availability_note: string | null;
+            version: number;
+            submitted_at: string | null;
+            published_at: string | null;
+            expires_at: string | null;
+            created_at: string | null;
+            updated_at: string | null;
+        };
+        /** PublicListingResource */
+        PublicListingResource: {
+            id: string;
+            /** @enum {string} */
+            kind: "product" | "service";
+            title: string;
+            description: string;
+            price_kobo: number | null;
+            currency: string;
+            in_stock: boolean;
+            fulfilment: unknown[];
+            service_area_ids: unknown[];
+            availability_note: string | null;
+            category: {
+                id: number;
+                slug: string;
+                name: string;
+            };
+            location: {
+                id: number;
+                name: string;
+            };
+            seller: {
+                id: string;
+                name: string;
+            };
+            published_at: string | null;
+        };
         /** RegisterRequest */
         RegisterRequest: {
             name: string;
@@ -219,6 +421,33 @@ export interface components {
             phone: string;
             code: string;
             password: string;
+        };
+        /** StoreListingRequest */
+        StoreListingRequest: {
+            client_id?: string | null;
+            kind: components["schemas"]["ListingKind"];
+            category_id: number;
+            location_id: number;
+            title: string;
+            description: string;
+            price_kobo?: number | null;
+            quantity?: number | null;
+            fulfilment?: ("pickup" | "delivery")[] | null;
+            service_area_ids?: number[] | null;
+            availability_note?: string | null;
+        };
+        /** UpdateListingRequest */
+        UpdateListingRequest: {
+            version: number;
+            category_id?: number;
+            location_id?: number;
+            title?: string;
+            description?: string;
+            price_kobo?: number | null;
+            quantity?: number | null;
+            fulfilment?: ("pickup" | "delivery")[] | null;
+            service_area_ids?: number[] | null;
+            availability_note?: string | null;
         };
         /** UpdateProfileRequest */
         UpdateProfileRequest: {
@@ -450,11 +679,11 @@ export interface operations {
                                 native_name: string;
                             }[];
                             min_supported_version: {
-                                android: unknown[] | string;
-                                ios: unknown[] | string;
+                                android: string;
+                                ios: string;
                             };
-                            features: string;
-                            settings: string;
+                            features: boolean[];
+                            settings: (unknown[] | null)[];
                             server_time: string;
                         };
                     };
@@ -571,6 +800,364 @@ export interface operations {
             };
             401: components["responses"]["AuthenticationException"];
             422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.listings.index": {
+        parameters: {
+            query?: {
+                kind?: components["schemas"]["ListingKind"] | null;
+                status?: components["schemas"]["ListingStatus"] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `OwnerListingResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OwnerListingResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description The "cursor" that points to the next set of items. */
+                            next_cursor: string | null;
+                            /** @description The "cursor" that points to the previous set of items. */
+                            prev_cursor: string | null;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.listings.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StoreListingRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.listings.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                listing: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `OwnerListingResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OwnerListingResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.listings.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                listing: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.listings.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                listing: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateListingRequest"];
+            };
+        };
+        responses: {
+            /** @description `OwnerListingResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OwnerListingResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.listings.submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                listing: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ListingTransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `OwnerListingResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OwnerListingResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.listings.resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                listing: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ListingTransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `OwnerListingResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OwnerListingResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.listings.pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                listing: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ListingTransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `OwnerListingResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OwnerListingResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "listings.index": {
+        parameters: {
+            query?: {
+                kind?: components["schemas"]["ListingKind"] | null;
+                category_id?: number | null;
+                location_id?: number | null;
+                min_price?: number | null;
+                max_price?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `PublicListingResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PublicListingResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description The "cursor" that points to the next set of items. */
+                            next_cursor: string | null;
+                            /** @description The "cursor" that points to the previous set of items. */
+                            prev_cursor: string | null;
+                        };
+                    };
+                };
+            };
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "listings.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                listing: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `PublicListingResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PublicListingResource"];
+                    };
+                };
+            };
+        };
+    };
+    "taxonomy.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    ETag?: string;
+                    "Cache-Control"?: "public, max-age=300";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            version: string;
+                            categories: {
+                                id: number;
+                                parent_id: number | null;
+                                /** @enum {string} */
+                                type: "product" | "service" | "job";
+                                slug: string;
+                                name: {
+                                    en: unknown;
+                                    ig: unknown;
+                                };
+                                icon: string | null;
+                                sort: number;
+                            }[];
+                            locations: {
+                                id: number;
+                                parent_id: number | null;
+                                /** @enum {string} */
+                                type: "state" | "lga" | "area";
+                                name: string;
+                                slug: string;
+                                suggested_locale: string | null;
+                            }[];
+                        };
+                    };
+                };
+            };
+            304: {
+                headers: {
+                    ETag?: string;
+                    "Cache-Control"?: "public, max-age=300";
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
 }

@@ -5,13 +5,12 @@ import { unwrap, useApi } from './api';
 type ConfigBody = paths['/v1/config']['get']['responses'][200]['content']['application/json']['data'];
 
 /**
- * GET /v1/config. The generated type gets three fields wrong (Scramble can't
- * infer the object casts), so they are corrected here until the spec is fixed.
+ * GET /v1/config. Scramble types string-keyed maps as lists, so `features` and
+ * `settings` (objects keyed by flag/setting name) are corrected here.
  */
-export type AppConfig = Omit<ConfigBody, 'features' | 'settings' | 'min_supported_version'> & {
+export type AppConfig = Omit<ConfigBody, 'features' | 'settings'> & {
   features: Record<string, boolean>;
   settings: Record<string, unknown>;
-  min_supported_version: { android: string; ios: string };
 };
 
 export type Me = components['schemas']['UserResource'];
