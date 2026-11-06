@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Typecheck, lint, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Uses the pnpm version from package.json "packageManager".
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Igbo catalog check
+        run: pnpm i18n:check
+
+      - name: Design tokens CSS is up to date
+        run: |
+          pnpm tokens:build
+          if ! git diff --quiet -- packages/tokens/theme.css; then
+            echo "::error::packages/tokens/theme.css is out of date. Run 'pnpm tokens:build' and commit it."
+            exit 1
+          fi
+
+      - name: Build website
+        run: pnpm --filter web build
+        env:
+          NEXT_PUBLIC_API_URL: https://api.example.invalid/api/v1
+
+      # Once staging exists, set the repository variable OPENAPI_URL to its spec
+      # (e.g. https://api-staging.<domain>/docs/api.json) to catch a stale client.
+      - name: API client matches the deployed API
+        if: ${{ vars.OPENAPI_URL != '' }}
+        env:
+          OPENAPI_URL: ${{ vars.OPENAPI_URL }}
+        run: |
+          pnpm api:generate
+          if ! git diff --quiet -- packages/api-client/src/schema.ts; then
+            echo "::error::packages/api-client is out of date with the API. Run 'pnpm api:generate' and commit it."
+            exit 1
+          fi

@@ -1,4 +1,4 @@
-import i18next from 'i18next';
+import { createInstance } from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import Storage from 'expo-sqlite/kv-store';
 import { defaultLanguage, i18nextOptions, isSupportedLanguage, type LanguageCode } from '@whyme/i18n';
@@ -16,7 +16,7 @@ function savedLanguage(): LanguageCode {
   }
 }
 
-export const i18n = i18next.createInstance();
+export const i18n = createInstance();
 void i18n.use(initReactI18next).init({ ...i18nextOptions, lng: savedLanguage() });
 
 /** Saved on the device first, so it works offline; synced to the account when signed in. */

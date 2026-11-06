@@ -1,12 +1,12 @@
 import { useSyncExternalStore } from 'react';
-import i18next from 'i18next';
+import { createInstance } from 'i18next';
 import { initReactI18next, useTranslation } from 'react-i18next';
 import { defaultLanguage, i18nextOptions, isSupportedLanguage, type LanguageCode, type Namespace } from '@whyme/i18n';
 
 const STORAGE_KEY = 'whyme.language';
 
 // English for everyone until the user picks Igbo in Settings (I18N01, I18N02).
-export const i18n = i18next.createInstance();
+export const i18n = createInstance();
 void i18n.use(initReactI18next).init({ ...i18nextOptions, lng: defaultLanguage });
 
 const listeners = new Set<() => void>();
