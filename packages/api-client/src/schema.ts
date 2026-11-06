@@ -260,6 +260,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/search/listings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search published listings, most relevant first. Same filters as browsing.
+         *     `categories` lists categories whose name matches the words, so the app can
+         *     offer "See all Plumbers" next to the results. Follow `links.next` for more
+         */
+        get: operations["search.listings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/taxonomy": {
         parameters: {
             query?: never;
@@ -268,6 +289,60 @@ export interface paths {
             cookie?: never;
         };
         get: operations["taxonomy.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/uploads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload a file into quarantine. Returns at once with `status: processing`;
+         *     poll `GET /me/uploads/{id}`, or just submit: the server waits for it
+         */
+        post: operations["uploads.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/uploads/{upload}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One of the caller's own uploads. Anyone else's is a 404 */
+        get: operations["me.uploads.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/uploads/{upload}/{variant}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Streams a private size. Reached only through a signed link from MediaUrls */
+        get: operations["uploads.variant"];
         put?: never;
         post?: never;
         delete?: never;
@@ -363,6 +438,19 @@ export interface components {
             fulfilment: unknown[];
             service_area_ids: unknown[];
             availability_note: string | null;
+            photos: {
+                id: string;
+                /** @enum {string} */
+                status: "processing" | "ready" | "rejected";
+                approved: boolean;
+                width: number | null;
+                height: number | null;
+                urls: {
+                    large: string | null;
+                    medium: string | null;
+                    thumb: string | null;
+                };
+            }[];
             version: number;
             submitted_at: string | null;
             published_at: string | null;
@@ -383,6 +471,16 @@ export interface components {
             fulfilment: unknown[];
             service_area_ids: unknown[];
             availability_note: string | null;
+            photos: {
+                id: string;
+                width: number | null;
+                height: number | null;
+                urls: {
+                    large: string;
+                    medium: string;
+                    thumb: string;
+                };
+            }[];
             category: {
                 id: number;
                 slug: string;
@@ -435,6 +533,23 @@ export interface components {
             fulfilment?: ("pickup" | "delivery")[] | null;
             service_area_ids?: number[] | null;
             availability_note?: string | null;
+            /**
+             * @description The gallery in display order: IDs from POST /uploads. The per-plan limit
+             *     is a setting, checked by ListingPhotos; 20 only bounds the request.
+             */
+            photo_ids?: string[];
+        };
+        /**
+         * StoreUploadRequest
+         * @description Multipart upload. The apps shrink photos to about 1600 px before sending
+         *     (docs/01 §6.5); these limits stop oversized or hostile files reaching the
+         *     image decoder (pixel limits are read from the header, before decoding).
+         */
+        StoreUploadRequest: {
+            purpose: components["schemas"]["UploadPurpose"];
+            client_id?: string | null;
+            /** Format: binary */
+            file: string;
         };
         /** UpdateListingRequest */
         UpdateListingRequest: {
@@ -448,6 +563,11 @@ export interface components {
             fulfilment?: ("pickup" | "delivery")[] | null;
             service_area_ids?: number[] | null;
             availability_note?: string | null;
+            /**
+             * @description The gallery in display order: IDs from POST /uploads. The per-plan limit
+             *     is a setting, checked by ListingPhotos; 20 only bounds the request.
+             */
+            photo_ids?: string[];
         };
         /** UpdateProfileRequest */
         UpdateProfileRequest: {
@@ -455,6 +575,31 @@ export interface components {
             name?: string;
             /** @enum {string} */
             locale?: "en" | "ig";
+        };
+        /**
+         * UploadPurpose
+         * @description What a file is for. Each purpose has its own types, size limit and the sizes generated from it (DEC12: owner-tunable later; these are the proposed values). Verification documents, CVs and chat attachments join this list in later slices.
+         * @enum {string}
+         */
+        UploadPurpose: "listing_photo";
+        /** UploadResource */
+        UploadResource: {
+            id: string;
+            client_id: string | null;
+            /** @constant */
+            purpose: "listing_photo";
+            /** @enum {string} */
+            status: "processing" | "ready" | "rejected";
+            rejection_reason: string | null;
+            width: number | null;
+            height: number | null;
+            urls: {
+                large: string | null;
+                medium: string | null;
+                thumb: string | null;
+            };
+            attached: boolean;
+            created_at: string | null;
         };
         /** UserResource */
         UserResource: {
@@ -490,6 +635,18 @@ export interface components {
         };
         /** @description Unauthenticated */
         AuthenticationException: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": {
+                    /** @description Error overview. */
+                    message: string;
+                };
+            };
+        };
+        /** @description Not found */
+        ModelNotFoundException: {
             headers: {
                 [name: string]: unknown;
             };
@@ -1105,6 +1262,59 @@ export interface operations {
             };
         };
     };
+    "search.listings": {
+        parameters: {
+            query: {
+                kind?: components["schemas"]["ListingKind"] | null;
+                category_id?: number | null;
+                location_id?: number | null;
+                min_price?: number | null;
+                max_price?: number | null;
+                q: string;
+                page?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `PublicListingResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PublicListingResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            current_page: number;
+                            from: number | null;
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description Number of the last item in the slice. */
+                            to: number | null;
+                        };
+                        categories: {
+                            id: number;
+                            slug: string;
+                            type: string;
+                            name: string;
+                        }[];
+                    };
+                };
+            };
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "taxonomy.show": {
         parameters: {
             query?: never;
@@ -1158,6 +1368,80 @@ export interface operations {
                 };
                 content?: never;
             };
+        };
+    };
+    "uploads.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["StoreUploadRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.uploads.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                upload: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `UploadResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["UploadResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "uploads.variant": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                upload: string;
+                variant: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Transfer-Encoding": "chunked";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/webp": string;
+                };
+            };
+            404: components["responses"]["ModelNotFoundException"];
         };
     };
 }

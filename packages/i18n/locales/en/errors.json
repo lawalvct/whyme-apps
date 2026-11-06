@@ -20,5 +20,9 @@
   "content_blocked": "Remove phone numbers, account numbers, emails and links. Buyers contact you through WHY ME.",
   "invalid_transition": "This listing changed. Refresh to see its current status.",
   "listing_incomplete": "Please complete the highlighted fields before publishing.",
-  "terms_required": "Please accept the current seller terms to continue."
+  "terms_required": "Please accept the current seller terms to continue.",
+  "too_many_photos": "You can add up to {{limit}} photos to a listing on your plan.",
+  "upload_invalid": "One of these photos can no longer be used. Remove it and add it again.",
+  "photo_rejected": "One of your photos couldn't be read. Replace it with another photo.",
+  "photos_processing": "Your photos are still being prepared. We will try again shortly."
 }
