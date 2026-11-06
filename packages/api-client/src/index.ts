@@ -1,7 +1,7 @@
 import createClient, { type Middleware } from 'openapi-fetch';
-import type { paths } from './schema';
+import type { components, paths } from './schema';
 
-export type { paths };
+export type { components, paths };
 
 export interface ApiClientOptions {
   /** e.g. "https://api.example.com/api/v1" */

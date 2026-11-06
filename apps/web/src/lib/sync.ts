@@ -1,29 +1,31 @@
 import { createHttpTransport, SyncEngine } from '@whyme/sync';
 import { DexieOutboxStore } from '@whyme/sync/dexie';
-import { i18n } from './i18n';
-
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api/v1';
+import { createSyncController } from '@whyme/data';
+import { API_BASE_URL, appHeaders } from './api';
+import { LocalDb } from './local-db';
 
 /**
- * The website's offline queue: same engine and rules as mobile, stored in a
- * per-account IndexedDB database (docs/01 §6.6). Signed in with Sanctum's cookie session.
+ * The signed-in account's offline queue on the website: same engine and rules as
+ * mobile, stored in the account's IndexedDB next to its caches (docs/01 §6.6).
  */
 export function createWebSync(accountId: string) {
-  const store = new DexieOutboxStore(accountId);
+  const db = new LocalDb(accountId);
   const engine = new SyncEngine({
-    store,
+    store: new DexieOutboxStore(db),
     accountId,
     transport: createHttpTransport({
-      baseUrl: API_URL,
+      baseUrl: API_BASE_URL,
+      healthPath: '/v1/health',
       credentials: 'include',
-      headers: () => ({ 'Accept-Language': i18n.language, 'X-Platform': 'web' }),
+      headers: appHeaders,
       routes: {
-        'profile.update': (action) => ({ method: 'PATCH', path: '/me', body: action.payload }),
-        'capability.activate': (action) => ({ method: 'POST', path: '/me/capabilities', body: action.payload }),
+        'profile.update': (action) => ({ method: 'PATCH', path: '/v1/me', body: action.payload }),
+        'capability.activate': (action) => ({ method: 'POST', path: '/v1/me/capabilities', body: action.payload }),
       },
     }),
   });
-  return { store, engine };
+  const controller = createSyncController(engine);
+  return { db, engine, controller };
 }
 
 /**

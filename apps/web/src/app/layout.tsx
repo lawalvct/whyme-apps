@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { I18nProvider } from "@/components/I18nProvider";
+import { Providers } from "@/components/Providers";
 import "./globals.css";
 
 // latin-ext + vietnamese cover the Igbo letters ị ọ ụ ṅ (docs/03 §6).
@@ -18,7 +18,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-background text-text">
-        <I18nProvider>{children}</I18nProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
