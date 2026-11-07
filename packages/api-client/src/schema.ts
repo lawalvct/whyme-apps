@@ -672,7 +672,10 @@ export interface components {
             };
             seller: {
                 id: string;
+                /** @description The business or trade name when they have a published profile. */
                 name: string;
+                profile_id: string | null;
+                verified: boolean;
             };
             published_at: string | null;
         };

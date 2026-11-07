@@ -1,6 +1,19 @@
 export { ApiProvider, ApiRequestError, unwrap, useApi, type ApiClient } from './api';
 export { createQueryClient, isRetryable } from './query-client';
-export { queryKeys, useConfig, useMe, type AppConfig, type Me } from './queries';
+export {
+  categoryLabel,
+  queryKeys,
+  useConfig,
+  useMe,
+  useTaxonomy,
+  type AppConfig,
+  type Me,
+  type PublicListing,
+  type PublicProfile,
+  type Taxonomy,
+  type TaxonomyCategory,
+  type TaxonomyLocation,
+} from './queries';
 export {
   createSyncController,
   globalSyncStatus,

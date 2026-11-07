@@ -14,12 +14,39 @@ export type AppConfig = Omit<ConfigBody, 'features' | 'settings'> & {
 };
 
 export type Me = components['schemas']['UserResource'];
+export type PublicListing = components['schemas']['PublicListingResource'];
+export type PublicProfile = components['schemas']['PublicProfileResource'];
+export type Taxonomy = paths['/v1/taxonomy']['get']['responses'][200]['content']['application/json']['data'];
+export type TaxonomyCategory = Taxonomy['categories'][number];
+export type TaxonomyLocation = Taxonomy['locations'][number];
 
 /** Query keys in one place, so invalidation (e.g. from a Pusher event) can't drift. */
 export const queryKeys = {
   config: ['config'] as const,
   me: ['me'] as const,
+  taxonomy: ['taxonomy'] as const,
 };
+
+/**
+ * Categories and areas in every language (GET /v1/taxonomy). Changes rarely, so
+ * it's kept for a day; the apps also store a copy for offline use (docs/03 §2).
+ */
+export function useTaxonomy() {
+  const api = useApi();
+  return useQuery({
+    queryKey: queryKeys.taxonomy,
+    queryFn: async (): Promise<Taxonomy> => unwrap(await api.GET('/v1/taxonomy')).data,
+    staleTime: 24 * 60 * 60_000,
+    gcTime: 24 * 60 * 60_000,
+  });
+}
+
+/** A category's name in the given language, falling back to English (I18N04). */
+export function categoryLabel(category: Pick<TaxonomyCategory, 'name'> | undefined, language: string): string | undefined {
+  if (!category) return undefined;
+  const names = category.name as Record<string, string | null | undefined>;
+  return names[language] || names.en || undefined;
+}
 
 /**
  * GET /v1/config. Apps can pass a copy saved on the device as `initialData` so the
