@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useT } from '@/lib/i18n';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { SyncStatusChip } from './SyncStatusChip';
@@ -12,7 +13,7 @@ export function Welcome() {
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-8 px-4 py-16">
       <header className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold tracking-widest text-primary">{t('appName')}</p>
+          <Image src="/brand/whyme-logo-full.png" alt={t('appName')} width={170} height={40} priority />
           <SyncStatusChip />
         </div>
         <h1 className="text-3xl font-bold text-text">{t('welcome')}</h1>

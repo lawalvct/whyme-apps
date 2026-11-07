@@ -1,23 +1,33 @@
-// Brand tokens. TEMPORARY values from the brand direction (UX01: emerald, white,
-// warm gold accents, light grey, charcoal text) until the Figma tokens arrive.
-// Change values here, then run `pnpm tokens:build` to regenerate theme.css.
+// Brand tokens, taken from the WHY ME logo (brand/source/): the green of the
+// figures and the gold of the location pin, with white, light grey and charcoal
+// text (UX01). No Figma: these are the source of truth for web, mobile and the
+// admin panel. Change values here, then run `pnpm tokens:build` for theme.css.
+//
+// Contrast on white: primary 5.1:1, primaryPressed 7:1, accentText 5.8:1 (all
+// pass WCAG AA for text). `accent` itself is 2.2:1, so it is for fills and
+// icons, with charcoal text on top, never for text on white.
 
 export const colors = {
-  primary: '#047857', // emerald
-  primaryPressed: '#065F46',
-  primarySoft: '#D1FAE5',
-  accent: '#C9A227', // warm gold — featured/sponsored only, never verification
-  accentSoft: '#FBF3D5',
+  primary: '#027F45', // logo green
+  primaryPressed: '#01663A',
+  primarySoft: '#E4F3EA',
+  accent: '#E7A33A', // logo gold: featured/sponsored and highlights, never verification
+  accentText: '#8F5A0F', // gold for text on white
+  accentSoft: '#FDF3E3',
   background: '#FFFFFF',
   surface: '#F3F4F6', // light grey
   border: '#E5E7EB',
   text: '#1F2937', // charcoal
   textMuted: '#6B7280',
+  onPrimary: '#FFFFFF',
   danger: '#B91C1C',
   warning: '#B45309',
-  success: '#047857',
+  success: '#027F45',
   info: '#1D4ED8',
 } as const;
+
+// Logo files are per app (web: public/brand, mobile: assets/images/brand, admin:
+// public/brand), generated from brand/source by scripts/brand-assets.php.
 
 // Sync/offline status colours (OFF07): Draft, Pending, Sent, Failed, Needs attention.
 export const syncStatusColors = {

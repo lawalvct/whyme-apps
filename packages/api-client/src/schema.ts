@@ -228,6 +228,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["me.profiles.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/profiles/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["me.profiles.show"];
+        /** Create the profile, or save the whole form again. Send `version` once it exists */
+        put: operations["me.profiles.save"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/profiles/{kind}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["me.profiles.submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/listings": {
         parameters: {
             query?: never;
@@ -260,6 +309,56 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Published profiles, newest first. Choosing an LGA includes its areas */
+        get: operations["profiles.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/profiles/{profile}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["profiles.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/profiles/{profile}/listings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The profile's published products (business) or services (provider) */
+        get: operations["profiles.listings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/search/listings": {
         parameters: {
             query?: never;
@@ -273,6 +372,26 @@ export interface paths {
          *     offer "See all Plumbers" next to the results. Follow `links.next` for more
          */
         get: operations["search.listings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/search/profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search published business and provider profiles by name, description,
+         *     category and area ("electrician warri"), most relevant first
+         */
+        get: operations["search.profiles"];
         put?: never;
         post?: never;
         delete?: never;
@@ -458,6 +577,67 @@ export interface components {
             created_at: string | null;
             updated_at: string | null;
         };
+        /** OwnerProfileResource */
+        OwnerProfileResource: {
+            id: string;
+            /** @enum {string} */
+            kind: "business" | "provider";
+            /** @enum {string} */
+            status: "draft" | "pending_review" | "published" | "rejected" | "hidden";
+            status_reason: string | null;
+            moderation_flags: unknown[];
+            display_name: string;
+            category_id: number;
+            location_id: number;
+            about: string | null;
+            availability_note: string | null;
+            opening_hours: {
+                [key: string]: {
+                    open: string;
+                    close: string;
+                }[];
+            } | null;
+            service_area_ids: unknown[];
+            years_experience: number | null;
+            rate_note: string | null;
+            logo: {
+                id: string;
+                /** @enum {string} */
+                status: "processing" | "ready" | "rejected";
+                approved: boolean;
+                width: number | null;
+                height: number | null;
+                urls: {
+                    large: string | null;
+                    medium: string | null;
+                    thumb: string | null;
+                };
+            } | null;
+            photos: {
+                id: string;
+                /** @enum {string} */
+                status: "processing" | "ready" | "rejected";
+                approved: boolean;
+                width: number | null;
+                height: number | null;
+                urls: {
+                    large: string | null;
+                    medium: string | null;
+                    thumb: string | null;
+                };
+            }[];
+            verified: boolean;
+            version: number;
+            submitted_at: string | null;
+            published_at: string | null;
+            updated_at: string | null;
+        };
+        /**
+         * ProfileKind
+         * @description A business sells products (LST04); a provider offers services (LST03).
+         * @enum {string}
+         */
+        ProfileKind: "business" | "provider";
         /** PublicListingResource */
         PublicListingResource: {
             id: string;
@@ -496,6 +676,53 @@ export interface components {
             };
             published_at: string | null;
         };
+        /** PublicProfileResource */
+        PublicProfileResource: {
+            id: string;
+            /** @enum {string} */
+            kind: "business" | "provider";
+            /** @description For readable web links (/b/{slug}-{id}); the ID is what identifies it. */
+            slug: string;
+            display_name: string;
+            about: string | null;
+            availability_note: string | null;
+            opening_hours: {
+                [key: string]: {
+                    open: string;
+                    close: string;
+                }[];
+            } | null;
+            service_area_ids: unknown[];
+            years_experience: number | null;
+            rate_note: string | null;
+            logo: {
+                large: string;
+                medium: string;
+                thumb: string;
+            } | null;
+            photos: {
+                id: string;
+                width: number | null;
+                height: number | null;
+                urls: {
+                    large: string;
+                    medium: string;
+                    thumb: string;
+                };
+            }[];
+            category: {
+                id: number;
+                slug: string;
+                name: string;
+            };
+            location: {
+                id: number;
+                name: string;
+            };
+            verified: boolean;
+            member_since: string | null;
+            published_at: string | null;
+        };
         /** RegisterRequest */
         RegisterRequest: {
             name: string;
@@ -520,6 +747,32 @@ export interface components {
             code: string;
             password: string;
         };
+        /**
+         * SaveProfileRequest
+         * @description The whole profile form (PUT). `version` is required once the profile exists.
+         *     Fields of the other kind are accepted and ignored, so one form model works
+         *     for both. Contact details are checked by ContentGuard on submit, not here.
+         */
+        SaveProfileRequest: {
+            version?: number | null;
+            display_name: string;
+            category_id: number;
+            location_id: number;
+            about?: string | null;
+            availability_note?: string | null;
+            /** @description Business: opening hours by day; an empty day is closed. Up to 3 periods a day. */
+            opening_hours?: {
+                open: string;
+                close: string;
+            }[][];
+            /** @description Provider. */
+            service_area_ids?: number[] | null;
+            years_experience?: number | null;
+            rate_note?: string | null;
+            /** @description Images: IDs from POST /uploads. The logo is the profile picture. */
+            logo_id?: string | null;
+            photo_ids?: string[];
+        };
         /** StoreListingRequest */
         StoreListingRequest: {
             client_id?: string | null;
@@ -535,7 +788,7 @@ export interface components {
             availability_note?: string | null;
             /**
              * @description The gallery in display order: IDs from POST /uploads. The per-plan limit
-             *     is a setting, checked by ListingPhotos; 20 only bounds the request.
+             *     is a setting, checked by the Gallery; 20 only bounds the request.
              */
             photo_ids?: string[];
         };
@@ -565,7 +818,7 @@ export interface components {
             availability_note?: string | null;
             /**
              * @description The gallery in display order: IDs from POST /uploads. The per-plan limit
-             *     is a setting, checked by ListingPhotos; 20 only bounds the request.
+             *     is a setting, checked by the Gallery; 20 only bounds the request.
              */
             photo_ids?: string[];
         };
@@ -1193,6 +1446,115 @@ export interface operations {
             422: components["responses"]["ValidationException"];
         };
     };
+    "me.profiles.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `OwnerProfileResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OwnerProfileResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.profiles.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The kind ID */
+                kind: components["schemas"]["ProfileKind"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `OwnerProfileResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OwnerProfileResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "me.profiles.save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveProfileRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.profiles.submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The kind ID */
+                kind: components["schemas"]["ProfileKind"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ListingTransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `OwnerProfileResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OwnerProfileResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "listings.index": {
         parameters: {
             query?: {
@@ -1262,6 +1624,113 @@ export interface operations {
             };
         };
     };
+    "profiles.index": {
+        parameters: {
+            query?: {
+                kind?: components["schemas"]["ProfileKind"] | null;
+                category_id?: number | null;
+                location_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `PublicProfileResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PublicProfileResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description The "cursor" that points to the next set of items. */
+                            next_cursor: string | null;
+                            /** @description The "cursor" that points to the previous set of items. */
+                            prev_cursor: string | null;
+                        };
+                    };
+                };
+            };
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "profiles.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profile: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `PublicProfileResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PublicProfileResource"];
+                    };
+                };
+            };
+        };
+    };
+    "profiles.listings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profile: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `PublicListingResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PublicListingResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description The "cursor" that points to the next set of items. */
+                            next_cursor: string | null;
+                            /** @description The "cursor" that points to the previous set of items. */
+                            prev_cursor: string | null;
+                        };
+                    };
+                };
+            };
+        };
+    };
     "search.listings": {
         parameters: {
             query: {
@@ -1287,6 +1756,57 @@ export interface operations {
                 content: {
                     "application/json": {
                         data: components["schemas"]["PublicListingResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            current_page: number;
+                            from: number | null;
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description Number of the last item in the slice. */
+                            to: number | null;
+                        };
+                        categories: {
+                            id: number;
+                            slug: string;
+                            type: string;
+                            name: string;
+                        }[];
+                    };
+                };
+            };
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "search.profiles": {
+        parameters: {
+            query: {
+                q: string;
+                kind?: components["schemas"]["ProfileKind"] | null;
+                category_id?: number | null;
+                location_id?: number | null;
+                page?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `PublicProfileResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PublicProfileResource"][];
                         links: {
                             first: string | null;
                             last: string | null;

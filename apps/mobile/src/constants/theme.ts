@@ -1,19 +1,20 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://unistyl.es/), etc.
+ * Colours for the themed components, mapped onto the brand tokens (@whyme/tokens).
+ * The app runs in light mode (app.json) until dark tokens are designed.
  */
 
 import '@/global.css';
 
 import { Platform } from 'react-native';
+import { colors } from '@whyme/tokens';
 
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    text: colors.text,
+    background: colors.background,
+    backgroundElement: colors.surface,
+    backgroundSelected: colors.primarySoft,
+    textSecondary: colors.textMuted,
   },
   dark: {
     text: '#ffffff',
