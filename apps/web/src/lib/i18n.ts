@@ -63,3 +63,13 @@ export function applySavedLanguage(): void {
   document.documentElement.lang = code;
   if (i18n.language !== code) void i18n.changeLanguage(code);
 }
+
+/**
+ * Form errors are either our own i18n keys ("seller:titleTooShort") from the
+ * Zod schemas, or sentences the API already translated. Only keys go through
+ * `t`, so a server sentence containing ":" isn't mistaken for a namespace.
+ */
+export function translateFieldError(t: (key: string) => string, message: string | undefined): string | undefined {
+  if (!message) return undefined;
+  return /^[a-z]+:[a-zA-Z_.]+$/.test(message) ? t(message) : message;
+}

@@ -25,5 +25,13 @@
   "too_many_photos": "You can add up to {{limit}} photos here on your plan.",
   "upload_invalid": "One of these photos can no longer be used. Remove it and add it again.",
   "photo_rejected": "One of your photos couldn't be read. Replace it with another photo.",
-  "photos_processing": "Your photos are still being prepared. We will try again shortly."
+  "photos_processing": "Your photos are still being prepared. We will try again shortly.",
+  "sms_unavailable": "We couldn't send the SMS just now. Please try again in a minute.",
+  "email_otp_disabled": "Getting the code by email is switched off at the moment. Use SMS instead.",
+  "email_unavailable": "We couldn't send the email just now. Please try again in a minute.",
+  "email_taken": "This email already belongs to a WHY ME account. Sign in instead.",
+  "phone_unverified": "Confirm your phone number to continue. We will text you a code.",
+  "phone_already_verified": "Your phone number is already confirmed.",
+  "registration_expired": "Your confirmed code has expired. Please ask for a new code.",
+  "in_review": "A moderator is checking this. You can make changes once the review is done."
 }

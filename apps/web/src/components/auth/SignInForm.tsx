@@ -25,7 +25,8 @@ export function SignInForm() {
   const api = useApi();
   const done = useAuthDone();
   const next = useNextParam();
-  const [needsCode, setNeedsCode] = useState(false);
+  // Where the new-device code went: by SMS, or to the email of an account confirmed by email.
+  const [needsCode, setNeedsCode] = useState<{ channel: string; sentTo: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const form = useZodForm(schema, { defaultValues: { phone: '', password: '', code: '' } });
   const { errors, isSubmitting } = form.formState;
@@ -40,7 +41,7 @@ export function SignInForm() {
         }),
       );
       if ('otp_required' in body.data) {
-        setNeedsCode(true);
+        setNeedsCode({ channel: String(body.data.channel), sentTo: body.data.sent_to });
         return;
       }
       done(body.data.user);
@@ -64,7 +65,7 @@ export function SignInForm() {
         </>
       }
     >
-      <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
+      <form method="post" onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
         <FormError message={error} />
         <TextField
           label={t('phone')}
@@ -85,7 +86,7 @@ export function SignInForm() {
         {needsCode ? (
           <TextField
             label={t('code')}
-            hint={t('newDeviceCode')}
+            hint={needsCode.channel === 'email' ? t('newDeviceCodeEmail', { email: needsCode.sentTo }) : t('newDeviceCode')}
             inputMode="numeric"
             autoComplete="one-time-code"
             maxLength={6}

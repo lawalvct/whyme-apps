@@ -20,6 +20,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/auth/otp/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm a sign-up code before asking for name and password. Returns a
+         *     one-time `registration_token` (30 minutes) to send with POST /auth/register
+         */
+        post: operations["auth.otp.verify"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/auth/register": {
         parameters: {
             query?: never;
@@ -277,6 +297,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/phone/code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Text a 6-digit code to the account's phone. 409 `phone_already_verified` when there's nothing to do */
+        post: operations["me.phone.code"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/phone/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm the code. Returns the account with `phone_verified_at` set */
+        post: operations["me.phone.verify"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/listings": {
         parameters: {
             query?: never;
@@ -416,6 +470,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/terms/{type}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["terms.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/uploads": {
         parameters: {
             query?: never;
@@ -496,6 +566,10 @@ export interface components {
             verification_state: "unverified" | "pending" | "verified" | "rejected";
             activated_at: string;
         };
+        /** ConfirmPhoneRequest */
+        ConfirmPhoneRequest: {
+            code: string;
+        };
         /**
          * DevicePlatform
          * @enum {string}
@@ -532,11 +606,6 @@ export interface components {
                 app_version?: string | null;
             };
         };
-        /**
-         * OtpPurpose
-         * @enum {string}
-         */
-        OtpPurpose: "register" | "reset_password" | "new_device";
         /** OwnerListingResource */
         OwnerListingResource: {
             id: string;
@@ -728,10 +797,13 @@ export interface components {
         };
         /** RegisterRequest */
         RegisterRequest: {
-            name: string;
+            first_name: string;
+            last_name: string;
             phone: string;
             password: string;
-            code: string;
+            /** @description The pass from POST /auth/otp/verify (sign-up in steps), or the code itself in one go. */
+            registration_token?: string | null;
+            code?: string | null;
             device: {
                 id: string;
                 platform: components["schemas"]["DevicePlatform"];
@@ -739,10 +811,20 @@ export interface components {
                 app_version?: string | null;
             };
         };
-        /** RequestOtpRequest */
+        /**
+         * RequestOtpRequest
+         * @description `channel: email` (with `email`) sends a sign-up code by email instead of SMS.
+         *     The phone number is still required. Recovery and new-device codes choose
+         *     their channel from the account, so `email` is only for sign-up.
+         */
         RequestOtpRequest: {
             phone: string;
-            purpose: components["schemas"]["OtpPurpose"];
+            /** @enum {string} */
+            purpose: "register" | "reset_password" | "new_device";
+            /** @enum {string|null} */
+            channel?: "sms" | "email" | null;
+            /** Format: email */
+            email?: string;
         };
         /** ResetPasswordRequest */
         ResetPasswordRequest: {
@@ -807,6 +889,16 @@ export interface components {
             /** Format: binary */
             file: string;
         };
+        /** TermsResource */
+        TermsResource: {
+            id: number;
+            type: string;
+            version: string;
+            locale: string;
+            title: string;
+            body: string;
+            published_at: string | null;
+        };
         /** UpdateListingRequest */
         UpdateListingRequest: {
             version: number;
@@ -828,7 +920,8 @@ export interface components {
         /** UpdateProfileRequest */
         UpdateProfileRequest: {
             version: number;
-            name?: string;
+            first_name?: string;
+            last_name?: string;
             /** @enum {string} */
             locale?: "en" | "ig";
         };
@@ -860,6 +953,8 @@ export interface components {
         /** UserResource */
         UserResource: {
             id: string;
+            first_name: string;
+            last_name: string;
             name: string;
             phone: string;
             email: string | null;
@@ -868,8 +963,19 @@ export interface components {
             status: "active" | "suspended";
             version: number;
             phone_verified_at: string | null;
+            email_verified_at: string | null;
             capabilities?: components["schemas"]["CapabilityResource"][];
             created_at: string | null;
+        };
+        /**
+         * VerifyOtpRequest
+         * @description Confirms a sign-up code before the name and password step.
+         */
+        VerifyOtpRequest: {
+            phone: string;
+            /** @enum {string} */
+            purpose: "register";
+            code: string;
         };
     };
     responses: {
@@ -950,6 +1056,36 @@ export interface operations {
             422: components["responses"]["ValidationException"];
         };
     };
+    "auth.otp.verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyOtpRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            registration_token: string;
+                            /** @constant */
+                            expires_in: 1800;
+                        };
+                    };
+                };
+            };
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "auth.register": {
         parameters: {
             query?: never;
@@ -1013,6 +1149,8 @@ export interface operations {
                     "application/json": {
                         data: {
                             otp_required: boolean;
+                            channel: string | ("sms" | "email");
+                            sent_to: string;
                             expires_in: string;
                         };
                     };
@@ -1558,6 +1696,60 @@ export interface operations {
             422: components["responses"]["ValidationException"];
         };
     };
+    "me.phone.code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            sent_to: string;
+                            expires_in: string;
+                            resend_in: string;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.phone.verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfirmPhoneRequest"];
+            };
+        };
+        responses: {
+            /** @description `UserResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["UserResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "listings.index": {
         parameters: {
             query?: {
@@ -1890,6 +2082,30 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    "terms.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                type: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `TermsResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TermsResource"];
+                    };
+                };
             };
         };
     };

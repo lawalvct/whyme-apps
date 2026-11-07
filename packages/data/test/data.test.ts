@@ -5,6 +5,7 @@ import {
   ApiRequestError,
   applyServerErrors,
   createSyncController,
+  ensureOk,
   globalSyncStatus,
   isRetryable,
   unwrap,
@@ -111,6 +112,15 @@ describe('unwrap', () => {
     } catch (e) {
       expect((e as ApiRequestError).code).toBe('unauthenticated');
     }
+  });
+});
+
+describe('ensureOk', () => {
+  it('accepts an empty 204 and throws the API error otherwise', () => {
+    expect(() => ensureOk({ response: new Response(null, { status: 204 }) })).not.toThrow();
+    expect(() =>
+      ensureOk({ error: { code: 'not_found', message: '', retryable: false }, response: new Response(null, { status: 404 }) }),
+    ).toThrowError('not_found');
   });
 });
 

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { queryKeys, useApi } from '@whyme/data';
+import { queryKeys, sellerKeys, useApi } from '@whyme/data';
 import { isSupportedLanguage, languages } from '@whyme/i18n';
 import { buttonClass } from '@/components/ui/button';
 import { routes } from '@/lib/format';
@@ -15,6 +15,7 @@ import { useAccount } from '@/lib/session';
 export function SiteHeader() {
   const { t } = useT('market');
   const { t: tAuth } = useT('auth');
+  const { t: tSeller } = useT('seller');
   const router = useRouter();
   const [query, setQuery] = useState('');
 
@@ -49,7 +50,7 @@ export function SiteHeader() {
 
         <div className="ml-auto flex items-center gap-2">
           <LanguageToggle />
-          <AccountArea signInLabel={tAuth('signIn')} sellLabel={t('sell')} signOutLabel={tAuth('signOut')} />
+          <AccountArea signInLabel={tAuth('signIn')} sellLabel={t('sell')} sellerLabel={tSeller('centre')} signOutLabel={tAuth('signOut')} />
         </div>
       </div>
     </header>
@@ -79,7 +80,17 @@ function LanguageToggle() {
   );
 }
 
-function AccountArea({ signInLabel, sellLabel, signOutLabel }: { signInLabel: string; sellLabel: string; signOutLabel: string }) {
+function AccountArea({
+  signInLabel,
+  sellLabel,
+  sellerLabel,
+  signOutLabel,
+}: {
+  signInLabel: string;
+  sellLabel: string;
+  sellerLabel: string;
+  signOutLabel: string;
+}) {
   const { user, status } = useAccount();
   const api = useApi();
   const queryClient = useQueryClient();
@@ -93,7 +104,7 @@ function AccountArea({ signInLabel, sellLabel, signOutLabel }: { signInLabel: st
         <Link href={routes.signIn()} className={buttonClass('ghost', 'min-h-11 px-3')}>
           {signInLabel}
         </Link>
-        <Link href={routes.signUp()} className={buttonClass('accent', 'hidden min-h-11 px-4 sm:inline-flex')}>
+        <Link href={routes.signUp(routes.sell)} className={buttonClass('accent', 'hidden min-h-11 px-4 sm:inline-flex')}>
           {sellLabel}
         </Link>
       </>
@@ -102,6 +113,13 @@ function AccountArea({ signInLabel, sellLabel, signOutLabel }: { signInLabel: st
 
   async function signOut() {
     await api.POST('/v1/auth/logout');
+    // Leaving the private seller centre: a full load of the home page drops everything
+    // the account had in memory (and beats the seller centre's own sign-in redirect).
+    if (window.location.pathname.startsWith(routes.sell)) {
+      window.location.assign(routes.home);
+      return;
+    }
+    queryClient.removeQueries({ queryKey: sellerKeys.all });
     queryClient.setQueryData(queryKeys.me, null);
     await queryClient.invalidateQueries({ queryKey: queryKeys.me });
     router.refresh();
@@ -109,7 +127,10 @@ function AccountArea({ signInLabel, sellLabel, signOutLabel }: { signInLabel: st
 
   return (
     <div className="flex items-center gap-2">
-      <span className="hidden max-w-40 truncate text-sm font-medium text-text sm:inline">{user.name}</span>
+      <Link href={routes.sell} className={buttonClass('ghost', 'min-h-11 px-3 text-sm')}>
+        {sellerLabel}
+      </Link>
+      <span className="hidden max-w-32 truncate text-sm font-medium text-text lg:inline">{user.first_name}</span>
       <button type="button" onClick={() => void signOut()} className={buttonClass('secondary', 'min-h-11 px-3 text-sm')}>
         {signOutLabel}
       </button>

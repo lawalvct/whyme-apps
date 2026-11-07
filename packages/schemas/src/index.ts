@@ -27,10 +27,12 @@ export const otpSchema = z.string().trim().regex(/^\d{6}$/, { message: 'errors:o
 
 export const passwordSchema = z.string().min(8, { message: 'errors:validation_failed' }).max(128);
 
-export const nameSchema = z.string().trim().min(2).max(120);
+/** First or last name. Kept apart so the apps greet people by first name (matches the API's NameRules). */
+export const personNameSchema = z.string().trim().min(1, { message: 'auth:nameRequired' }).max(60);
 
 export const registerSchema = z.object({
-  name: nameSchema,
+  first_name: personNameSchema,
+  last_name: personNameSchema,
   phone: phoneSchema,
   password: passwordSchema,
 });

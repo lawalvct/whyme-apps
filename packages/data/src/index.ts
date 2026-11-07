@@ -1,4 +1,4 @@
-export { ApiProvider, ApiRequestError, unwrap, useApi, type ApiClient } from './api';
+export { ApiProvider, ApiRequestError, ensureOk, unwrap, useApi, type ApiClient } from './api';
 export { createQueryClient, isRetryable } from './query-client';
 export {
   categoryLabel,
@@ -23,5 +23,22 @@ export {
   type SyncController,
   type SyncStatusState,
 } from './stores/sync-status';
+export {
+  listingCapability,
+  profileCapability,
+  sellerKeys,
+  useMyListing,
+  useMyProfile,
+  useMyProfiles,
+  useTerms,
+  type ListingKind,
+  type ListingStatus,
+  type OwnerListing,
+  type OwnerPhoto,
+  type OwnerProfile,
+  type ProfileKind,
+  type Terms,
+  type Upload,
+} from './seller';
 export { sessionStore, signedIn, signedOut, useSession, type SessionState } from './stores/session';
 export { applyServerErrors, useZodForm } from './forms';

@@ -40,6 +40,12 @@ export function unwrap<T>(result: { data?: T; error?: unknown; response: Respons
   throw new ApiRequestError(result.response.status, isApiError(result.error) ? result.error : null);
 }
 
+/** For calls that answer 204 No Content (e.g. DELETE): throws ApiRequestError unless it succeeded. */
+export function ensureOk(result: { error?: unknown; response: Response }): void {
+  if (result.response.ok) return;
+  throw new ApiRequestError(result.response.status, isApiError(result.error) ? result.error : null);
+}
+
 function isApiError(value: unknown): value is ApiError {
   return typeof value === 'object' && value !== null && 'code' in value && typeof value.code === 'string';
 }
