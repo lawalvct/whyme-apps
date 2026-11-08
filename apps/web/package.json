@@ -23,6 +23,7 @@
     "i18next": "^25",
     "next": "16.4.5",
     "nuqs": "^2.10.2",
+    "pusher-js": "8.4.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-hook-form": "^7.91.0",

@@ -11,6 +11,8 @@ import { cn } from '@/components/ui/cn';
 import { Skeleton } from '@/components/ui/skeleton';
 import { routes } from '@/lib/format';
 import { useLanguage, useT } from '@/lib/i18n';
+import { useRealtimeConnected, useUserEvents } from '@/lib/realtime';
+import { useAccount } from '@/lib/session';
 import { bubbleTime } from './time';
 
 const MAX_LENGTH = 2000;
@@ -36,11 +38,24 @@ export function ConversationView({ id }: { id: string }) {
     queryFn: async () => unwrap(await api.GET('/v1/conversations/{conversation}', { params: { path: { conversation: id } } })).data as unknown as Conversation,
   });
 
+  // Live: Pusher says when a message arrives. Without it (or while reconnecting), check every 5 seconds.
+  const { user } = useAccount();
+  const live = useRealtimeConnected();
+  useUserEvents(user?.id, {
+    'message.delivered': (data) => {
+      if ((data as { conversation_id?: string }).conversation_id === id) {
+        void queryClient.invalidateQueries({ queryKey: chatKeys.messages(id) });
+      }
+      void queryClient.invalidateQueries({ queryKey: chatKeys.inbox });
+      void queryClient.invalidateQueries({ queryKey: chatKeys.unread });
+    },
+  });
+
   const messages = useInfiniteQuery({
     queryKey: chatKeys.messages(id),
     initialPageParam: null as string | null,
     getNextPageParam: (last: MessagePage) => last.next_before,
-    refetchInterval: 5_000,
+    refetchInterval: live ? 60_000 : 5_000,
     queryFn: async ({ pageParam }): Promise<MessagePage> => {
       // `before` isn't in the generated query types.
       const query = (pageParam ? { before: pageParam } : {}) as never;

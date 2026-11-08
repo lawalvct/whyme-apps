@@ -1,12 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { chatKeys, unwrap, useApi, type Conversation } from '@whyme/data';
 import { cn } from '@/components/ui/cn';
 import { Skeleton } from '@/components/ui/skeleton';
 import { routes } from '@/lib/format';
 import { useLanguage, useT } from '@/lib/i18n';
+import { useRealtimeConnected, useUserEvents } from '@/lib/realtime';
+import { useAccount } from '@/lib/session';
 import { chatTime } from './time';
 
 /**
@@ -16,10 +18,21 @@ import { chatTime } from './time';
 export function Inbox() {
   const { t } = useT('chat');
   const api = useApi();
+  const queryClient = useQueryClient();
+  const { user } = useAccount();
+  const live = useRealtimeConnected();
+  useUserEvents(user?.id, {
+    'message.delivered': () => {
+      void queryClient.invalidateQueries({ queryKey: chatKeys.inbox });
+      void queryClient.invalidateQueries({ queryKey: chatKeys.unread });
+    },
+  });
+
   const inbox = useQuery({
     queryKey: chatKeys.inbox,
     queryFn: async () => unwrap(await api.GET('/v1/me/conversations')).data as unknown as Conversation[],
-    refetchInterval: 15_000,
+    // Live updates refresh it at once; the slow check is only a safety net.
+    refetchInterval: live ? 120_000 : 15_000,
   });
 
   return (
