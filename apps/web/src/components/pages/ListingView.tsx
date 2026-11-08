@@ -54,7 +54,7 @@ export function ListingView({ listing }: { listing: PublicListing }) {
           </p>
         ) : null}
 
-        <ContactActions kind={isProduct ? 'product' : 'service'} />
+        <ContactActions kind={isProduct ? 'product' : 'service'} subject={{ type: 'listing', id: listing.id }} ownerId={listing.seller.id} />
         <p className="text-sm text-text-muted">{t('protectedPayment')}</p>
 
         <section className="rounded-xl border border-border p-4">

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { queryKeys, sellerKeys, useApi } from '@whyme/data';
+import { chatKeys, queryKeys, sellerKeys, useApi, useUnreadMessages } from '@whyme/data';
 import { isSupportedLanguage, languages } from '@whyme/i18n';
 import { buttonClass } from '@/components/ui/button';
 import { routes } from '@/lib/format';
@@ -113,13 +113,14 @@ function AccountArea({
 
   async function signOut() {
     await api.POST('/v1/auth/logout');
-    // Leaving the private seller centre: a full load of the home page drops everything
-    // the account had in memory (and beats the seller centre's own sign-in redirect).
-    if (window.location.pathname.startsWith(routes.sell)) {
+    // Leaving a private page (seller centre, messages): a full load of the home page drops
+    // everything the account had in memory (and beats those pages' own sign-in redirect).
+    if ([routes.sell, routes.messages].some((path) => window.location.pathname.startsWith(path))) {
       window.location.assign(routes.home);
       return;
     }
     queryClient.removeQueries({ queryKey: sellerKeys.all });
+    queryClient.removeQueries({ queryKey: chatKeys.all });
     queryClient.setQueryData(queryKeys.me, null);
     await queryClient.invalidateQueries({ queryKey: queryKeys.me });
     router.refresh();
@@ -127,6 +128,7 @@ function AccountArea({
 
   return (
     <div className="flex items-center gap-2">
+      <MessagesLink enabled={Boolean(user.phone_verified_at)} />
       <Link href={routes.sell} className={buttonClass('ghost', 'min-h-11 px-3 text-sm')}>
         {sellerLabel}
       </Link>
@@ -135,5 +137,29 @@ function AccountArea({
         {signOutLabel}
       </button>
     </div>
+  );
+}
+
+/** Messages, with the unread count (checked every 30 seconds; chat needs a confirmed phone). */
+function MessagesLink({ enabled }: { enabled: boolean }) {
+  const { t } = useT('chat');
+  const unread = useUnreadMessages(enabled).data ?? 0;
+
+  return (
+    <Link
+      href={routes.messages}
+      aria-label={unread > 0 ? t('messagesUnread', { count: unread }) : t('messages')}
+      className={buttonClass('ghost', 'relative min-h-11 px-3 text-sm')}
+    >
+      <svg aria-hidden viewBox="0 0 24 24" className="size-5 fill-none stroke-current" strokeWidth={1.8} strokeLinejoin="round">
+        <path d="M4 5h16v11H9l-5 4V5z" />
+      </svg>
+      <span className="hidden md:inline">{t('messages')}</span>
+      {unread > 0 ? (
+        <span className="absolute top-1 right-1 min-w-5 rounded-full bg-accent px-1.5 text-center text-xs font-bold text-text">
+          {unread > 99 ? '99+' : unread}
+        </span>
+      ) : null}
+    </Link>
   );
 }

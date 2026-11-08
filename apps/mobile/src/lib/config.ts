@@ -1,12 +1,12 @@
 import { useEffect } from 'react';
-import Storage from 'expo-sqlite/kv-store';
+import { deviceStorage } from './device-storage';
 import { useConfig, type AppConfig } from '@whyme/data';
 
 const STORAGE_KEY = 'whyme.config';
 
 function savedConfig(): AppConfig | undefined {
   try {
-    const value = Storage.getItemSync(STORAGE_KEY);
+    const value = deviceStorage.getItem(STORAGE_KEY);
     return value ? (JSON.parse(value) as AppConfig) : undefined;
   } catch {
     return undefined;
@@ -22,7 +22,7 @@ export function useAppConfig() {
 
   useEffect(() => {
     if (query.isFetchedAfterMount && query.data) {
-      Storage.setItemSync(STORAGE_KEY, JSON.stringify(query.data));
+      deviceStorage.setItem(STORAGE_KEY, JSON.stringify(query.data));
     }
   }, [query.isFetchedAfterMount, query.data]);
 

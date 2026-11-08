@@ -1,20 +1,22 @@
 import Constants from 'expo-constants';
-import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { createApiClient } from '@whyme/api-client';
 import { i18n } from './i18n';
+import { getToken } from './token-store';
+
+export { TOKEN_KEY } from './token-store';
 
 /**
- * Laravel API base, without the version (paths are /v1/…). Android emulators reach
- * the host machine's localhost at 10.0.2.2; a real phone needs your PC's LAN IP.
+ * Laravel API base, without the version (paths are /v1/…). Set EXPO_PUBLIC_API_URL
+ * in apps/mobile/.env. Without it: the web preview uses localhost, and Android
+ * emulators reach the host machine's localhost at 10.0.2.2. A real phone needs
+ * your PC's LAN IP.
  */
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://10.0.2.2:8000/api';
-
-/** The API token lives in the OS keychain/keystore, never in SQLite or Zustand (ACC03). */
-export const TOKEN_KEY = 'whyme.api_token';
+export const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL ?? (Platform.OS === 'web' ? 'http://localhost:8000/api' : 'http://10.0.2.2:8000/api');
 
 export async function appHeaders(): Promise<Record<string, string>> {
-  const token = await SecureStore.getItemAsync(TOKEN_KEY);
+  const token = await getToken();
   return {
     'Accept-Language': i18n.language,
     'X-Platform': Platform.OS,

@@ -45,6 +45,8 @@ export const routes = {
   listing: (listing: { id: string; title: string }) => `/listings/${listing.id}/${slugify(listing.title)}`,
   profile: (profile: { id: string; slug?: string; display_name?: string }) =>
     `/p/${profile.id}/${profile.slug ?? slugify(profile.display_name ?? '')}`,
+  messages: '/messages',
+  conversation: (id: string) => `/messages/${id}`,
   sell: '/sell',
   sellProfile: (kind: 'business' | 'provider') => `/sell/profile/${kind}`,
   sellListings: (status?: string) => (status ? `/sell/listings?status=${status}` : '/sell/listings'),

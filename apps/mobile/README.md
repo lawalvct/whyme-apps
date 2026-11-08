@@ -2,6 +2,29 @@
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
+## Testing WHY ME screens
+
+**In a browser, at phone size (quickest, and what Claude uses).** Start the API, then:
+
+```bash
+pnpm exec expo start --port 8081
+```
+
+Open http://localhost:8081 and set the browser to a phone size (375×812). In Claude Code's browser
+pane this is the `mobile-web` server in `.claude/launch.json`. Details:
+
+- The API is called at `http://localhost:8000/api` unless `EXPO_PUBLIC_API_URL` is set, and the API's
+  `CORS_ALLOWED_ORIGINS` includes `http://localhost:8081`.
+- `metro.config.js` makes the page cross-origin isolated, which expo-sqlite needs in a browser.
+- Web-only stand-ins (`*.web.ts`): the sign-in token lives in sessionStorage
+  (`src/lib/token-store.web.ts`) and small settings in localStorage (`src/lib/device-storage.web.ts`).
+- What the browser can't show: camera and photo picker as on a phone, push notifications, the
+  Android back button, keyboard behaviour, and the real keychain. Check those on a phone.
+
+**On a real phone without a cable.** Install Expo Go, run `pnpm exec expo start`, and scan the QR code
+(same Wi-Fi as the PC, or add `--tunnel`). Set `EXPO_PUBLIC_API_URL` in `.env` to your PC's LAN address,
+e.g. `http://192.168.1.20:8000/api`, and start the API with `php artisan serve --host=0.0.0.0`.
+
 ## Get started
 
 1. Install dependencies

@@ -9,6 +9,7 @@ import enSync from '../locales/en/sync.json';
 import enErrors from '../locales/en/errors.json';
 import enMarket from '../locales/en/market.json';
 import enSeller from '../locales/en/seller.json';
+import enChat from '../locales/en/chat.json';
 import igCommon from '../locales/ig/common.json';
 import igAuth from '../locales/ig/auth.json';
 import igSettings from '../locales/ig/settings.json';
@@ -16,6 +17,7 @@ import igSync from '../locales/ig/sync.json';
 import igErrors from '../locales/ig/errors.json';
 import igMarket from '../locales/ig/market.json';
 import igSeller from '../locales/ig/seller.json';
+import igChat from '../locales/ig/chat.json';
 
 export const defaultLanguage = 'en' as const;
 
@@ -28,12 +30,12 @@ export const languages = [
 
 export type LanguageCode = (typeof languages)[number]['code'];
 
-export const namespaces = ['common', 'auth', 'settings', 'sync', 'errors', 'market', 'seller'] as const;
+export const namespaces = ['common', 'auth', 'settings', 'sync', 'errors', 'market', 'seller', 'chat'] as const;
 export type Namespace = (typeof namespaces)[number];
 
 export const resources = {
-  en: { common: enCommon, auth: enAuth, settings: enSettings, sync: enSync, errors: enErrors, market: enMarket, seller: enSeller },
-  ig: { common: igCommon, auth: igAuth, settings: igSettings, sync: igSync, errors: igErrors, market: igMarket, seller: igSeller },
+  en: { common: enCommon, auth: enAuth, settings: enSettings, sync: enSync, errors: enErrors, market: enMarket, seller: enSeller, chat: enChat },
+  ig: { common: igCommon, auth: igAuth, settings: igSettings, sync: igSync, errors: igErrors, market: igMarket, seller: igSeller, chat: igChat },
 } as const;
 
 export function isSupportedLanguage(code: string | null | undefined): code is LanguageCode {

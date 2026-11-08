@@ -40,5 +40,13 @@ export {
   type Terms,
   type Upload,
 } from './seller';
+export {
+  chatKeys,
+  useUnreadMessages,
+  type ChatMessage,
+  type Conversation,
+  type ConversationSubject,
+  type MessagePage,
+} from './chat';
 export { sessionStore, signedIn, signedOut, useSession, type SessionState } from './stores/session';
 export { applyServerErrors, useZodForm } from './forms';

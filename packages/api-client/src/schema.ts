@@ -104,6 +104,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/broadcasting/auth": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Authenticate the request for channel access */
+        get: operations["broadcast.authenticate"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/config": {
         parameters: {
             query?: never;
@@ -114,6 +131,111 @@ export interface paths {
         get: operations["platform.config"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The inbox, newest first */
+        get: operations["me.conversations.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/conversations/unread": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Unread messages across all conversations, for the badge in the header */
+        get: operations["me.conversations.unread"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** "Message seller": opens the conversation about a listing or page, or the one already open */
+        post: operations["conversations.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/conversations/{conversation}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["conversations.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/conversations/{conversation}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Messages newest first, 30 at a time. Pass `before` (a message ID) for older ones */
+        get: operations["conversations.messages"];
+        put?: never;
+        /**
+         * Send a message. `data.status` is `sent`, or `held` when a moderator must look first.
+         *     Clear contact or payment details are refused (422 `content_blocked`)
+         */
+        post: operations["conversations.send"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/conversations/{conversation}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Everything delivered so far counts as read */
+        post: operations["conversations.read"];
         delete?: never;
         options?: never;
         head?: never;
@@ -570,6 +692,51 @@ export interface components {
         ConfirmPhoneRequest: {
             code: string;
         };
+        /** ConversationResource */
+        ConversationResource: {
+            id: string;
+            /** @enum {string} */
+            role: "buyer" | "seller";
+            /** @description Typed by hand in @whyme/data (Conversation): the spec generator infers it loosely. */
+            subject: {
+                type: string;
+                id: string;
+                kind: null;
+                /** @constant */
+                title: "";
+                price_kobo: null;
+                thumb: null;
+                available: boolean;
+            } | {
+                /** @constant */
+                type: "profile";
+                id: string;
+                kind: string;
+                title: string;
+                price_kobo: null;
+                thumb: string | null;
+                available: string;
+            } | {
+                /** @constant */
+                type: "listing";
+                id: string;
+                kind: string;
+                title: string;
+                price_kobo: string;
+                thumb: string | null;
+                available: string;
+            };
+            other_party: {
+                name: string;
+            };
+            last_message: {
+                body: string;
+                mine: boolean;
+                at: string | null;
+            } | null;
+            unread_count: number;
+            created_at: string | null;
+        };
         /**
          * DevicePlatform
          * @enum {string}
@@ -605,6 +772,18 @@ export interface components {
                 name?: string | null;
                 app_version?: string | null;
             };
+        };
+        /** MessageResource */
+        MessageResource: {
+            id: string;
+            client_id: string | null;
+            conversation_id: string;
+            body: string;
+            mine: boolean;
+            /** @enum {string} */
+            status: "sent" | "held" | "rejected";
+            rejection_reason: string | null;
+            created_at: string;
         };
         /** OwnerListingResource */
         OwnerListingResource: {
@@ -857,6 +1036,21 @@ export interface components {
             /** @description Images: IDs from POST /uploads. The logo is the profile picture. */
             logo_id?: string | null;
             photo_ids?: string[];
+        };
+        /** SendMessageRequest */
+        SendMessageRequest: {
+            /** @description Created on the device when the person taps Send; a resend returns the same message. */
+            client_id?: string | null;
+            body: string;
+        };
+        /** StartConversationRequest */
+        StartConversationRequest: {
+            /**
+             * @description What it's about: a listing, or a business/provider page.
+             * @enum {string}
+             */
+            subject_type: "listing" | "profile";
+            subject_id: string;
         };
         /** StoreListingRequest */
         StoreListingRequest: {
@@ -1206,6 +1400,26 @@ export interface operations {
             401: components["responses"]["AuthenticationException"];
         };
     };
+    "broadcast.authenticate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
     "platform.config": {
         parameters: {
             query?: never;
@@ -1240,6 +1454,201 @@ export interface operations {
                     };
                 };
             };
+        };
+    };
+    "me.conversations.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `ConversationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ConversationResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            current_page: number;
+                            from: number | null;
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description Number of the last item in the slice. */
+                            to: number | null;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.conversations.unread": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            count: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "conversations.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StartConversationRequest"];
+            };
+        };
+        responses: {
+            /** @description `ConversationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ConversationResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "conversations.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `ConversationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ConversationResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "conversations.messages": {
+        parameters: {
+            query?: {
+                before?: string | null;
+            };
+            header?: never;
+            path: {
+                conversation: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: unknown[];
+                        next_before: unknown;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "conversations.send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description `MessageResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MessageResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "conversations.read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["AuthenticationException"];
         };
     };
     "platform.health": {

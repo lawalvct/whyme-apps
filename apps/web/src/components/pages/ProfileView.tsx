@@ -47,7 +47,7 @@ export function ProfileView({ profile, listings }: { profile: PublicProfile; lis
         </div>
 
         <aside className="flex flex-col gap-5">
-          <ContactActions kind={isProvider ? 'provider' : 'business'} />
+          <ContactActions kind={isProvider ? 'provider' : 'business'} subject={{ type: 'profile', id: profile.id }} />
           <dl className="flex flex-col gap-3 rounded-xl border border-border p-4 text-sm">
             {profile.years_experience ? <p className="font-semibold">{t('experience', { count: profile.years_experience })}</p> : null}
             {profile.rate_note ? <Detail label={t('rates')} value={profile.rate_note} /> : null}
