@@ -20,10 +20,17 @@ const slides = [
   { id: 'christmas', badge: 'christmasHeroBadge', title: 'christmasHeroTitle', accent: 'christmasHeroAccent', description: 'christmasHeroDescription', action: 'exploreChristmas', href: routes.search({ q: 'Christmas' }), note: 'christmasCommunityNote', subnote: 'christmasCommunitySubnote', sticker: 'christmasSticker', cardLabel: 'christmasCardLabel', cardTitle: 'christmasCardTitle', caption: 'christmasCaption' },
 ] as const;
 
+const slidePhotos = {
+  local: { src: '/images/marketplace-shopper.jpg', alt: 'shopperPhotoAlt' },
+  igbo: { src: '/images/igbo-market-man.png', alt: 'igboMarketPhotoAlt' },
+  christmas: { src: '/images/christmas-santa-gifts.png', alt: 'christmasSantaPhotoAlt' },
+} as const;
+
 export function HomeHero() {
   const { t } = useT('market');
   const rotation = useRotatingContent(slides.length, 8000);
   const slide = slides[rotation.index];
+  const photo = slidePhotos[slide.id];
 
   return (
     <section className={styles.section} aria-label={t('marketplaceHighlights')} aria-roledescription="carousel">
@@ -49,18 +56,9 @@ export function HomeHero() {
 
           <div className={styles.visual}>
             <div className={styles.orbit} aria-hidden="true" />
-            {slide.id === 'christmas' ? (
-              <div className={styles.christmasArt} aria-hidden="true">
-                <div className={styles.offerSeal}><small>{t('christmasSealLabel')}</small><strong>20<span>%</span></strong><span>{t('christmasSealOffer')}</span></div>
-                <div className={`${styles.giftBox} ${styles.giftOne}`}><Icon name="gift" /></div>
-                <div className={`${styles.giftBox} ${styles.giftTwo}`}><Icon name="gift" /></div>
-                <div className={`${styles.giftBox} ${styles.giftThree}`}><Icon name="gift" /></div>
-              </div>
-            ) : (
-              <div className={styles.photo}>
-                <Image src={slide.id === 'igbo' ? '/images/igbo-market-man.png' : '/images/marketplace-shopper.jpg'} alt={t(slide.id === 'igbo' ? 'igboMarketPhotoAlt' : 'shopperPhotoAlt')} fill sizes="(max-width: 640px) 250px, (max-width: 950px) 280px, 360px" preload />
-              </div>
-            )}
+            <div className={styles.photo}>
+              <Image src={photo.src} alt={t(photo.alt)} fill sizes="(max-width: 640px) 250px, (max-width: 950px) 280px, 360px" preload />
+            </div>
             <span className={styles.sparkleTop} aria-hidden="true"><Icon name="sparkle" /></span>
             <span className={styles.sparkleBottom} aria-hidden="true"><Icon name="sparkle" /></span>
             <div className={styles.loveNote}><span><Icon name={slide.id === 'christmas' ? 'gift' : 'heart'} /></span>{t(slide.sticker)}</div>

@@ -71,7 +71,16 @@ export function SiteHeader() {
 
       <div className={styles.navBar}>
         <nav className={`${styles.container} ${styles.navigation}`} aria-label={t('mainNavigation')}>
-          <details className={styles.categories} onClick={(event) => { if (event.target instanceof Element && event.target.closest('a')) event.currentTarget.open = false; }}>
+          <details
+            className={styles.categories}
+            onClick={(event) => { if (event.target instanceof Element && event.target.closest('a')) event.currentTarget.open = false; }}
+            onMouseLeave={(event) => { event.currentTarget.open = false; }}
+            onBlur={(event) => {
+              if (!(event.relatedTarget instanceof Node) || !event.currentTarget.contains(event.relatedTarget)) {
+                event.currentTarget.open = false;
+              }
+            }}
+          >
             <summary aria-label={t('allCategories')}><Icon name="grid" /><span>{t('allCategories')}</span><Icon name="chevron" /></summary>
             <div className={styles.categoryMenu}>
               <Link href={routes.search({ kind: 'product' })}><Icon name="bag" />{t('products')}</Link>

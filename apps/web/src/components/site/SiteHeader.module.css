@@ -50,7 +50,7 @@
 .categories summary { height: 46px; display: flex; align-items: center; gap: 11px; padding-right: 26px; border-right: 1px solid #e8eee7; color: #285b38; font-size: 12px; font-weight: 650; cursor: pointer; list-style: none; }
 .categories summary::-webkit-details-marker { display: none; }
 .categories summary > svg:last-child { margin-left: 20px; width: 15px; }
-.categoryMenu { position: absolute; top: calc(100% + 9px); left: 0; min-width: 240px; padding: 9px; border: 1px solid #e7ece4; border-radius: 13px; background: white; box-shadow: 0 15px 45px #183d2020; }
+.categoryMenu { position: absolute; top: 100%; left: 0; min-width: 240px; padding: 9px; border: 1px solid #e7ece4; border-radius: 13px; background: white; box-shadow: 0 15px 45px #183d2020; }
 .categoryMenu a { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 7px; font-size: 13px; color: #345c40; }
 .categoryMenu a:hover { background: #edf6ec; }
 .navLinks { display: flex; align-self: stretch; gap: 30px; }

@@ -1,23 +1,67 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
+import { MarketplaceIcon as Icon } from '@/components/ui/MarketplaceIcon';
+import { routes } from '@/lib/format';
 import { useT } from '@/lib/i18n';
+import styles from './SiteFooter.module.css';
 
 export function SiteFooter() {
   const { t } = useT('market');
   return (
-    <footer className="mt-16 border-t border-border bg-surface">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-10 md:flex-row md:justify-between">
-        <div className="max-w-sm">
-          <Image src="/brand/whyme-logo-full.png" alt="WHY ME" width={120} height={28} />
-          <p className="mt-3 text-sm text-text-muted">{t('footerTagline')}</p>
+    <footer className={styles.footer}>
+      <div className={styles.container}>
+        <div className={styles.main}>
+          <div className={styles.brand}>
+            <Link href={routes.home} aria-label="WHY ME"><Image src="/brand/whyme-logo-full.png" alt="WHY ME" width={158} height={37} /></Link>
+            <span className={styles.tagline}>{t('brandTagline')}</span>
+            <p>{t('footerBrandDescription')}</p>
+            <span className={styles.location}><Icon name="pin" />{t('deltaNigeria')}</span>
+          </div>
+
+          <nav className={styles.linkColumn} aria-labelledby="footer-explore-title">
+            <h2 id="footer-explore-title">{t('footerExplore')}</h2>
+            <ul>
+              <li><Link href={routes.search({ kind: 'product' })}>{t('shopProducts')}</Link></li>
+              <li><Link href={routes.search({ kind: 'service' })}>{t('footerBrowseServices')}</Link></li>
+              <li><Link href={routes.search({ type: 'people', kind: 'business' })}>{t('footerLocalBusinesses')}</Link></li>
+              <li><Link href={routes.search({ type: 'people', kind: 'provider' })}>{t('footerFindExperts')}</Link></li>
+            </ul>
+          </nav>
+
+          <nav className={styles.linkColumn} aria-labelledby="footer-account-title">
+            <h2 id="footer-account-title">{t('footerYourMarketplace')}</h2>
+            <ul>
+              <li><Link href={routes.sell}>{t('startSelling')}</Link></li>
+              <li><Link href={routes.signUp(routes.sell)}>{t('footerCreateAccount')}</Link></li>
+              <li><Link href={routes.orders()}>{t('footerOrders')}</Link></li>
+              <li><Link href={routes.messages}>{t('footerMessages')}</Link></li>
+            </ul>
+          </nav>
+
+          <div className={styles.community}>
+            <h2>{t('footerStayConnected')}</h2>
+            <p>{t('footerSocialDescription')}</p>
+            <div className={styles.socialLinks}>
+              <a href="https://www.facebook.com/whyme" target="_blank" rel="noopener noreferrer" aria-label="WHY ME on Facebook"><Icon name="facebook" /><span>Facebook</span><Icon name="arrow" /></a>
+              <a href="https://x.com/whyme" target="_blank" rel="noopener noreferrer" aria-label="WHY ME on X"><Icon name="x" /><span>@whyme</span><Icon name="arrow" /></a>
+            </div>
+          </div>
         </div>
-        <div id="marketplace-safety" className="max-w-sm scroll-mt-6 text-sm text-text">
-          <p className="font-semibold">{t('safetyTitle')}</p>
-          <p className="mt-1 text-text-muted">{t('safetyBody')}</p>
+
+        <section id="marketplace-safety" className={styles.safety} aria-labelledby="footer-safety-title">
+          <span className={styles.safetyIcon}><Icon name="shield" /></span>
+          <div className={styles.safetyCopy}><h2 id="footer-safety-title">{t('footerSafetyHeading')}</h2><p>{t('safetyBody')}</p></div>
+          <span className={styles.safetyNote}><Icon name="check" />{t('footerSafetyNote')}</span>
+        </section>
+
+        <div className={styles.bottom}>
+          <p>{t('footerCopyright')}</p>
+          <span className={styles.madeForDelta}><Icon name="heart" />{t('madeForDelta')}</span>
+          <button type="button" className={styles.backToTop} onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}>{t('footerBackToTop')}<span><Icon name="arrow" /></span></button>
         </div>
       </div>
-      <p className="border-t border-border py-4 text-center text-xs text-text-muted">© WHY ME · Delta State, Nigeria</p>
     </footer>
   );
 }

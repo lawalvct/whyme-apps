@@ -11,3 +11,10 @@
 - Created using the built-in image generation tool for the Igbo-market slide.
 - Subject: an Igbo man in Isi Agu attire and a red cap, with yam, cocoyam, ugu leaves, abacha and palm oil.
 - Full generation prompt: [igbo-market-man.prompt.md](igbo-market-man.prompt.md).
+
+## Christmas slide
+
+- Asset: `christmas-santa-gifts.png`.
+- Created with the built-in image generation tool, then edited with the same tool to partially open two gifts.
+- Subject: Santa holding a gold gift with a teddy bear peeking out, with wrapped presents and an open red gift containing knitwear.
+- Full generation and edit prompts: [christmas-santa-gifts.prompt.md](christmas-santa-gifts.prompt.md).

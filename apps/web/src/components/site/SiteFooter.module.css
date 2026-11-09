@@ -1,0 +1,88 @@
+.footer { margin-top: 16px; border-top: 1px solid #e2e8d9; background: #f1f4ea; color: #34533b; }
+.container { width: min(100%, 1344px); padding-inline: 32px; margin-inline: auto; }
+.main { display: grid; grid-template-columns: 1.4fr .85fr .95fr 1fr; gap: 48px; padding-block: 37px 30px; }
+.brand > a { display: inline-block; }
+.brand img { width: 158px; height: auto; }
+.tagline { display: block; margin-top: 8px; color: #83916f; text-transform: uppercase; letter-spacing: 2px; font-size: 8px; }
+.brand > p { max-width: 260px; margin-top: 16px; color: #78866c; font-size: 12px; line-height: 1.85; }
+.location { display: inline-flex; align-items: center; gap: 6px; margin-top: 15px; color: #56744c; font-size: 10px; }
+.location > svg { width: 14px; height: 14px; color: #618652; }
+.main h2 { margin: 4px 0 15px; color: #2d4c34; font-size: 13px; font-weight: 650; letter-spacing: -.2px; }
+.linkColumn ul { list-style: none; padding: 0; margin: 0; }
+.linkColumn a { display: inline-flex; align-items: center; min-height: 35px; color: #78866c; font-size: 11px; line-height: 1.6; }
+.linkColumn a:hover { color: #027f45; text-decoration: underline; text-underline-offset: 4px; }
+.community > p { max-width: 220px; margin: 0 0 12px; color: #78866c; font-size: 11px; line-height: 1.85; }
+.socialLinks { display: flex; flex-direction: column; gap: 7px; max-width: 190px; }
+.socialLinks a { display: flex; align-items: center; gap: 10px; min-height: 38px; padding: 7px 11px; border: 1px solid #dce5d0; border-radius: 7px; color: #547346; font-size: 10px; transition: background 160ms, border-color 160ms; }
+.socialLinks a > svg:first-child { width: 13px; height: 13px; flex-shrink: 0; }
+.socialLinks a > svg:last-child { margin-left: auto; width: 13px; height: 13px; transform: rotate(-40deg); color: #8a9b78; }
+.socialLinks a:hover { background: #e8eedd; border-color: #b4c99e; }
+.safety { position: relative; isolation: isolate; display: flex; align-items: center; gap: 15px; padding: 21px 24px; overflow: hidden; border: 1px solid #2f5d3b; border-radius: 12px; background: #254e34; color: #faf9e9; scroll-margin-top: 18px; }
+.safety::after { content: ''; z-index: -1; position: absolute; width: 210px; height: 210px; right: -45px; top: -100px; border: 35px solid #e8d58c08; border-radius: 50%; pointer-events: none; }
+.safetyIcon { display: grid; place-items: center; width: 43px; height: 43px; flex-shrink: 0; border: 1px solid #d6d9a52e; border-radius: 50%; background: #f3d4780b; color: #e6cb7c; }
+.safetyIcon svg { width: 23px; height: 23px; stroke-width: 1.4; }
+.safetyCopy { flex: 1; }
+.safetyCopy h2 { margin: 0 0 6px; font-size: 13px; font-weight: 600; letter-spacing: -.1px; }
+.safetyCopy p { max-width: 690px; margin: 0; color: #bacbb0; font-size: 11px; line-height: 1.8; }
+.safetyNote { display: inline-flex; align-items: center; gap: 6px; margin-left: 20px; flex-shrink: 0; color: #e5cf8d; font-size: 10px; }
+.safetyNote > svg { width: 14px; height: 14px; }
+.bottom { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-block: 18px; color: #879578; font-size: 9px; }
+.bottom p { margin: 0; }
+.madeForDelta { display: inline-flex; align-items: center; gap: 6px; }
+.madeForDelta svg { width: 12px; height: 12px; color: #a7955d; }
+.backToTop { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 38px; color: #59764d; font-size: 10px; cursor: pointer; }
+.backToTop > span { display: grid; place-items: center; width: 29px; height: 29px; border: 1px solid #d5dfc9; border-radius: 50%; transition: background 160ms; }
+.backToTop svg { width: 14px; height: 14px; transform: rotate(-90deg); }
+.backToTop:hover > span { background: #e4ecd9; }
+.footer a:focus-visible, .footer button:focus-visible { outline: 2px solid #027f45; outline-offset: 4px; }
+@media (min-width: 1600px) { .container { width: min(100%, 1440px); } }
+@media (max-width: 1150px) {
+  .main { grid-template-columns: 1.2fr .85fr .95fr 1fr; gap: 28px; }
+  .safetyNote { display: none; }
+}
+@media (max-width: 800px) {
+  .main { grid-template-columns: 1.1fr 1fr; gap: 28px 50px; }
+  .brand { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; column-gap: 50px; align-items: start; }
+  .brand > a, .tagline, .location { grid-column: 1; }
+  .brand > p { grid-column: 2; grid-row: 1 / 4; margin-top: 0; max-width: none; }
+  .community { grid-column: 1 / -1; display: grid; grid-template-columns: 1.1fr 1fr; gap: 0 50px; }
+  .community > p { max-width: none; margin-bottom: 0; }
+  .socialLinks { grid-column: 2; grid-row: 1 / 3; align-self: center; width: 100%; max-width: none; }
+  .main h2 { margin-top: 0; }
+  .bottom { flex-wrap: wrap; gap: 8px 20px; }
+  .madeForDelta { order: 3; width: 100%; }
+}
+@media (max-width: 640px) {
+  .footer { margin-top: 10px; }
+  .container { padding-inline: 20px; }
+  .main { grid-template-columns: 1fr 1fr; gap: 25px 25px; padding-block: 28px 25px; }
+  .brand { display: block; }
+  .brand img { width: 145px; }
+  .tagline { font-size: 8px; margin-top: 8px; }
+  .brand > p { max-width: 320px; margin-top: 14px; font-size: 11px; line-height: 1.85; }
+  .location { margin-top: 12px; }
+  .main h2 { font-size: 12px; margin-bottom: 11px; }
+  .linkColumn a { min-height: 38px; font-size: 11px; }
+  .community { display: block; padding-top: 21px; border-top: 1px solid #dfe6d5; }
+  .community > p { max-width: 290px; font-size: 11px; margin-bottom: 12px; }
+  .socialLinks { flex-direction: row; gap: 10px; }
+  .socialLinks a { flex: 1; min-height: 44px; padding-inline: 13px; }
+  .socialLinks a > svg:first-child { width: 14px; height: 14px; }
+  .safety { align-items: flex-start; padding: 18px 16px; gap: 11px; border-radius: 11px; }
+  .safetyIcon { width: 34px; height: 34px; }
+  .safetyIcon svg { width: 19px; height: 19px; }
+  .safetyCopy h2 { font-size: 12px; line-height: 1.6; margin-bottom: 5px; }
+  .safetyCopy p { font-size: 10px; line-height: 1.85; }
+  .bottom { padding-block: 13px 20px; gap: 8px 10px; font-size: 8px; }
+  .backToTop { gap: 6px; font-size: 9px; min-height: 44px; }
+  .madeForDelta { font-size: 9px; }
+}
+@media (max-width: 370px) {
+  .container { padding-inline: 16px; }
+  .main { column-gap: 18px; }
+  .main h2 { font-size: 11px; }
+  .linkColumn a { font-size: 10px; }
+  .safety { padding-inline: 12px; gap: 9px; }
+  .safetyCopy h2 { font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) { .socialLinks a, .backToTop > span { transition: none; } }
