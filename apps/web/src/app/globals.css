@@ -8,4 +8,22 @@
 
 body {
   font-family: var(--font-sans);
+  background: #fcfcf7;
+}
+
+.site-main {
+  max-width: 1344px;
+  padding: 12px 32px;
+}
+
+@media (min-width: 1600px) {
+  .site-main { max-width: 1440px; }
+}
+
+@media (max-width: 640px) {
+  .site-main { padding: 10px 20px; }
+}
+
+@media (max-width: 370px) {
+  .site-main { padding-inline: 16px; }
 }

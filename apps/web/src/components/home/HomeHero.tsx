@@ -1,49 +1,98 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState, type FormEvent } from 'react';
-import { buttonClass } from '@/components/ui/button';
+import { MarketplaceIcon as Icon, type MarketplaceIconName } from '@/components/ui/MarketplaceIcon';
+import { useRotatingContent } from '@/components/ui/useRotatingContent';
 import { routes } from '@/lib/format';
 import { useT } from '@/lib/i18n';
+import styles from './HomeHero.module.css';
+
+const benefits: { icon: MarketplaceIconName; title: string; body: string }[] = [
+  { icon: 'shop', title: 'localBenefitTitle', body: 'localBenefitBody' },
+  { icon: 'tools', title: 'serviceBenefitTitle', body: 'serviceBenefitBody' },
+  { icon: 'shield', title: 'safeBenefitTitle', body: 'safeBenefitBody' },
+];
+
+const slides = [
+  { id: 'local', badge: 'heroBadge', title: 'heroHeadingLine1', accent: 'heroHeadingLine2', description: 'heroDescription', action: 'exploreMarketplace', href: routes.search(), note: 'communityNote', subnote: 'communitySubnote', sticker: 'findItLoveIt', cardLabel: 'closerThanYouThink', cardTitle: 'goodThingsNearYou', caption: 'localConnections' },
+  { id: 'igbo', badge: 'igboHeroBadge', title: 'igboHeroTitle', accent: 'igboHeroAccent', description: 'igboHeroDescription', action: 'exploreIgboMarket', href: routes.search({ type: 'people', kind: 'business' }), note: 'igboCommunityNote', subnote: 'igboCommunitySubnote', sticker: 'igboSticker', cardLabel: 'igboCardLabel', cardTitle: 'igboCardTitle', caption: 'igboCaption' },
+  { id: 'christmas', badge: 'christmasHeroBadge', title: 'christmasHeroTitle', accent: 'christmasHeroAccent', description: 'christmasHeroDescription', action: 'exploreChristmas', href: routes.search({ q: 'Christmas' }), note: 'christmasCommunityNote', subnote: 'christmasCommunitySubnote', sticker: 'christmasSticker', cardLabel: 'christmasCardLabel', cardTitle: 'christmasCardTitle', caption: 'christmasCaption' },
+] as const;
 
 export function HomeHero() {
   const { t } = useT('market');
-  const router = useRouter();
-  const [query, setQuery] = useState('');
-
-  function onSubmit(event: FormEvent) {
-    event.preventDefault();
-    router.push(routes.search({ q: query.trim() || undefined }));
-  }
+  const rotation = useRotatingContent(slides.length, 8000);
+  const slide = slides[rotation.index];
 
   return (
-    <section className="rounded-2xl bg-primary px-5 py-10 text-on-primary sm:px-10 sm:py-14">
-      <h1 className="max-w-2xl text-3xl font-bold leading-tight sm:text-4xl">{t('heroTitle')}</h1>
-      <p className="mt-3 max-w-2xl text-base text-primary-soft sm:text-lg">{t('heroBody')}</p>
-      <form role="search" onSubmit={onSubmit} className="mt-6 flex max-w-2xl gap-2">
-        <label htmlFor="hero-search" className="sr-only">
-          {t('search')}
-        </label>
-        <input
-          id="hero-search"
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={t('searchPlaceholder')}
-          className="min-h-12 w-full rounded-lg bg-background px-4 text-base text-text placeholder:text-text-muted focus:outline-2 focus:outline-accent"
-        />
-        <button type="submit" className={buttonClass('accent', 'shrink-0')}>
-          {t('search')}
-        </button>
-      </form>
-      <div className="mt-5 flex flex-wrap gap-2 text-sm">
-        <Link href={routes.search({ type: 'people', kind: 'provider' })} className="rounded-full bg-primary-pressed px-4 py-2 font-medium hover:bg-background hover:text-primary">
-          {t('findAService')}
-        </Link>
-        <Link href={routes.search({ kind: 'product' })} className="rounded-full bg-primary-pressed px-4 py-2 font-medium hover:bg-background hover:text-primary">
-          {t('shopProducts')}
-        </Link>
+    <section className={styles.section} aria-label={t('marketplaceHighlights')} aria-roledescription="carousel">
+      <div className={styles.hero} data-theme={slide.id}
+        onMouseEnter={() => rotation.setInteracting(true)} onMouseLeave={() => rotation.setInteracting(false)}
+        onFocusCapture={() => rotation.setInteracting(true)}
+        onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) rotation.setInteracting(false); }}>
+        <div className={styles.heroTexture} aria-hidden="true" />
+        <div key={slide.id} className={styles.slide} role="group" aria-roledescription="slide" aria-label={t('slidePosition', { current: rotation.index + 1, total: slides.length })} aria-live={rotation.paused ? 'polite' : 'off'}>
+          <div className={styles.copy}>
+            <span className={styles.eyebrow}><Icon name={slide.id === 'christmas' ? 'gift' : 'pin'} />{t(slide.badge)}</span>
+            <h1>{t(slide.title)}<br /><span>{t(slide.accent)}</span></h1>
+            <p className={styles.description}>{t(slide.description)}</p>
+            <div className={styles.actions}>
+              <Link href={slide.href} className={styles.explore}>{t(slide.action)}<Icon name="arrow" /></Link>
+              <Link href={routes.sell} className={styles.startSelling}>{t('startSelling')}<Icon name="arrow" /></Link>
+            </div>
+            <div className={styles.communityNote}>
+              <span className={styles.communityMark}><Image src="/brand/whyme-mark-white.png" alt="" width={24} height={24} /></span>
+              <p>{t(slide.note)}<span>{t(slide.subnote)}</span></p>
+            </div>
+          </div>
+
+          <div className={styles.visual}>
+            <div className={styles.orbit} aria-hidden="true" />
+            {slide.id === 'christmas' ? (
+              <div className={styles.christmasArt} aria-hidden="true">
+                <div className={styles.offerSeal}><small>{t('christmasSealLabel')}</small><strong>20<span>%</span></strong><span>{t('christmasSealOffer')}</span></div>
+                <div className={`${styles.giftBox} ${styles.giftOne}`}><Icon name="gift" /></div>
+                <div className={`${styles.giftBox} ${styles.giftTwo}`}><Icon name="gift" /></div>
+                <div className={`${styles.giftBox} ${styles.giftThree}`}><Icon name="gift" /></div>
+              </div>
+            ) : (
+              <div className={styles.photo}>
+                <Image src={slide.id === 'igbo' ? '/images/igbo-market-man.png' : '/images/marketplace-shopper.jpg'} alt={t(slide.id === 'igbo' ? 'igboMarketPhotoAlt' : 'shopperPhotoAlt')} fill sizes="(max-width: 640px) 250px, (max-width: 950px) 280px, 360px" preload />
+              </div>
+            )}
+            <span className={styles.sparkleTop} aria-hidden="true"><Icon name="sparkle" /></span>
+            <span className={styles.sparkleBottom} aria-hidden="true"><Icon name="sparkle" /></span>
+            <div className={styles.loveNote}><span><Icon name={slide.id === 'christmas' ? 'gift' : 'heart'} /></span>{t(slide.sticker)}</div>
+            <div className={styles.localCard}>
+              <span><Icon name="pin" /></span>
+              <p>{t(slide.cardLabel)}<strong>{t(slide.cardTitle)}</strong></p>
+              <span className={styles.localCardCheck}><Icon name="shield" /></span>
+            </div>
+            <span className={styles.visualCaption}>{t(slide.caption)}</span>
+          </div>
+        </div>
+
+        <div className={styles.sliderControls}>
+          <span className={styles.slideCount} aria-hidden="true">{String(rotation.index + 1).padStart(2, '0')}<span> / {String(slides.length).padStart(2, '0')}</span></span>
+          <div className={styles.slideDots}>
+            {slides.map((item, index) => <button key={item.id} type="button" onClick={() => rotation.select(index)} aria-label={t('goToSlide', { number: index + 1 })} aria-pressed={rotation.index === index}><span /></button>)}
+          </div>
+          <div className={styles.slideArrows}>
+            <button type="button" onClick={rotation.togglePaused} aria-label={t(rotation.paused ? 'playSlideshow' : 'pauseSlideshow')}><Icon name={rotation.paused ? 'play' : 'pause'} /></button>
+            <button type="button" onClick={() => rotation.select(rotation.index - 1)} aria-label={t('previousSlide')}><Icon name="arrow" /></button>
+            <button type="button" onClick={() => rotation.select(rotation.index + 1)} aria-label={t('nextSlide')}><Icon name="arrow" /></button>
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.benefits}>
+        {benefits.map(({ icon, title, body }) => (
+          <div key={title} className={styles.benefit}>
+            <span className={styles.benefitIcon}><Icon name={icon} /></span>
+            <div><h2>{t(title)}</h2><p>{t(body)}</p></div>
+          </div>
+        ))}
       </div>
     </section>
   );

@@ -4,9 +4,9 @@
   "navListings": "My listings",
   "navBusiness": "Business page",
   "navProvider": "Provider page",
+  "navOrders": "Orders",
   "hello": "Hello, {{name}}",
   "redirecting": "Taking you to sign in…",
-
   "startTitle": "Start selling on WHY ME",
   "startIntro": "Turn on selling for this account. You keep the same phone number and password, and you can still buy.",
   "sellProducts": "Sell products",
@@ -23,7 +23,6 @@
   "alsoProducts": "Also sell products",
   "alsoServices": "Also offer services",
   "addCapabilityTitle": "Add to your account",
-
   "businessPage": "Your business page",
   "providerPage": "Your provider page",
   "businessPageHint": "Your shop's name, location, opening hours and photos, shown next to every product.",
@@ -32,13 +31,11 @@
   "editPage": "Edit page",
   "viewPage": "View public page",
   "notStarted": "Not set up yet",
-
   "listingsCard": "Your listings",
   "listingsCardHint": "Add products and services, publish them and pause them when you are away.",
   "addProduct": "Add a product",
   "addService": "Add a service",
   "manageListings": "Manage listings",
-
   "status": {
     "draft": "Draft",
     "pending_review": "In review",
@@ -61,7 +58,6 @@
   },
   "noReason": "No reason was given. Contact WHY ME support.",
   "all": "All",
-
   "profileIntro": "This is what buyers see on your page. Don't add phone numbers, emails, bank details or links: buyers contact and pay you through WHY ME.",
   "displayNameBusiness": "Business name",
   "displayNameProvider": "Your name or trade name",
@@ -90,7 +86,6 @@
   "profilePhotos": "Photos of your shop or work",
   "photosHint_one": "Up to {{count}} photo. The first one is the cover.",
   "photosHint_other": "Up to {{count}} photos. The first one is the cover.",
-
   "newProduct": "Add a product",
   "newService": "Add a service",
   "editListing": "Edit listing",
@@ -110,7 +105,6 @@
   "fulfilmentHint": "Needed before you publish.",
   "listingLocationProduct": "Where the item is",
   "listingLocationService": "Where you are based",
-
   "photos": "Photos",
   "addPhotos": "Add photos",
   "addPhoto": "Add a photo",
@@ -128,7 +122,6 @@
   "photoLimit_other": "You can add up to {{count}} photos here.",
   "waitForPhotos": "Wait for your photos to finish uploading.",
   "photoAlt": "Photo {{number}}",
-
   "save": "Save",
   "saveDraft": "Save draft",
   "saveChanges": "Save changes",
@@ -140,7 +133,6 @@
   "submittedLive": "Published. Buyers can see it now.",
   "conflictReloaded": "This was changed on another device. We loaded the latest version; check it and save again.",
   "unsavedChanges": "You have unsaved changes.",
-
   "edit": "Edit",
   "view": "View",
   "pause": "Pause",
@@ -154,11 +146,83 @@
   "noListingsFiltered": "Nothing here.",
   "needsCapability": "Turn on selling for your account first.",
   "inReviewLocked": "A moderator is checking this, usually within a day. You can make changes again once the review is done.",
-
   "nameTooShort": "Enter at least 2 characters.",
   "titleTooShort": "Enter at least 3 characters.",
   "descriptionTooShort": "Enter at least 10 characters.",
   "hoursInvalid": "Closing time must be after opening time.",
   "yearsInvalid": "Enter a number of years, for example 5.",
-  "quantityInvalid": "Enter a whole number, for example 10."
+  "quantityInvalid": "Enter a whole number, for example 10.",
+  "navPayouts": "Payouts",
+  "payouts": {
+    "title": "Payouts",
+    "intro": "What you have earned through WHY ME Protected Payment, and where WHY ME sends it.",
+    "totals": {
+      "awaiting_delivery": "Waiting for delivery",
+      "awaiting_delivery_hint": "Paid by buyers; yours once they confirm they got it.",
+      "on_hold": "On hold",
+      "on_hold_hint": "A problem was reported, or WHY ME is checking the order.",
+      "awaiting_release": "Awaiting WHY ME release",
+      "awaiting_release_hint": "Buyers confirmed. Open the order to request your payout; WHY ME approves each one.",
+      "being_paid": "On its way to your bank",
+      "paid": "Paid to you"
+    },
+    "account": "Payout account",
+    "accountIntro": "WHY ME pays you only into a bank account in your name. Only you and WHY ME finance see it.",
+    "noAccount": "Add the bank account WHY ME should pay you into. You can't be paid until you do.",
+    "add": "Add bank account",
+    "change": "Change bank account",
+    "bank": "Bank",
+    "chooseBank": "Choose your bank",
+    "accountNumber": "Account number (10 digits)",
+    "accountNumberInvalid": "Enter the 10-digit account number.",
+    "lookup": "Check account name",
+    "checking": "Checking with your bank…",
+    "nameIs": "The bank says this account belongs to:",
+    "notYou": "Not you? Check the number and the bank.",
+    "sendCode": "Send code to confirm",
+    "sending": "Sending…",
+    "codeSent": "We sent a 6-digit code to {{to}}.",
+    "code": "Code",
+    "codeInvalid": "Enter the 6-digit code.",
+    "save": "Save bank account",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "saved": "Bank account saved.",
+    "endingIn": "{{bank}} · ending {{last4}}",
+    "coolingOff": "Changed recently: payouts resume after {{date}}. This protects you if someone else changed it.",
+    "history": "Payouts",
+    "noPayouts": "No payouts yet. When WHY ME releases an order's money, it shows here.",
+    "payoutState": {
+      "requested": "Asked for, waiting for WHY ME",
+      "pending_approval": "Approved, being checked",
+      "queued": "On its way",
+      "processing": "On its way",
+      "needs_funding": "On its way",
+      "reconciliation_required": "Being checked",
+      "succeeded": "Paid",
+      "failed": "Being sent again",
+      "reversed": "Being sent again",
+      "cancelled": "Cancelled"
+    },
+    "paidOn": "Paid {{date}} to {{bank}} ending {{last4}}",
+    "order": "Order {{number}}",
+    "loadFailed": "Couldn't load your payouts. Check your connection."
+  },
+  "returnDaysInvalid": "Enter a number of days from 1 to 30.",
+  "returns": {
+    "title": "Returns and refunds",
+    "hintProduct": "Tell buyers whether you take items back. WHY ME checks it before buyers see it; your listing stays live meanwhile.",
+    "hintService": "Tell clients whether you give refunds. WHY ME checks it before clients see it; your listing stays live meanwhile.",
+    "unset": "Not stated (WHY ME buyer protection only)",
+    "none": "No returns",
+    "acceptedProduct": "Returns accepted",
+    "acceptedService": "Refunds accepted",
+    "days": "Within how many days (1 to 30)",
+    "daysHint": "Counted from delivery, pickup or the finished job.",
+    "conditions": "Conditions (optional)",
+    "conditionsHint": "For example: unused, in the original box. No phone numbers or links.",
+    "pending": "WHY ME is checking your returns policy. Buyers see it once it's approved.",
+    "approved": "Approved: buyers see this policy.",
+    "rejected": "WHY ME didn't approve this policy:"
+  }
 }

@@ -41,13 +41,26 @@ const schema = z.object({
   fulfilment: z.array(z.enum(['pickup', 'delivery'])),
   service_area_ids: z.array(z.number()),
   availability_note: z.string().trim().max(200),
+  // Returns and refunds: not stated, none, or within a number of days (WHY ME staff check it).
+  returns: z.enum(['unset', 'none', 'accepted']),
+  return_days: z.string().trim().regex(/^(|[1-9]|[12]\d|30)$/, { message: 'seller:returnDaysInvalid' }),
+  return_conditions: z.string().trim().max(500),
 });
 
 type FormInput = z.input<typeof schema>;
 type FormOutput = z.output<typeof schema>;
 
+function returnsOf(listing: OwnerListing | null): FormInput['returns'] {
+  const policy = listing?.refund_policy;
+  if (!policy) return 'unset';
+  return policy.accepts_returns ? 'accepted' : 'none';
+}
+
 function toForm(listing: OwnerListing | null, defaults: { location_id?: number; service_area_ids?: number[] } = {}): FormInput {
   return {
+    returns: returnsOf(listing),
+    return_days: listing?.refund_policy?.return_days != null ? String(listing.refund_policy.return_days) : '',
+    return_conditions: listing?.refund_policy?.conditions ?? '',
     title: listing?.title ?? '',
     category_id: listing?.category_id ?? (undefined as unknown as number),
     location_id: listing?.location_id ?? defaults.location_id ?? (undefined as unknown as number),
@@ -61,10 +74,16 @@ function toForm(listing: OwnerListing | null, defaults: { location_id?: number; 
 }
 
 /** Server field names that differ from the form's (price is typed in naira, sent in kobo). */
+const serverNames: Record<string, string> = {
+  price_kobo: 'price',
+  'refund_policy.return_days': 'return_days',
+  'refund_policy.conditions': 'return_conditions',
+};
+
 function applyFieldErrors<T extends FieldValues>(form: UseFormReturn<T>, error: unknown, known: readonly string[]): string | undefined {
   const fields = error instanceof ApiRequestError ? error.body?.fields : undefined;
   for (const [key, messages] of Object.entries(fields ?? {})) {
-    const name = key === 'price_kobo' ? 'price' : key.split('.')[0];
+    const name = serverNames[key] ?? key.split('.')[0];
     if (known.includes(name)) form.setError(name as Path<T>, { type: 'server', message: messages[0] });
   }
   return fields?.photo_ids?.[0];
@@ -154,6 +173,14 @@ function ListingForm({
       fulfilment: product ? values.fulfilment : [],
       service_area_ids: product ? [] : values.service_area_ids,
       availability_note: product ? null : values.availability_note || null,
+      refund_policy:
+        values.returns === 'unset'
+          ? null
+          : {
+              accepts_returns: values.returns === 'accepted',
+              return_days: values.returns === 'accepted' ? Number(values.return_days) : null,
+              conditions: values.return_conditions || null,
+            },
       photo_ids: photos.ids,
     };
 
@@ -174,6 +201,9 @@ function ListingForm({
       setNotice(null);
       setPhotoError(undefined);
       if (photos.busy) return setNotice({ tone: 'info', text: t('waitForPhotos') });
+      if (values.returns === 'accepted' && values.return_days === '') {
+        return form.setError('return_days', { type: 'required', message: 'seller:returnDaysInvalid' });
+      }
 
       try {
         // Always saved first: the API returns an unchanged listing as it is, and this
@@ -206,6 +236,7 @@ function ListingForm({
       }
     });
 
+  const returns = form.watch('returns');
   const status = current?.status;
   const canPublish = !current || status === 'draft' || status === 'rejected' || status === 'expired' || status === 'paused';
   // A moderator is checking it: nothing can change or be sent again until they're done (API: in_review).
@@ -315,6 +346,35 @@ function ListingForm({
       <Card>
         <PhotoPicker photos={photos} label={t('photos')} hint={t('photosHint', { count: photoLimit })} error={photoError} readOnly={inReview} />
       </Card>
+
+      <Card className="flex flex-col gap-4">
+        <FieldGroup legend={t('returns.title')} hint={t(product ? 'returns.hintProduct' : 'returns.hintService')}>
+          <CheckboxField type="radio" value="unset" label={t('returns.unset')} {...form.register('returns')} />
+          <CheckboxField type="radio" value="none" label={t('returns.none')} {...form.register('returns')} />
+          <CheckboxField type="radio" value="accepted" label={t(product ? 'returns.acceptedProduct' : 'returns.acceptedService')} {...form.register('returns')} />
+        </FieldGroup>
+        {returns === 'accepted' ? (
+          <TextField
+            label={t('returns.days')}
+            hint={t('returns.daysHint')}
+            inputMode="numeric"
+            className="sm:max-w-xs"
+            error={fieldError(errors.return_days?.message)}
+            {...form.register('return_days')}
+          />
+        ) : null}
+        {returns !== 'unset' ? (
+          <TextAreaField
+            label={t('returns.conditions')}
+            hint={t('returns.conditionsHint')}
+            rows={2}
+            maxLength={500}
+            error={fieldError(errors.return_conditions?.message)}
+            {...form.register('return_conditions')}
+          />
+        ) : null}
+        <PolicyReview policy={current?.refund_policy ?? null} />
+      </Card>
       </fieldset>
 
       {notice ? <Notice tone={notice.tone}>{notice.text}</Notice> : null}
@@ -340,4 +400,18 @@ function ListingForm({
       </div>
     </form>
   );
+}
+
+/** Where WHY ME's check of the returns policy stands. Buyers see the policy only once approved. */
+function PolicyReview({ policy }: { policy: OwnerListing['refund_policy'] }) {
+  const { t } = useT('seller');
+  if (!policy) return null;
+  if (policy.state === 'rejected') {
+    return (
+      <p className="text-sm text-warning">
+        {t('returns.rejected')} {policy.review_note?.trim() || t('noReason')}
+      </p>
+    );
+  }
+  return <p className="text-sm text-text-muted">{t(policy.state === 'approved' ? 'returns.approved' : 'returns.pending')}</p>;
 }

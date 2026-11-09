@@ -25,5 +25,9 @@
   "yourOwn": "This is your own listing or page.",
   "loadFailed": "Couldn't load messages. Check your connection.",
   "today": "Today",
-  "yesterday": "Yesterday"
+  "yesterday": "Yesterday",
+  "removedNote": "This message was removed by WHY ME.",
+  "removedPreview": "Message removed",
+  "closedNote": "WHY ME closed this conversation: {{reason}}",
+  "closedLabel": "Closed"
 }

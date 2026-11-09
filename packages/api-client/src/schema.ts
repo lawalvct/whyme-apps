@@ -242,6 +242,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/orders/{order}/disputes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Buyer: report a problem. The order's money is held until WHY ME resolves it, and the
+         *     order can't be confirmed meanwhile. If a report is already open, that one comes back
+         */
+        post: operations["orders.disputes.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/disputes/{dispute}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["disputes.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/disputes/{dispute}/statements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Buyer or seller: add to the story. Staff replies appear here too, as "WHY ME" */
+        post: operations["disputes.statements.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/disputes/{dispute}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Buyer: the problem is sorted. Money the buyer had confirmed becomes eligible for release again */
+        post: operations["disputes.withdraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/health": {
         parameters: {
             query?: never;
@@ -284,6 +354,242 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["me.capabilities.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/checkout/quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * The checkout summary: amounts worked out by the server for this product, quantity and
+         *     pickup/delivery choice, plus the buyer terms to acknowledge. Nothing is saved
+         */
+        post: operations["checkout.quote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My orders, newest first: `role=buying` (default) or `role=selling` (paid orders only) */
+        get: operations["me.orders.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/orders/counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * How many orders wait for this person: to accept or send (`selling`), or to confirm (`buying`).
+         *     For the badge on the Orders link
+         */
+        get: operations["me.orders.counts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Places the order (awaiting payment). Send an `Idempotency-Key`; a retry returns the same order */
+        post: operations["orders.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/orders/{order}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["orders.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/orders/{order}/pay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Opens the gateway's checkout page for an unpaid order. `checkout_url` is where to send
+         *     the buyer; it is null when there is nothing to pay right now (already paid, or a bank
+         *     transfer is still being confirmed), and `order` then says where things stand
+         */
+        post: operations["orders.pay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/orders/{order}/payment/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Asks the gateway about this order's latest payment now, e.g. when the buyer comes back
+         *     from the payment page, and returns the order as it stands afterwards
+         */
+        post: operations["orders.payment.check"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/orders/{order}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Seller: accept a paid order. Send the `version` you were looking at */
+        post: operations["orders.accept"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/orders/{order}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Seller: decline a paid order, with a reason the buyer sees. The money stays held until WHY ME refunds the buyer */
+        post: operations["orders.decline"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/orders/{order}/dispatch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Seller: sent (delivery) or ready for pickup. An optional note goes in the history */
+        post: operations["orders.dispatch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/orders/{order}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Seller: delivered or handed over. Asks the buyer to confirm */
+        post: operations["orders.complete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/orders/{order}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Buyer: "I got it". Makes the money eligible for WHY ME to release to the seller.
+         *     Confirming again does nothing
+         */
+        post: operations["orders.confirm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/orders/{order}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Buyer: cancel an order that isn't paid yet */
+        post: operations["orders.cancel"];
         delete?: never;
         options?: never;
         head?: never;
@@ -413,6 +719,120 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["me.profiles.submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/banks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Banks a payout can go to, as `{ code, name }`, alphabetical */
+        get: operations["banks.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/earnings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Earnings by where the money is, and the latest payouts, newest first */
+        get: operations["me.earnings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/orders/{order}/payout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Seller: what they'll receive for a paid order, and why: the sale, refunds, WHY ME's
+         *     commission, the Paystack fees WHY ME pays, and the bank account it goes to. `can_request`
+         *     says whether "Request payout" is open; `blockers` lists what stops it
+         */
+        get: operations["orders.payout.show"];
+        put?: never;
+        /**
+         * Seller: asks WHY ME to release this order's money, after seeing the breakdown. WHY ME
+         *     staff approve it (checking everything again); asking twice changes nothing
+         */
+        post: operations["orders.payout.request"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/payout-account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The seller's payout account (masked), or `null` when there isn't one yet */
+        get: operations["me.payout-account.show"];
+        /**
+         * Saves the payout account after checking the code and the account name with the bank.
+         *     A change waits a cooling-off period before the next payout
+         */
+        put: operations["me.payout-account.save"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/payout-account/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The bank's name for an account, to show before the seller confirms it. Nothing is saved */
+        post: operations["me.payout-account.lookup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/payout-account/code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sends the code that confirms adding or changing the payout account */
+        post: operations["me.payout-account.code"];
         delete?: never;
         options?: never;
         head?: never;
@@ -729,8 +1149,11 @@ export interface components {
             other_party: {
                 name: string;
             };
+            /** @description Closed by WHY ME: both sides can read it, nobody can send. The reason is shown to both. */
+            closed: boolean;
+            closed_reason: string | null;
             last_message: {
-                body: string;
+                body: string | null;
                 mine: boolean;
                 at: string | null;
             } | null;
@@ -738,10 +1161,66 @@ export interface components {
             created_at: string | null;
         };
         /**
+         * DeclineOrderRequest
+         * @description Declining a paid order needs a reason the buyer sees (ORD07).
+         */
+        DeclineOrderRequest: {
+            version: number;
+            note: string;
+        };
+        /**
          * DevicePlatform
          * @enum {string}
          */
         DevicePlatform: "android" | "ios" | "web";
+        /**
+         * DisputeCategory
+         * @description What went wrong (DSP02).
+         *     | |
+         *     |---|
+         *     | `not_delivered` <br/>  |
+         *     | `wrong_or_incomplete` <br/>  |
+         *     | `quality` <br/>  |
+         *     | `refund_disagreement` <br/>  |
+         *     | `outside_payment` <br/> The seller asked to be paid outside WHY ME. |
+         *     | `other` <br/>  |
+         * @enum {string}
+         */
+        DisputeCategory: "not_delivered" | "wrong_or_incomplete" | "quality" | "refund_disagreement" | "outside_payment" | "other";
+        /** DisputeResource */
+        DisputeResource: {
+            id: string;
+            order_id: string;
+            /** @enum {string} */
+            role: "buyer" | "seller";
+            /** @enum {string} */
+            state: "open" | "evidence_requested" | "under_review" | "resolved" | "appealed" | "closed";
+            /** @enum {string} */
+            category: "not_delivered" | "wrong_or_incomplete" | "quality" | "refund_disagreement" | "outside_payment" | "other";
+            description: string;
+            amount_kobo: number;
+            evidence_due_at: string | null;
+            /** @enum {string|null} */
+            outcome: "refund_full" | "refund_partial" | "release" | "rework" | "withdrawn" | null;
+            refund_kobo: number | null;
+            resolution_note: string | null;
+            resolved_at: string | null;
+            opened_at: string | null;
+            can_add_statement: boolean;
+            can_withdraw: boolean;
+            statements: {
+                /** @enum {string} */
+                author: "buyer" | "seller" | "admin";
+                mine: boolean;
+                body: string;
+                at: string;
+            }[];
+            version: number;
+        };
+        /** DisputeStatementRequest */
+        DisputeStatementRequest: {
+            body: string;
+        };
         /**
          * ListingKind
          * @enum {string}
@@ -778,12 +1257,141 @@ export interface components {
             id: string;
             client_id: string | null;
             conversation_id: string;
-            body: string;
+            /** @description Taken down by staff: neither side gets the text back, only that it was removed. */
+            body: string | null;
             mine: boolean;
             /** @enum {string} */
-            status: "sent" | "held" | "rejected";
+            status: "sent" | "held" | "rejected" | "removed";
             rejection_reason: string | null;
             created_at: string;
+        };
+        /** OpenDisputeRequest */
+        OpenDisputeRequest: {
+            category: components["schemas"]["DisputeCategory"];
+            /** @description What happened, in the buyer's words. No phone numbers or bank details. */
+            description: string;
+            /** @description How much is affected, in kobo. Leave out for the whole order. */
+            amount_kobo?: number | null;
+        };
+        /**
+         * OrderActionRequest
+         * @description An order action sends the version the person was looking at, so acting on an
+         *     out-of-date screen is refused with the current order (OFF06, STA01).
+         */
+        OrderActionRequest: {
+            version: number;
+            /** @description Shown to the other side in the order history, e.g. "Sent with GIG, arriving Thursday". */
+            note?: string | null;
+        };
+        /**
+         * OrderQuoteRequest
+         * @description What the buyer wants: which product, how many, pickup or delivery. Never an amount.
+         */
+        OrderQuoteRequest: {
+            listing_id: string;
+            quantity: number;
+            /** @enum {string} */
+            fulfilment_method: "pickup" | "delivery";
+        };
+        /** OrderResource */
+        OrderResource: {
+            id: string;
+            number: string;
+            /** @enum {string} */
+            role: "buyer" | "seller";
+            /** @enum {string} */
+            kind: "product" | "service";
+            title: string;
+            listing_id: string | null;
+            thumb: string | null;
+            /** @description The seller's approved returns policy when the order was placed. Null: standard WHY ME protection only. */
+            refund_policy: {
+                accepts_returns: boolean;
+                return_days: number | null;
+                conditions: string | null;
+            } | null;
+            other_party: {
+                name: string;
+            };
+            quantity: number;
+            unit_price_kobo: number;
+            subtotal_kobo: number;
+            delivery_fee_kobo: number;
+            buyer_fee_kobo: number;
+            total_kobo: number;
+            currency: string;
+            /** @description What the seller is owed on release. Null for the buyer. */
+            seller_net_kobo: number | null;
+            /** @enum {string} */
+            fulfilment_method: "pickup" | "delivery";
+            delivery: {
+                area: string | null;
+                address: string;
+                note: string | null;
+            } | null;
+            /** @enum {string} */
+            fulfilment_state: "awaiting_payment" | "paid" | "accepted" | "in_progress" | "dispatched" | "completion_submitted" | "completed" | "cancelled";
+            /** @enum {string} */
+            funds_state: "awaiting_collection" | "held" | "release_eligible" | "payout_reserved" | "released" | "refund_reserved" | "refunded";
+            /** @description The buyer's latest payment attempt. Null for the seller. */
+            payment: {
+                /** @enum {string} */
+                state: "created" | "awaiting_payment" | "pending_verification" | "succeeded" | "failed" | "cancelled" | "unknown" | "reconciliation_required";
+                gateway: string;
+                channel: string | null;
+                reference: string;
+            } | null;
+            /** @description Money sent back to the buyer, newest first. A refund is done only when `state` is `succeeded`. */
+            refunds: {
+                id: string;
+                amount_kobo: number;
+                /** @description Paystack's checkout fee share, kept by Paystack and borne by the buyer. */
+                fee_kobo: number;
+                /** @description What reaches the buyer: amount less fee. */
+                to_buyer_kobo: number;
+                /** @enum {string} */
+                state: "requested" | "processing" | "needs_attention" | "succeeded" | "failed";
+                note: string | null;
+                requested_at: string | null;
+                completed_at: string | null;
+            }[];
+            /** @description The seller's payout for this order: requested by the seller, or approved by WHY ME. Null for the buyer. */
+            payout: {
+                /** @enum {string} */
+                state: "requested" | "pending_approval" | "queued" | "processing" | "succeeded" | "failed" | "needs_funding" | "reversed" | "reconciliation_required" | "cancelled";
+                paid: boolean;
+                amount_kobo: number;
+                bank_name: string;
+                account_last4: string;
+                requested_at: string | null;
+                /** @description Why WHY ME declined the seller's request (state `cancelled`). */
+                declined_reason: string | null;
+                completed_at: string | null;
+            } | null;
+            /** @description The newest "Report a problem" on this order, active or not. */
+            dispute: {
+                id: string;
+                /** @enum {string} */
+                state: "open" | "evidence_requested" | "under_review" | "resolved" | "appealed" | "closed";
+                active: boolean;
+                /** @enum {string|null} */
+                outcome: "refund_full" | "refund_partial" | "release" | "rework" | "withdrawn" | null;
+            } | null;
+            /** @description The buyer can report a problem: paid, money not yet released or refunded, nothing already open. */
+            can_report_problem: boolean;
+            paid_at: string | null;
+            created_at: string | null;
+            version: number;
+            /** @description Status history, oldest first. Only on the single-order endpoints. */
+            events?: {
+                domain: string;
+                to: string;
+                /** @enum {string} */
+                actor: "buyer" | "seller" | "admin" | "system";
+                /** @description What the buyer or seller wrote (a decline reason, "sent with GIG"…). System reasons stay internal. */
+                note: string | null;
+                at: string;
+            }[];
         };
         /** OwnerListingResource */
         OwnerListingResource: {
@@ -805,6 +1413,15 @@ export interface components {
             fulfilment: unknown[];
             service_area_ids: unknown[];
             availability_note: string | null;
+            /** @description The seller's returns policy and WHY ME's review of it. Null when there isn't one. */
+            refund_policy: {
+                accepts_returns: boolean;
+                return_days: number | null;
+                conditions: string | null;
+                /** @enum {string} */
+                state: "pending" | "approved" | "rejected";
+                review_note: string | null;
+            } | null;
             photos: {
                 id: string;
                 /** @enum {string} */
@@ -880,6 +1497,53 @@ export interface components {
             published_at: string | null;
             updated_at: string | null;
         };
+        /** PayOrderRequest */
+        PayOrderRequest: {
+            /**
+             * @description Paystack only for now; Flutterwave and Nomba join behind the same contract.
+             * @enum {string|null}
+             */
+            gateway?: "paystack" | null;
+        };
+        /**
+         * PayoutAccountRequest
+         * @description A Nigerian bank account (NUBAN: 10 digits) and, when saving, the code sent to the seller.
+         */
+        PayoutAccountRequest: {
+            bank_code: string;
+            account_number: string;
+            code?: string;
+        };
+        /** PayoutAccountResource */
+        PayoutAccountResource: {
+            bank_code: string;
+            bank_name: string;
+            account_last4: string;
+            account_name: string;
+            verified_at: string;
+            /** @description Payouts wait until then after a change (cooling-off). Null when there's no wait. */
+            payouts_allowed_from: string | null;
+            updated_at: string | null;
+        };
+        /**
+         * PlaceOrderRequest
+         * @description Placing the order: the quote fields, delivery details when it is delivered, and the
+         *     buyer's acknowledgement of the WHY ME Protected Payment terms (FIN07).
+         */
+        PlaceOrderRequest: {
+            listing_id: string;
+            quantity: number;
+            /** @enum {string} */
+            fulfilment_method: "pickup" | "delivery";
+            delivery?: {
+                location_id?: number;
+                address?: string;
+                note?: string | null;
+            };
+            /** @enum {unknown} */
+            accept_terms: "yes" | "on" | "1" | 1 | "true" | true;
+            client_id?: string | null;
+        };
         /**
          * ProfileKind
          * @description A business sells products (LST04); a provider offers services (LST03).
@@ -899,6 +1563,12 @@ export interface components {
             fulfilment: unknown[];
             service_area_ids: unknown[];
             availability_note: string | null;
+            /** @description The seller's returns policy, once WHY ME approved it. Null: standard WHY ME protection only. */
+            refund_policy: {
+                accepts_returns: boolean;
+                return_days: number | null;
+                conditions: string | null;
+            } | null;
             photos: {
                 id: string;
                 width: number | null;
@@ -999,7 +1669,7 @@ export interface components {
         RequestOtpRequest: {
             phone: string;
             /** @enum {string} */
-            purpose: "register" | "reset_password" | "new_device";
+            purpose: "register" | "reset_password" | "new_device" | "payout_account";
             /** @enum {string|null} */
             channel?: "sms" | "email" | null;
             /** Format: email */
@@ -1037,6 +1707,23 @@ export interface components {
             logo_id?: string | null;
             photo_ids?: string[];
         };
+        /** SellerPayoutResource */
+        SellerPayoutResource: {
+            id: string;
+            order_id: string;
+            order_number: string;
+            amount_kobo: number;
+            /**
+             * @description Shown to the seller as: asked for (requested), on its way (pending_approval, queued, processing, needs_funding, reconciliation_required), paid, or being retried (failed, reversed).
+             * @enum {string}
+             */
+            state: "requested" | "pending_approval" | "queued" | "processing" | "succeeded" | "failed" | "needs_funding" | "reversed" | "reconciliation_required" | "cancelled";
+            paid: boolean;
+            bank_name: string;
+            account_last4: string;
+            approved_at: string | null;
+            completed_at: string | null;
+        };
         /** SendMessageRequest */
         SendMessageRequest: {
             /** @description Created on the device when the person taps Send; a resend returns the same message. */
@@ -1065,6 +1752,12 @@ export interface components {
             fulfilment?: ("pickup" | "delivery")[] | null;
             service_area_ids?: number[] | null;
             availability_note?: string | null;
+            /** @description Returns and refunds, reviewed by WHY ME before buyers see it. null removes it. */
+            refund_policy?: {
+                accepts_returns: boolean;
+                return_days?: number | null;
+                conditions?: string | null;
+            } | null;
             /**
              * @description The gallery in display order: IDs from POST /uploads. The per-plan limit
              *     is a setting, checked by the Gallery; 20 only bounds the request.
@@ -1105,6 +1798,12 @@ export interface components {
             fulfilment?: ("pickup" | "delivery")[] | null;
             service_area_ids?: number[] | null;
             availability_note?: string | null;
+            /** @description Returns and refunds, reviewed by WHY ME before buyers see it. null removes it. */
+            refund_policy?: {
+                accepts_returns: boolean;
+                return_days?: number | null;
+                conditions?: string | null;
+            } | null;
             /**
              * @description The gallery in display order: IDs from POST /uploads. The per-plan limit
              *     is a setting, checked by the Gallery; 20 only bounds the request.
@@ -1170,6 +1869,10 @@ export interface components {
             /** @enum {string} */
             purpose: "register";
             code: string;
+        };
+        /** WithdrawDisputeRequest */
+        WithdrawDisputeRequest: {
+            version: number;
         };
     };
     responses: {
@@ -1651,6 +2354,121 @@ export interface operations {
             401: components["responses"]["AuthenticationException"];
         };
     };
+    "orders.disputes.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpenDisputeRequest"];
+            };
+        };
+        responses: {
+            /** @description `DisputeResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DisputeResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "disputes.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dispute: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `DisputeResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DisputeResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "disputes.statements.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dispute: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DisputeStatementRequest"];
+            };
+        };
+        responses: {
+            /** @description `DisputeResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DisputeResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "disputes.withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dispute: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WithdrawDisputeRequest"];
+            };
+        };
+        responses: {
+            /** @description `DisputeResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DisputeResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "platform.health": {
         parameters: {
             query?: never;
@@ -1756,6 +2574,391 @@ export interface operations {
                 };
                 content: {
                     "application/json": string;
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "checkout.quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrderQuoteRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: unknown[];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.orders.index": {
+        parameters: {
+            query?: {
+                role?: "buying" | "selling" | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `OrderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OrderResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description The "cursor" that points to the next set of items. */
+                            next_cursor: string | null;
+                            /** @description The "cursor" that points to the previous set of items. */
+                            prev_cursor: string | null;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.orders.counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            selling: number;
+                            buying: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "orders.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlaceOrderRequest"];
+            };
+        };
+        responses: {
+            /** @description `OrderResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OrderResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "orders.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `OrderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OrderResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "orders.pay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PayOrderRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            checkout_url: string | null;
+                            reference: string;
+                            order: components["schemas"]["OrderResource"] & Record<string, never>;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "orders.payment.check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `OrderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OrderResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "orders.accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrderActionRequest"];
+            };
+        };
+        responses: {
+            /** @description `OrderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OrderResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "orders.decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeclineOrderRequest"];
+            };
+        };
+        responses: {
+            /** @description `OrderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OrderResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "orders.dispatch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrderActionRequest"];
+            };
+        };
+        responses: {
+            /** @description `OrderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OrderResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "orders.complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrderActionRequest"];
+            };
+        };
+        responses: {
+            /** @description `OrderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OrderResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "orders.confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrderActionRequest"];
+            };
+        };
+        responses: {
+            /** @description `OrderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OrderResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "orders.cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrderActionRequest"];
+            };
+        };
+        responses: {
+            /** @description `OrderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OrderResource"] & Record<string, never>;
+                    };
                 };
             };
             401: components["responses"]["AuthenticationException"];
@@ -2103,6 +3306,262 @@ export interface operations {
             401: components["responses"]["AuthenticationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
+        };
+    };
+    "banks.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            code: string;
+                            name: string;
+                        }[];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.earnings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            totals: {
+                                /** @constant */
+                                awaiting_delivery_kobo: 0;
+                                /** @constant */
+                                on_hold_kobo: 0;
+                                /** @constant */
+                                awaiting_release_kobo: 0;
+                                being_paid_kobo: number;
+                                paid_kobo: number;
+                            };
+                            payouts: components["schemas"]["SellerPayoutResource"][];
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "orders.payout.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            sale_kobo: number;
+                            refunded_kobo: number;
+                            commission_kobo: number;
+                            commission_bps: number;
+                            processing_fee_kobo: number;
+                            transfer_fee_kobo: number;
+                            you_receive_kobo: number;
+                            final: boolean;
+                            bank: {
+                                bank_name: string;
+                                account_last4: string;
+                                account_name: string;
+                            } | null;
+                            request: {
+                                state: string;
+                                requested_at: string | null;
+                            } | null;
+                            can_request: boolean;
+                            blockers: string[];
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "orders.payout.request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            sale_kobo: number;
+                            refunded_kobo: number;
+                            commission_kobo: number;
+                            commission_bps: number;
+                            processing_fee_kobo: number;
+                            transfer_fee_kobo: number;
+                            you_receive_kobo: number;
+                            final: boolean;
+                            bank: {
+                                bank_name: string;
+                                account_last4: string;
+                                account_name: string;
+                            } | null;
+                            request: {
+                                state: string;
+                                requested_at: string | null;
+                            } | null;
+                            can_request: boolean;
+                            blockers: string[];
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.payout-account.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PayoutAccountResource"] | null;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.payout-account.save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PayoutAccountRequest"];
+            };
+        };
+        responses: {
+            /** @description `PayoutAccountResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PayoutAccountResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.payout-account.lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PayoutAccountRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            account_name: string;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.payout-account.code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            /** @constant */
+                            channel: "sms";
+                            sent_to: string;
+                        } | {
+                            /** @constant */
+                            channel: "email";
+                            sent_to: string;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
         };
     };
     "me.phone.code": {

@@ -12,7 +12,7 @@ export function SiteFooter() {
           <Image src="/brand/whyme-logo-full.png" alt="WHY ME" width={120} height={28} />
           <p className="mt-3 text-sm text-text-muted">{t('footerTagline')}</p>
         </div>
-        <div className="max-w-sm text-sm text-text">
+        <div id="marketplace-safety" className="max-w-sm scroll-mt-6 text-sm text-text">
           <p className="font-semibold">{t('safetyTitle')}</p>
           <p className="mt-1 text-text-muted">{t('safetyBody')}</p>
         </div>

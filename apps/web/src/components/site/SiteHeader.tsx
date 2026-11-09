@@ -2,21 +2,32 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { chatKeys, queryKeys, sellerKeys, useApi, useUnreadMessages } from '@whyme/data';
+import { chatKeys, orderKeys, queryKeys, sellerKeys, useApi, useOrderCounts, useUnreadMessages } from '@whyme/data';
 import { isSupportedLanguage, languages } from '@whyme/i18n';
 import { buttonClass } from '@/components/ui/button';
+import { MarketplaceIcon as Icon } from '@/components/ui/MarketplaceIcon';
+import { useRotatingContent } from '@/components/ui/useRotatingContent';
 import { routes } from '@/lib/format';
 import { setLanguage, useLanguage, useT } from '@/lib/i18n';
 import { useAccount } from '@/lib/session';
+import styles from './SiteHeader.module.css';
+
+// Sample announcements; replace these keys with the active campaign copy at launch.
+const announcements = [
+  { text: 'announcementChristmas', short: 'announcementChristmasShort', href: routes.search({ q: 'Christmas' }), icon: 'gift' },
+  { text: 'announcementIgbo', short: 'announcementIgboShort', href: routes.search({ type: 'people', kind: 'business' }), icon: 'shop' },
+  { text: 'announcementSelling', short: 'announcementSellingShort', href: routes.sell, icon: 'sparkle' },
+] as const;
 
 export function SiteHeader() {
   const { t } = useT('market');
   const { t: tAuth } = useT('auth');
   const { t: tSeller } = useT('seller');
   const router = useRouter();
+  const pathname = usePathname();
   const [query, setQuery] = useState('');
 
   function onSearch(event: FormEvent) {
@@ -25,35 +36,81 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
-        <Link href={routes.home} className="shrink-0" aria-label="WHY ME">
-          <Image src="/brand/whyme-logo-full.png" alt="WHY ME" width={136} height={32} priority />
+    <header className={styles.header}>
+      <div className={styles.utility}>
+        <div className={styles.container}>
+          <Announcement />
+          <div className={styles.utilityActions}>
+            <div className={styles.socialLinks}>
+              <a href="https://www.facebook.com/whyme" target="_blank" rel="noopener noreferrer" aria-label="WHY ME on Facebook"><Icon name="facebook" /></a>
+              <a href="https://x.com/whyme" target="_blank" rel="noopener noreferrer" aria-label="WHY ME on X"><Icon name="x" /></a>
+            </div>
+            <LanguageToggle />
+          </div>
+        </div>
+      </div>
+
+      <div className={`${styles.container} ${styles.mainRow}`}>
+        <Link href={routes.home} className={styles.brand} aria-label="WHY ME">
+          <Image src="/brand/whyme-logo-full.png" alt="WHY ME" width={176} height={41} preload />
+          <span>{t('brandTagline')}</span>
         </Link>
 
-        <form role="search" onSubmit={onSearch} className="order-last flex w-full gap-2 md:order-none md:w-auto md:flex-1">
-          <label htmlFor="site-search" className="sr-only">
-            {t('search')}
-          </label>
-          <input
-            id="site-search"
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t('searchPlaceholder')}
-            className="min-h-11 w-full rounded-lg border border-border bg-surface px-3 text-base focus:border-primary focus:bg-background focus:outline-2 focus:outline-primary-soft"
-          />
-          <button type="submit" className={buttonClass('primary', 'min-h-11 px-4')}>
-            {t('search')}
-          </button>
+        <form role="search" onSubmit={onSearch} className={styles.search}>
+          <Icon name="search" className={styles.searchIcon} />
+          <label htmlFor="site-search" className="sr-only">{t('search')}</label>
+          <input id="site-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('marketplaceSearchPlaceholder')} />
+          <span className={styles.searchLocation}><Icon name="pin" />{t('allAreas')}</span>
+          <button type="submit" aria-label={t('search')}><Icon name="search" /></button>
         </form>
 
-        <div className="ml-auto flex items-center gap-2">
-          <LanguageToggle />
+        <div className={styles.account}>
           <AccountArea signInLabel={tAuth('signIn')} sellLabel={t('sell')} sellerLabel={tSeller('centre')} signOutLabel={tAuth('signOut')} />
         </div>
       </div>
+
+      <div className={styles.navBar}>
+        <nav className={`${styles.container} ${styles.navigation}`} aria-label={t('mainNavigation')}>
+          <details className={styles.categories} onClick={(event) => { if (event.target instanceof Element && event.target.closest('a')) event.currentTarget.open = false; }}>
+            <summary aria-label={t('allCategories')}><Icon name="grid" /><span>{t('allCategories')}</span><Icon name="chevron" /></summary>
+            <div className={styles.categoryMenu}>
+              <Link href={routes.search({ kind: 'product' })}><Icon name="bag" />{t('products')}</Link>
+              <Link href={routes.search({ kind: 'service' })}><Icon name="tools" />{t('services')}</Link>
+              <Link href={routes.search({ type: 'people', kind: 'business' })}><Icon name="shop" />{t('businesses')}</Link>
+              <Link href={routes.search({ type: 'people', kind: 'provider' })}><Icon name="user" />{t('providers')}</Link>
+            </div>
+          </details>
+          <div className={styles.navLinks}>
+            <Link href={routes.home} aria-current={pathname === '/' ? 'page' : undefined}>{t('home')}</Link>
+            <Link href={routes.search({ kind: 'product' })}>{t('products')}</Link>
+            <Link href={routes.search({ kind: 'service' })}>{t('services')}</Link>
+            <Link href={routes.search({ type: 'people', kind: 'business' })}>{t('businesses')}</Link>
+            <Link href={routes.search({ type: 'people', kind: 'provider' })}>{t('providers')}</Link>
+          </div>
+          <span className={styles.navLocation}><Icon name="pin" />{t('deltaNigeria')}</span>
+        </nav>
+      </div>
     </header>
+  );
+}
+
+function Announcement() {
+  const { t } = useT('market');
+  const rotation = useRotatingContent(announcements.length, 6000);
+  const announcement = announcements[rotation.index];
+
+  return (
+    <div className={styles.announcement} aria-label={t('announcements')}
+      onMouseEnter={() => rotation.setInteracting(true)} onMouseLeave={() => rotation.setInteracting(false)}
+      onFocusCapture={() => rotation.setInteracting(true)}
+      onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) rotation.setInteracting(false); }}>
+      <Icon name={announcement.icon} className={styles.announcementIcon} />
+      <div className={styles.announcementMessage} aria-live={rotation.paused ? 'polite' : 'off'}>
+        <Link key={announcement.text} href={announcement.href}><span className={styles.announcementFull}>{t(announcement.text)}</span><span className={styles.announcementShort}>{t(announcement.short)}</span></Link>
+      </div>
+      <button type="button" onClick={rotation.togglePaused} aria-label={t(rotation.paused ? 'playAnnouncements' : 'pauseAnnouncements')}><Icon name={rotation.paused ? 'play' : 'pause'} /></button>
+      <button type="button" onClick={() => rotation.select(rotation.index + 1)} aria-label={t('nextAnnouncement')}><Icon name="arrow" /></button>
+    </div>
   );
 }
 
@@ -61,22 +118,13 @@ function LanguageToggle() {
   const { t } = useT('market');
   const language = useLanguage();
   return (
-    <div role="group" aria-label={t('language')} className="flex rounded-lg border border-border p-0.5">
-      {languages
-        .filter((l) => l.enabled)
-        .map((l) => (
-          <button
-            key={l.code}
-            type="button"
-            lang={l.code}
-            aria-pressed={language === l.code}
-            onClick={() => isSupportedLanguage(l.code) && void setLanguage(l.code)}
-            className="min-h-9 rounded-md px-2.5 text-sm font-medium text-text-muted aria-pressed:bg-primary-soft aria-pressed:text-primary-pressed"
-          >
-            {l.nativeName}
-          </button>
-        ))}
-    </div>
+    <label className={styles.language}>
+      <Icon name="globe" />
+      <span className="sr-only">{t('language')}</span>
+      <select value={language} onChange={(event) => { const code = event.target.value; if (isSupportedLanguage(code)) void setLanguage(code); }}>
+        {languages.filter((l) => l.enabled).map((l) => <option key={l.code} value={l.code} lang={l.code}>{l.nativeName}</option>)}
+      </select>
+    </label>
   );
 }
 
@@ -91,21 +139,21 @@ function AccountArea({
   sellerLabel: string;
   signOutLabel: string;
 }) {
-  const { user, status } = useAccount();
+  const { t } = useT('market');
+  const { user } = useAccount();
   const api = useApi();
   const queryClient = useQueryClient();
   const router = useRouter();
 
-  if (status === 'unknown') return <span className="inline-block h-11 w-24" aria-hidden />;
-
   if (!user) {
     return (
       <>
-        <Link href={routes.signIn()} className={buttonClass('ghost', 'min-h-11 px-3')}>
-          {signInLabel}
+        <Link href={routes.signIn()} className={styles.signIn} aria-label={signInLabel}>
+          <Icon name="user" />
+          <span><small>{t('welcomeBack')}</small><strong>{signInLabel}<span className={styles.joinLabel}> / {t('join')}</span></strong></span>
         </Link>
-        <Link href={routes.signUp(routes.sell)} className={buttonClass('accent', 'hidden min-h-11 px-4 sm:inline-flex')}>
-          {sellLabel}
+        <Link href={routes.signUp(routes.sell)} className={styles.sellButton}>
+          <Icon name="plus" /><span>{sellLabel}</span>
         </Link>
       </>
     );
@@ -115,12 +163,13 @@ function AccountArea({
     await api.POST('/v1/auth/logout');
     // Leaving a private page (seller centre, messages): a full load of the home page drops
     // everything the account had in memory (and beats those pages' own sign-in redirect).
-    if ([routes.sell, routes.messages].some((path) => window.location.pathname.startsWith(path))) {
+    if ([routes.sell, routes.messages, routes.orders(), '/checkout'].some((path) => window.location.pathname.startsWith(path))) {
       window.location.assign(routes.home);
       return;
     }
     queryClient.removeQueries({ queryKey: sellerKeys.all });
     queryClient.removeQueries({ queryKey: chatKeys.all });
+    queryClient.removeQueries({ queryKey: orderKeys.all });
     queryClient.setQueryData(queryKeys.me, null);
     await queryClient.invalidateQueries({ queryKey: queryKeys.me });
     router.refresh();
@@ -129,6 +178,7 @@ function AccountArea({
   return (
     <div className="flex items-center gap-2">
       <MessagesLink enabled={Boolean(user.phone_verified_at)} />
+      <OrdersLink enabled={Boolean(user.phone_verified_at)} />
       <Link href={routes.sell} className={buttonClass('ghost', 'min-h-11 px-3 text-sm')}>
         {sellerLabel}
       </Link>
@@ -137,6 +187,33 @@ function AccountArea({
         {signOutLabel}
       </button>
     </div>
+  );
+}
+
+/** Orders bought and sold: an icon on small screens. */
+/** Orders bought and sold, with how many wait for you (to accept, send or confirm). An icon on small screens. */
+function OrdersLink({ enabled }: { enabled: boolean }) {
+  const { t } = useT('orders');
+  const counts = useOrderCounts(enabled).data;
+  const waiting = (counts?.selling ?? 0) + (counts?.buying ?? 0);
+
+  return (
+    <Link
+      href={routes.orders(counts && counts.selling > 0 && counts.buying === 0 ? 'sold' : undefined)}
+      aria-label={waiting > 0 ? t('ordersWaiting', { count: waiting }) : t('orders')}
+      className={buttonClass('ghost', 'relative min-h-11 px-3 text-sm')}
+    >
+      <svg aria-hidden viewBox="0 0 24 24" className="size-5 fill-none stroke-current" strokeWidth={1.8} strokeLinejoin="round">
+        <path d="M5 8h14l-1 12H6L5 8z" />
+        <path d="M9 8V6a3 3 0 0 1 6 0v2" />
+      </svg>
+      <span className="hidden md:inline">{t('orders')}</span>
+      {waiting > 0 ? (
+        <span className="absolute top-1 right-1 min-w-5 rounded-full bg-accent px-1.5 text-center text-xs font-bold text-text">
+          {waiting > 99 ? '99+' : waiting}
+        </span>
+      ) : null}
+    </Link>
   );
 }
 

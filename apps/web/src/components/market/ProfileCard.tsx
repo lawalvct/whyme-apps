@@ -14,7 +14,7 @@ export function ProfileCard({ profile }: { profile: PublicProfile }) {
   return (
     <Link
       href={routes.profile(profile)}
-      className="group flex gap-3 rounded-xl border border-border bg-background p-3 transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-primary"
+      className="group flex min-w-0 gap-3 rounded-xl border border-border bg-background p-3 transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-primary"
     >
       <Photo src={profile.logo?.thumb} alt={profile.display_name} className="size-16 shrink-0 rounded-full" />
       <div className="flex min-w-0 flex-col gap-0.5">

@@ -7,6 +7,7 @@ import { CategoryName } from '@/components/market/CategoryName';
 import { ContactActions } from '@/components/market/ContactActions';
 import { PhotoGallery } from '@/components/market/PhotoGallery';
 import { Price } from '@/components/market/Price';
+import { ReturnsPolicy } from '@/components/market/ReturnsPolicy';
 import { SafetyNote } from '@/components/market/SafetyNote';
 import { VerifiedBadge } from '@/components/market/VerifiedBadge';
 import { routes } from '@/lib/format';
@@ -53,6 +54,7 @@ export function ListingView({ listing }: { listing: PublicListing }) {
             {listing.availability_note}
           </p>
         ) : null}
+        <ReturnsPolicy terms={listing.refund_policy} />
 
         <ContactActions kind={isProduct ? 'product' : 'service'} subject={{ type: 'listing', id: listing.id }} ownerId={listing.seller.id} />
         <p className="text-sm text-text-muted">{t('protectedPayment')}</p>

@@ -26,6 +26,7 @@ export function Inbox() {
       void queryClient.invalidateQueries({ queryKey: chatKeys.inbox });
       void queryClient.invalidateQueries({ queryKey: chatKeys.unread });
     },
+    'conversation.updated': () => void queryClient.invalidateQueries({ queryKey: chatKeys.inbox }),
   });
 
   const inbox = useQuery({
@@ -91,13 +92,16 @@ function InboxRow({ conversation }: { conversation: Conversation }) {
               {chatTime(last?.at, language, { yesterday: t('yesterday') })}
             </span>
           </div>
-          <p className="truncate text-xs text-text-muted">{conversation.subject.title}</p>
+          <p className="truncate text-xs text-text-muted">
+            {conversation.closed ? <span className="mr-1 font-semibold text-danger">{t('closedLabel')} ·</span> : null}
+            {conversation.subject.title}
+          </p>
           <div className="flex items-center justify-between gap-2">
             <p className={cn('truncate text-sm', unread ? 'font-semibold text-text' : 'text-text-muted')}>
               {last ? (
                 <>
                   {last.mine ? t('you') : ''}
-                  {last.body}
+                  {last.body ?? t('removedPreview')}
                 </>
               ) : (
                 t('held')

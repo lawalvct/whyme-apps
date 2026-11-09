@@ -26,7 +26,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Providers>
           <SkipLink />
           <SiteHeader />
-          <main id="content" className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+          <main id="content" className="site-main mx-auto w-full flex-1">
             {children}
           </main>
           <SiteFooter />

@@ -49,6 +49,14 @@ export function ConversationView({ id }: { id: string }) {
       void queryClient.invalidateQueries({ queryKey: chatKeys.inbox });
       void queryClient.invalidateQueries({ queryKey: chatKeys.unread });
     },
+    // WHY ME staff closed or reopened it, or removed a message.
+    'conversation.updated': (data) => {
+      if ((data as { conversation_id?: string }).conversation_id === id) {
+        void queryClient.invalidateQueries({ queryKey: chatKeys.messages(id) });
+        void queryClient.invalidateQueries({ queryKey: chatKeys.conversation(id) });
+      }
+      void queryClient.invalidateQueries({ queryKey: chatKeys.inbox });
+    },
   });
 
   const messages = useInfiniteQuery({
@@ -98,11 +106,12 @@ export function ConversationView({ id }: { id: string }) {
       setPending((list) => list.filter((p) => p.clientId !== clientId));
       void queryClient.invalidateQueries({ queryKey: chatKeys.inbox });
     } catch (e) {
-      if (e instanceof ApiRequestError && e.status === 422) {
-        // Refused (e.g. a phone number in it): nothing was stored, so put the text back to fix.
+      if (e instanceof ApiRequestError && (e.status === 422 || e.code === 'conversation_closed')) {
+        // Refused (a phone number in it, or the chat was closed): nothing was stored, so keep the text.
         setPending((list) => list.filter((p) => p.clientId !== clientId));
         setDraft(body);
         setError(e.code === 'content_blocked' ? t('blocked') : t(errorKey(e.code)));
+        if (e.code === 'conversation_closed') void queryClient.invalidateQueries({ queryKey: chatKeys.conversation(id) });
         return;
       }
       setPending((list) => list.map((p) => (p.clientId === clientId ? { ...p, state: 'failed' } : p)));
@@ -161,6 +170,12 @@ export function ConversationView({ id }: { id: string }) {
         <div ref={endRef} />
       </section>
 
+      {/* No message box until the chat has loaded, so a closed one never shows it, even briefly. */}
+      {!conversation.data ? null : conversation.data.closed ? (
+        <p role="status" className="sticky bottom-0 rounded-lg border border-border bg-surface p-3 text-sm text-text">
+          {t('closedNote', { reason: conversation.data.closed_reason ?? '' })}
+        </p>
+      ) : (
       <form method="post" onSubmit={onSubmit} className="sticky bottom-0 flex flex-col gap-2 border-t border-border bg-background py-3">
         {error ? (
           <p role="alert" className="text-sm text-danger">
@@ -186,6 +201,7 @@ export function ConversationView({ id }: { id: string }) {
           </Button>
         </div>
       </form>
+      )}
     </div>
   );
 }
@@ -234,6 +250,15 @@ function Bubble({ message }: { message: ChatMessage }) {
   const { t } = useT('chat');
   const language = useLanguage();
   const mine = message.mine;
+
+  if (message.status === 'removed') {
+    return (
+      <div className={cn('flex max-w-[85%] flex-col gap-0.5', mine ? 'self-end items-end' : 'self-start items-start')}>
+        <p className="rounded-2xl border border-border px-3 py-2 text-sm italic text-text-muted">{t('removedNote')}</p>
+        <span className="text-xs text-text-muted">{bubbleTime(message.created_at, language)}</span>
+      </div>
+    );
+  }
 
   return (
     <div className={cn('flex max-w-[85%] flex-col gap-0.5', mine ? 'self-end items-end' : 'self-start items-start')}>
