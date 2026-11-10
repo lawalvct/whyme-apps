@@ -43,6 +43,16 @@ export class DexieOutboxStore implements OutboxStore {
     await this.db.outbox.update(actionId, patch);
   }
 
+  async updateIf(actionId: string, test: (action: OutboxAction) => boolean, patch: Partial<OutboxAction>): Promise<boolean> {
+    // One IndexedDB transaction: other tabs' writes to the outbox wait for it.
+    return this.db.transaction('rw', this.db.outbox, async () => {
+      const current = await this.db.outbox.get(actionId);
+      if (!current || !test(current)) return false;
+      await this.db.outbox.update(actionId, patch);
+      return true;
+    });
+  }
+
   async delete(actionId: string): Promise<void> {
     await this.db.outbox.delete(actionId);
   }

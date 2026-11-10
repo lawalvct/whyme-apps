@@ -34,9 +34,11 @@ export const queryKeys = {
  */
 export function useTaxonomy() {
   const api = useApi();
+  // Kept on the device too: offline listing drafts need the category and area lists.
+  const fetcher = useOfflineFetcher('taxonomy', 'all', async (): Promise<Taxonomy> => unwrap(await api.GET('/v1/taxonomy')).data);
   return useQuery({
     queryKey: queryKeys.taxonomy,
-    queryFn: async (): Promise<Taxonomy> => unwrap(await api.GET('/v1/taxonomy')).data,
+    queryFn: fetcher,
     staleTime: 24 * 60 * 60_000,
     gcTime: 24 * 60 * 60_000,
   });

@@ -2,6 +2,7 @@ import { createHttpTransport, SyncEngine } from '@whyme/sync';
 import { DexieOutboxStore } from '@whyme/sync/dexie';
 import { createSyncController } from '@whyme/data';
 import { API_BASE_URL, appHeaders } from './api';
+import { listingRoutes } from './listing-queue';
 import { LocalDb } from './local-db';
 
 /**
@@ -24,6 +25,8 @@ export function createWebSync(accountId: string) {
         // Saved items: PUT and DELETE are idempotent, so a resend after a lost reply is harmless.
         'saved.add': (action) => ({ method: 'PUT', path: `/v1/me/saved/${(action.payload as { listing_id: string }).listing_id}` }),
         'saved.remove': (action) => ({ method: 'DELETE', path: `/v1/me/saved/${(action.payload as { listing_id: string }).listing_id}` }),
+        // Listing drafts saved offline, with their photos (lib/listing-queue.ts).
+        ...listingRoutes,
       },
     }),
   });

@@ -2,18 +2,20 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { Controller, type FieldValues, type Path, type UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   ApiRequestError,
+  isConnectionError,
   sellerKeys,
   unwrap,
   useApi,
   useConfig,
   useMyListing,
   useMyProfile,
+  useOfflineCache,
   useTaxonomy,
   useZodForm,
   type ListingKind,
@@ -24,9 +26,12 @@ import { CheckboxField, FieldGroup, TextAreaField, TextField } from '@/component
 import { Skeleton } from '@/components/ui/skeleton';
 import { koboToNaira, nairaToKobo, routes } from '@/lib/format';
 import { translateFieldError, useT } from '@/lib/i18n';
+import { draftIdOf, saveListingDraft, useListingDraft, watchListingDraft, type ListingDraft } from '@/lib/listing-drafts';
+import { isUploadRef, type ListingContent, type PhotoUploadPayload } from '@/lib/listing-queue';
+import { useAccountRuntime } from '@/lib/offline';
 import { useAccount } from '@/lib/session';
 import { Card, conflictRecord, Notice, PageTitle, SectionTitle, sellerCapabilities, StatusBadge, StatusNote, useErrorText } from './common';
-import { PhotoPicker, usePhotoList } from './PhotoPicker';
+import { PhotoPicker, usePhotoList, type PhotoItem } from './PhotoPicker';
 import { StartSelling } from './StartSelling';
 import { AreaChecklist, CategorySelect, LocationSelect } from './TaxonomyFields';
 import { useLeaveGuard } from './useLeaveGuard';
@@ -90,7 +95,26 @@ function applyFieldErrors<T extends FieldValues>(form: UseFormReturn<T>, error: 
   return fields?.photo_ids?.[0];
 }
 
-/** Add or edit a listing (route: /sell/listings/new?kind=… or /sell/listings/{id}). */
+/** The tiles of a draft saved on this device: server photos, and photos still waiting to upload. */
+function restorePhotos(draft: ListingDraft, serverPhotos: OwnerListing['photos']): PhotoItem[] {
+  return draft.payload.photos.flatMap((ref): PhotoItem[] => {
+    if (!isUploadRef(ref)) {
+      const photo = serverPhotos.find((p) => p.id === ref.id);
+      const preview = photo ? (photo.urls.thumb ?? photo.urls.medium) : (ref.preview ?? null);
+      return [{ key: ref.id, id: ref.id, state: photo?.status === 'rejected' ? 'rejected' : 'ready', preview }];
+    }
+    const action = draft.uploads.get(ref.upload);
+    const file = (action?.payload as PhotoUploadPayload | undefined)?.file;
+    if (!action || !(file instanceof Blob)) return [];
+    if (action.state === 'acked' && action.serverId) return [{ key: ref.key, id: action.serverId, state: 'ready', preview: null, file }];
+    return [{ key: ref.key, id: null, state: action.state === 'rejected' ? 'rejected' : 'waiting', preview: null, file, upload: ref.upload }];
+  });
+}
+
+/**
+ * Add or edit a listing (route: /sell/listings/new?kind=… or /sell/listings/{id}). Saves made
+ * offline wait in the send queue; `?draft=` reopens a new listing saved that way.
+ */
 export function ListingEditor({ id }: { id?: string }) {
   const { t } = useT('seller');
   const { user } = useAccount();
@@ -98,8 +122,13 @@ export function ListingEditor({ id }: { id?: string }) {
   // Read once: after the first save the address becomes /sell/listings/{id} without `?kind`.
   const params = useSearchParams();
   const [requested] = useState(() => params.get('kind'));
+  // A new listing's client ID, also its key in the send queue (`?draft=` when reopened).
+  const [newId] = useState(() => params.get('draft') ?? crypto.randomUUID());
   const existing = useMyListing(id ?? null);
-  const kind: ListingKind = existing.data?.kind ?? (requested === 'service' || (!caps.vendor && requested !== 'product') ? 'service' : 'product');
+  const localId = id ? (existing.data ? draftIdOf(existing.data) : null) : newId;
+  const draft = useListingDraft(localId);
+  const kind: ListingKind =
+    existing.data?.kind ?? draft?.kind ?? (requested === 'service' || (!caps.vendor && requested !== 'product') ? 'service' : 'product');
   const allowed = kind === 'product' ? caps.vendor : caps.provider;
   // New listings start with the location (and areas served) from the seller's page.
   const profile = useMyProfile(kind === 'product' ? 'business' : 'provider', allowed && !id);
@@ -107,7 +136,7 @@ export function ListingEditor({ id }: { id?: string }) {
 
   if (!allowed && !(id && existing.isPending)) return <StartSelling only={kind === 'product' ? 'vendor' : 'provider'} />;
 
-  if ((id ? existing.isPending : profile.isPending) || taxonomy.isPending) {
+  if ((id ? existing.isPending : profile.isPending) || taxonomy.isPending || draft === undefined) {
     return (
       <div className="flex max-w-3xl flex-col gap-4">
         <Skeleton className="h-10 w-72" />
@@ -122,16 +151,24 @@ export function ListingEditor({ id }: { id?: string }) {
   }
 
   const defaults = profile.data ? { location_id: profile.data.location_id, service_area_ids: profile.data.service_area_ids.map(Number) } : {};
-  return <ListingForm key={kind} kind={kind} listing={existing.data ?? null} defaults={defaults} />;
+  // A new listing reopened after its draft was sent: the server's copy from the queue.
+  const listing = existing.data ?? draft?.record ?? null;
+  return <ListingForm key={kind} kind={kind} listing={listing} draft={draft ?? null} draftId={newId} defaults={defaults} />;
 }
 
 function ListingForm({
   kind,
   listing,
+  draft,
+  draftId,
   defaults,
 }: {
   kind: ListingKind;
   listing: OwnerListing | null;
+  /** What this device still has to send for this listing (read live from the queue). */
+  draft: ListingDraft | null;
+  /** The client ID for a new listing. */
+  draftId: string;
   defaults: { location_id?: number; service_area_ids?: number[] };
 }) {
   const { t } = useT('seller');
@@ -140,31 +177,79 @@ function ListingForm({
   const queryClient = useQueryClient();
   const errorText = useErrorText();
   const config = useConfig();
+  const offlineCache = useOfflineCache();
   const photoLimit = Number(config.data?.settings['listings.max_photos.basic'] ?? 5);
 
-  // Makes a double-tapped or retried create return the same draft (OFF05).
-  const [clientId] = useState(() => crypto.randomUUID());
+  const sync = useAccountRuntime();
+  // Makes a double-tapped or retried create return the same draft (OFF05); also the queue's key for it.
+  const [clientId] = useState(() => listing?.client_id ?? draftId);
   const [current, setCurrent] = useState(listing);
   const [notice, setNotice] = useState<{ tone: 'success' | 'info' | 'error'; text: string } | null>(null);
   const [photoError, setPhotoError] = useState<string | undefined>();
-  const photos = usePhotoList(listing?.photos ?? [], photoLimit);
-  const form = useZodForm(schema, { defaultValues: toForm(listing, defaults) });
+  // Reopened with unsent changes: the form starts from them, not from the server's copy.
+  const [restored] = useState(() => (draft && draft.unsent.length > 0 ? draft : null));
+  const photos = usePhotoList(listing?.photos ?? [], photoLimit, false, restored ? restorePhotos(restored, listing?.photos ?? []) : undefined);
+  const form = useZodForm(schema, {
+    defaultValues: toForm(restored ? ({ ...listing, ...restored.payload.content } as OwnerListing) : listing, defaults),
+  });
   const { errors, isSubmitting, isDirty } = form.formState;
   const fieldError = (message: string | undefined) => translateFieldError(t, message);
   const product = kind === 'product';
+  const pending = Boolean(draft && draft.unsent.length > 0);
+  const queueKey = current ? draftIdOf(current) : clientId;
 
   useLeaveGuard(isDirty || photos.dirty);
+
+  // Follow the queued saves: once all are confirmed show the server's copy; on a
+  // conflict keep the seller's changes but base the next save on the latest version.
+  const sawPending = useRef(pending);
+  const shownProblem = useRef<string | null>(null);
+  const onQueueChange = useEffectEvent((next: ListingDraft | null) => {
+    if (!next) return;
+    if (next.unsent.length > 0) {
+      sawPending.current = true;
+      const problem = next.problem;
+      const problemKey = problem ? `${problem.actionId}:${problem.lastErrorCode}:${problem.attempts}` : null;
+      if (!problem || shownProblem.current === problemKey) return;
+      shownProblem.current = problemKey;
+      if (next.status === 'conflict' || next.status === 'in_review') {
+        const latest = (problem.lastResponse as { data?: OwnerListing } | null)?.data;
+        if (latest?.id) setCurrent(latest);
+      } else if (next.status === 'rejected') {
+        setPhotoError(applyFieldErrors(form, new ApiRequestError(422, problem.lastResponse as never), Object.keys(schema.shape)));
+      } else if (next.status === 'photo_rejected') {
+        photos.markRejected((problem.payload as PhotoUploadPayload).client_id);
+      }
+      return;
+    }
+    if (sawPending.current && next.record) {
+      sawPending.current = false;
+      const saved = next.record;
+      if (isDirty || photos.dirty) {
+        // The seller kept typing: don't overwrite it; the next save goes on top of this version.
+        setCurrent(saved);
+        queryClient.setQueryData(sellerKeys.listing(saved.id), saved);
+      } else {
+        loaded(saved);
+      }
+      window.history.replaceState(null, '', routes.editListing(saved.id));
+      setNotice({ tone: 'success', text: t('offline.sent') });
+    }
+  });
+  useEffect(() => (sync ? watchListingDraft(sync, queueKey, onQueueChange) : undefined), [sync, queueKey]);
 
   function loaded(saved: OwnerListing) {
     setCurrent(saved);
     queryClient.setQueryData(sellerKeys.listing(saved.id), saved);
+    // So /sell/listings/{id} opens offline too (it may never have been fetched on this device).
+    void offlineCache?.put('my-listing', saved.id, saved).catch(() => undefined);
     void queryClient.invalidateQueries({ queryKey: ['me', 'seller', 'listings'] });
     form.reset(toForm(saved));
     photos.reset(saved.photos);
   }
 
-  async function save(values: FormOutput): Promise<OwnerListing> {
-    const content = {
+  function contentOf(values: FormOutput): ListingContent {
+    return {
       category_id: values.category_id,
       location_id: values.location_id,
       title: values.title,
@@ -182,8 +267,11 @@ function ListingForm({
               return_days: values.returns === 'accepted' ? Number(values.return_days) : null,
               conditions: values.return_conditions || null,
             },
-      photo_ids: photos.ids,
     };
+  }
+
+  async function save(values: FormOutput): Promise<OwnerListing> {
+    const content = { ...contentOf(values), photo_ids: photos.ids };
 
     if (current) {
       const path = { params: { path: { listing: current.id } } };
@@ -197,6 +285,30 @@ function ListingForm({
     return created;
   }
 
+  /** Keeps the save on this device until it can be sent (no connection, photos waiting, or earlier saves still queued). */
+  async function queueSave(values: FormOutput, publish: boolean) {
+    if (!sync) return setNotice({ tone: 'error', text: errorText(null) });
+    try {
+      const { uploads } = await saveListingDraft(sync, {
+        localId: queueKey,
+        kind,
+        listingId: current?.id ?? null,
+        baseVersion: current?.version ?? null,
+        content: contentOf(values),
+        photos: photos.items,
+      });
+      photos.markQueued(uploads);
+      form.reset(form.getValues());
+      shownProblem.current = null;
+      if (!current) window.history.replaceState(null, '', routes.listingDraft(kind, queueKey));
+      setNotice({ tone: 'info', text: t(publish ? 'offline.savedPublishLater' : 'offline.savedOnDevice') });
+      if (navigator.onLine) void sync.controller.run().catch(() => undefined);
+    } catch {
+      // The browser refused to store it (e.g. storage full): nothing was saved.
+      setNotice({ tone: 'error', text: t('offline.notStored') });
+    }
+  }
+
   const run = (publish: boolean) =>
     form.handleSubmit(async (values) => {
       setNotice(null);
@@ -205,11 +317,15 @@ function ListingForm({
       if (values.returns === 'accepted' && values.return_days === '') {
         return form.setError('return_days', { type: 'required', message: 'seller:returnDaysInvalid' });
       }
+      // Earlier saves still queued go first, so this one can't overtake them.
+      if (sync && (!navigator.onLine || photos.waiting || pending)) return queueSave(values, publish);
 
+      let savedOnline = false;
       try {
         // Always saved first: the API returns an unchanged listing as it is, and this
         // never trusts a dirty flag from a render that may predate the last keystroke.
         let saved = await save(values);
+        savedOnline = true;
         if (publish && ['draft', 'rejected', 'expired', 'paused'].includes(saved.status)) {
           // Saved even if publishing is then refused (e.g. contact details in the text).
           loaded(saved);
@@ -226,6 +342,8 @@ function ListingForm({
         loaded(saved);
         setNotice({ tone: 'success', text: wasLive && saved.status === 'pending_review' ? t('submittedReview') : t('saved') });
       } catch (e) {
+        // The connection dropped before the save arrived: keep it on this device instead.
+        if (!savedOnline && sync && isConnectionError(e)) return queueSave(values, publish);
         const latest = conflictRecord<OwnerListing>(e);
         if (latest) {
           loaded(latest);
@@ -382,7 +500,7 @@ function ListingForm({
       </Card>
       </fieldset>
 
-      {notice ? <Notice tone={notice.tone}>{notice.text}</Notice> : null}
+      <DraftNotice draft={draft} fallback={notice} />
 
       <div className={styles.actionBar}>
         {inReview ? (
@@ -405,6 +523,30 @@ function ListingForm({
       </div>
     </form>
   );
+}
+
+/**
+ * What happened to this listing's queued saves. A problem (refused, changed elsewhere)
+ * shows over the form's own notice; "waiting" shows only when there's nothing newer to say.
+ */
+function DraftNotice({ draft, fallback }: { draft: ListingDraft | null; fallback: { tone: 'success' | 'info' | 'error'; text: string } | null }) {
+  const { t } = useT('seller');
+  const errorText = useErrorText();
+  const status = draft && draft.unsent.length > 0 ? draft.status : null;
+  let problem: { tone: 'info' | 'error'; text: string } | null = null;
+  if (status === 'conflict') problem = { tone: 'info', text: t('offline.conflict') };
+  else if (status === 'in_review') problem = { tone: 'info', text: t('offline.inReview') };
+  else if (status === 'rejected') {
+    const reason = errorText(new ApiRequestError(422, draft?.problem?.lastResponse as never));
+    problem = { tone: 'error', text: t('offline.rejected', { reason }) };
+  } else if (status === 'photo_rejected') problem = { tone: 'error', text: t('offline.photoRejected') };
+  else if (status === 'needs_auth') problem = { tone: 'error', text: t('offline.needsAuth') };
+
+  const shown =
+    problem ??
+    fallback ??
+    (status === 'sending' ? { tone: 'info' as const, text: t('offline.sending') } : status === 'waiting' ? { tone: 'info' as const, text: t('offline.waiting') } : null);
+  return shown ? <Notice tone={shown.tone}>{shown.text}</Notice> : null;
 }
 
 /** Where WHY ME's check of the returns policy stands. Buyers see the policy only once approved. */

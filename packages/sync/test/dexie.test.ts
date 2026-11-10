@@ -36,4 +36,20 @@ describe('DexieOutboxStore', () => {
       expect(await store.get(action.actionId)).toMatchObject({ state: 'acked', serverId: 'srv_1' });
     }
   });
+
+  it('changes a stored action only while the test still passes', async () => {
+    const store = new DexieOutboxStore('user_w');
+    const engine = new SyncEngine({ store, transport: okTransport, accountId: 'user_w' });
+    const action = await engine.enqueue({ entityType: 'listing', localId: 'l1', actionType: 'listing.create', payload: { title: 'A' } });
+
+    expect(await engine.revise(action.actionId, { payload: { title: 'B' } })).toBe(true);
+    expect(await store.updateIf(action.actionId, (a) => a.state === 'sending', { payload: { title: 'C' } })).toBe(false);
+    // A photo kept with the draft survives the round trip through IndexedDB.
+    const photo = new Blob(['jpeg'], { type: 'image/jpeg' });
+    expect(await store.updateIf(action.actionId, (a) => a.state === 'queued', { payload: { title: 'B', photo } })).toBe(true);
+    const saved = await store.get(action.actionId);
+    expect((saved?.payload as { title: string }).title).toBe('B');
+    expect((saved?.payload as { photo: Blob }).photo.size).toBe(4);
+    await store.destroy();
+  });
 });

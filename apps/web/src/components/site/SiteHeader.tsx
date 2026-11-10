@@ -37,6 +37,10 @@ export function SiteHeader() {
     router.push(routes.search({ q: query.trim() || undefined }));
   }
 
+  if (pathname === '/signin' || pathname === '/signup') {
+    return <header className={`${styles.header} ${styles.authHeader}`}><div className={`${styles.container} ${styles.authRow}`}><Link href={routes.home} className={styles.brand} aria-label="WHY ME"><Image src="/brand/whyme-logo-full.png" alt="WHY ME" width={176} height={41} preload /><span>{t('brandTagline')}</span></Link><div className={styles.authActions}><Link href={routes.home} className={styles.authBack} aria-label={tAuth('ui.backToMarketplace')}><Icon name="arrow" /><span>{tAuth('ui.backToMarketplace')}</span></Link><LanguageToggle /></div></div></header>;
+  }
+
   return (
     <header className={styles.header}>
       <div className={styles.utility}>

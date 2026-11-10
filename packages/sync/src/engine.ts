@@ -31,7 +31,7 @@ export type RunResult =
   | { status: 'offline'; sent: number }
   | { status: 'done'; sent: number; failed: number };
 
-type SendOutcome = 'acked' | 'retry' | 'offline' | 'auth' | 'conflict' | 'rejected';
+type SendOutcome = 'acked' | 'retry' | 'offline' | 'auth' | 'conflict' | 'rejected' | 'gone';
 
 /**
  * Durable action queue. Every user action is written to the store before the UI
@@ -111,6 +111,7 @@ export class SyncEngine {
         attempted.add(next.actionId);
         const outcome = await this.sendOne(next);
         if (outcome === 'acked') sent++;
+        else if (outcome === 'gone') continue;
         else if (outcome === 'auth') return { status: 'paused_auth', sent };
         else if (outcome === 'offline') return { status: 'offline', sent };
         else failed++;
@@ -151,9 +152,56 @@ export class SyncEngine {
     });
   }
 
+  /**
+   * The user changed something still waiting in the queue, e.g. saved an offline
+   * draft again. It is changed in place only while that's safe: never sent yet,
+   * or refused by the server (which stores only successes). Returns false when
+   * it is being sent, was acked, or an earlier attempt may have reached the
+   * server with the reply lost: the same Idempotency-Key with a new body would
+   * be refused, so queue a follow-up action that depends on it instead.
+   */
+  async revise(
+    actionId: string,
+    changes: { payload: unknown; baseVersion?: number | null; dependsOn?: string[] },
+  ): Promise<boolean> {
+    const patch: Partial<OutboxAction> = {
+      payload: changes.payload,
+      ...(changes.baseVersion === undefined ? {} : { baseVersion: changes.baseVersion }),
+      ...(changes.dependsOn ? { dependsOn: changes.dependsOn } : {}),
+      state: 'queued',
+      lastErrorCode: null,
+      lastResponse: null,
+      nextRetryAt: null,
+    };
+    const changed = await this.updateIf(actionId, isRevisable, patch);
+    if (changed) {
+      const action = await this.options.store.get(actionId);
+      if (action) this.options.onChange?.(action);
+    }
+    return changed;
+  }
+
   /** The user chose to throw this draft away. */
   async discard(actionId: string): Promise<void> {
     await this.options.store.delete(actionId);
+  }
+
+  /**
+   * Deletes actions acked more than `olderThanMs` ago, except those an unsent
+   * action still depends on (it needs their server IDs and responses).
+   */
+  async prune(olderThanMs: number): Promise<number> {
+    const all = await this.all();
+    const needed = new Set(all.filter((a) => a.state !== 'acked').flatMap((a) => a.dependsOn));
+    const cutoff = this.now() - olderThanMs;
+    let removed = 0;
+    for (const action of all) {
+      if (action.state === 'acked' && (action.ackedAt ?? 0) < cutoff && !needed.has(action.actionId)) {
+        await this.options.store.delete(action.actionId);
+        removed++;
+      }
+    }
+    return removed;
   }
 
   private async all(): Promise<OutboxAction[]> {
@@ -187,13 +235,18 @@ export class SyncEngine {
     });
   }
 
-  private async sendOne(action: OutboxAction): Promise<SendOutcome> {
-    const attempts = action.attempts + 1;
-    await this.patch(action, { state: 'sending', attempts });
+  private async sendOne(listed: OutboxAction): Promise<SendOutcome> {
+    const attempts = listed.attempts + 1;
+    // Claim it, then send what's stored now: another tab may have revised the
+    // payload since it was listed, or discarded it.
+    const claimed = await this.updateIf(listed.actionId, (a) => a.state === listed.state, { state: 'sending', attempts });
+    const action = claimed ? await this.options.store.get(listed.actionId) : undefined;
+    if (!action) return 'gone';
+    this.options.onChange?.({ ...action });
 
     let result: TransportResult;
     try {
-      result = await this.options.transport.send({ ...action, attempts }, await this.context());
+      result = await this.options.transport.send({ ...action }, await this.context());
     } catch {
       result = { kind: 'retryable', code: 'network_error' };
     }
@@ -205,7 +258,7 @@ export class SyncEngine {
           ackedAt: this.now(),
           serverId: result.serverId ?? action.serverId,
           lastErrorCode: null,
-          lastResponse: null,
+          lastResponse: result.body ?? null,
           nextRetryAt: null,
         });
         return 'acked';
@@ -230,7 +283,23 @@ export class SyncEngine {
 
   private async context(): Promise<SendContext> {
     const byId = new Map((await this.all()).map((a) => [a.actionId, a]));
-    return { serverIdFor: (actionId) => byId.get(actionId)?.serverId ?? null };
+    const acked = (actionId: string) => {
+      const action = byId.get(actionId);
+      return action?.state === 'acked' ? action : undefined;
+    };
+    return {
+      serverIdFor: (actionId) => acked(actionId)?.serverId ?? null,
+      responseFor: (actionId) => acked(actionId)?.lastResponse ?? null,
+    };
+  }
+
+  private async updateIf(actionId: string, test: (action: OutboxAction) => boolean, patch: Partial<OutboxAction>): Promise<boolean> {
+    const { store } = this.options;
+    if (store.updateIf) return store.updateIf(actionId, test, patch);
+    const current = await store.get(actionId);
+    if (!current || !test(current)) return false;
+    await store.update(actionId, patch);
+    return true;
   }
 
   private async patch(action: OutboxAction, changes: Partial<OutboxAction>): Promise<void> {
@@ -238,6 +307,10 @@ export class SyncEngine {
     Object.assign(action, changes);
     this.options.onChange?.({ ...action });
   }
+}
+
+function isRevisable(action: OutboxAction): boolean {
+  return (action.state === 'queued' && action.attempts === 0) || action.state === 'rejected' || action.state === 'conflict';
 }
 
 function compareCreated(a: OutboxAction, b: OutboxAction): number {

@@ -8,11 +8,14 @@ import { errorKey } from '@whyme/i18n';
 import { loginSchema, otpSchema } from '@whyme/schemas';
 import { Button } from '@/components/ui/button';
 import { TextField } from '@/components/ui/field';
+import { MarketplaceIcon as Icon } from '@/components/ui/MarketplaceIcon';
 import { prepareSession, webDevice } from '@/lib/api';
 import { routes } from '@/lib/format';
 import { useT } from '@/lib/i18n';
 import { AuthCard, FormError } from './AuthCard';
 import { useAuthDone, useNextParam } from './useAuthDone';
+import { PasswordField } from './PasswordField';
+import styles from './AuthCard.module.css';
 
 const schema = loginSchema.extend({ code: otpSchema.or(z.literal('')).optional() });
 
@@ -54,8 +57,10 @@ export function SignInForm() {
 
   return (
     <AuthCard
-      title={t('signInTitle')}
-      intro={t('signInIntro')}
+      title={t(needsCode ? 'ui.deviceTitle' : 'ui.signInTitle')}
+      intro={t(needsCode ? 'ui.deviceIntro' : 'ui.signInIntro')}
+      mode="signin"
+      next={next}
       footer={
         <>
           {t('noAccount')}{' '}
@@ -65,26 +70,27 @@ export function SignInForm() {
         </>
       }
     >
-      <form method="post" onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
+      <form method="post" onSubmit={onSubmit} noValidate className={styles.form}>
         <FormError message={error} />
         <TextField
           label={t('phone')}
-          hint={t('phoneHint')}
+          hint={t('ui.signInPhoneHint')}
+          placeholder="0803 123 4567"
           type="tel"
           inputMode="tel"
           autoComplete="tel"
           error={errors.phone?.message ? t(errors.phone.message) : undefined}
           {...form.register('phone')}
         />
-        <TextField
+        <PasswordField
           label={t('password')}
-          type="password"
           autoComplete="current-password"
           error={errors.password?.message ? t(errors.password.message) : undefined}
           {...form.register('password')}
         />
         {needsCode ? (
           <TextField
+            className={styles.codeField}
             label={t('code')}
             hint={needsCode.channel === 'email' ? t('newDeviceCodeEmail', { email: needsCode.sentTo }) : t('newDeviceCode')}
             inputMode="numeric"
@@ -95,8 +101,9 @@ export function SignInForm() {
             {...form.register('code')}
           />
         ) : null}
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting} className={styles.primaryButton}>
           {isSubmitting ? t('common:loading') : t('signIn')}
+          <Icon name="arrow" />
         </Button>
       </form>
     </AuthCard>

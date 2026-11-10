@@ -138,6 +138,8 @@ function startQueueRunner(sync: WebSync): () => void {
   const becomeLeader = async () => {
     leader = true;
     await sync.engine.recover().catch(() => 0);
+    // Confirmed actions are kept a week (their replies feed follow-up saves), then dropped.
+    await sync.engine.prune(7 * 24 * 3600_000).catch(() => 0);
     tick();
   };
   if ('locks' in navigator && navigator.locks) {

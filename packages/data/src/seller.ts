@@ -37,16 +37,17 @@ export function useMyProfiles(enabled = true) {
 /** One profile, or null when the owner hasn't started it yet (404). */
 export function useMyProfile(kind: ProfileKind, enabled = true) {
   const api = useApi();
+  const fetcher = useOfflineFetcher('my-profile', kind, async (): Promise<OwnerProfile | null> => {
+    try {
+      return unwrap(await api.GET('/v1/me/profiles/{kind}', { params: { path: { kind } } })).data;
+    } catch (e) {
+      if (e instanceof ApiRequestError && e.status === 404) return null;
+      throw e;
+    }
+  });
   return useQuery({
     queryKey: sellerKeys.profile(kind),
-    queryFn: async (): Promise<OwnerProfile | null> => {
-      try {
-        return unwrap(await api.GET('/v1/me/profiles/{kind}', { params: { path: { kind } } })).data;
-      } catch (e) {
-        if (e instanceof ApiRequestError && e.status === 404) return null;
-        throw e;
-      }
-    },
+    queryFn: fetcher,
     enabled,
   });
 }

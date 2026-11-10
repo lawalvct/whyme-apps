@@ -9,11 +9,14 @@ import { errorKey } from '@whyme/i18n';
 import { otpSchema, passwordSchema, personNameSchema, phoneSchema } from '@whyme/schemas';
 import { Button } from '@/components/ui/button';
 import { TextField } from '@/components/ui/field';
+import { MarketplaceIcon as Icon } from '@/components/ui/MarketplaceIcon';
 import { prepareSession, webDevice } from '@/lib/api';
 import { routes } from '@/lib/format';
 import { translateFieldError, useT } from '@/lib/i18n';
-import { AuthCard, FormError } from './AuthCard';
+import { AuthCard, AuthSteps, FormError } from './AuthCard';
 import { useAuthDone, useNextParam } from './useAuthDone';
+import { PasswordField } from './PasswordField';
+import styles from './AuthCard.module.css';
 
 /** The platform owner can switch email codes off from the admin console. */
 const EMAIL_FLAG = 'signup_email_otp_enabled';
@@ -101,8 +104,11 @@ export function SignUpForm() {
 
   return (
     <AuthCard
-      title={t('signUpTitle')}
-      intro={t('signUpIntro')}
+      title={t(!sent ? 'ui.signUpTitle' : !pass ? 'ui.verifyTitle' : 'ui.detailsTitle')}
+      intro={t(!sent ? 'ui.signUpIntro' : !pass ? 'ui.verifyIntro' : 'ui.detailsIntro')}
+      mode="signup"
+      next={next}
+      progress={<AuthSteps current={!sent ? 1 : !pass ? 2 : 3} />}
       footer={
         <>
           {t('haveAccount')}{' '}
@@ -171,11 +177,12 @@ function PhoneStep({ notice, onSent }: { notice: string | null; onSent: (sent: D
   });
 
   return (
-    <form method="post" onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
+    <form method="post" onSubmit={onSubmit} noValidate className={styles.form}>
       <FormError message={error} />
       <TextField
         label={t('phone')}
-        hint={t('phonePrivate')}
+        hint={t(byEmail ? 'phoneHint' : 'ui.verificationHint')}
+        placeholder="0803 123 4567"
         type="tel"
         inputMode="tel"
         autoComplete="tel"
@@ -194,12 +201,14 @@ function PhoneStep({ notice, onSent }: { notice: string | null; onSent: (sent: D
           {...form.register('email')}
         />
       ) : null}
-      <Button type="submit" disabled={isSubmitting}>
+      <Button type="submit" disabled={isSubmitting} className={styles.primaryButton}>
         {isSubmitting ? t('common:loading') : byEmail ? t('sendCodeEmail') : t('sendCode')}
+        <Icon name="arrow" />
       </Button>
       {emailAllowed ? (
         <Button
           variant="ghost"
+          className={styles.alternateMethod}
           onClick={() => {
             setError(null);
             form.clearErrors('email');
@@ -258,8 +267,8 @@ function CodeStep({
   }
 
   return (
-    <form method="post" onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
-      <p className="text-sm">
+    <form method="post" onSubmit={onSubmit} noValidate className={styles.form}>
+      <p className={styles.codeNotice}>
         {sent.email ? t('codeSentEmail', { email: sent.email }) : t('codeSent', { phone: sent.phone })}{' '}
         <button type="button" onClick={onChangePhone} className="font-semibold text-primary hover:underline">
           {t('changePhone')}
@@ -267,6 +276,7 @@ function CodeStep({
       </p>
       <FormError message={error} />
       <TextField
+        className={styles.codeField}
         label={t('code')}
         inputMode="numeric"
         autoComplete="one-time-code"
@@ -275,14 +285,15 @@ function CodeStep({
         error={errors.code?.message ? t(errors.code.message) : undefined}
         {...form.register('code')}
       />
-      <Button type="submit" disabled={isSubmitting}>
+      <Button type="submit" disabled={isSubmitting} className={styles.primaryButton}>
         {isSubmitting ? t('common:loading') : t('confirmCode')}
+        <Icon name="arrow" />
       </Button>
       <button
         type="button"
         onClick={() => void resend()}
         disabled={wait > 0}
-        className="text-sm font-semibold text-primary hover:underline disabled:text-text-muted disabled:no-underline"
+        className={styles.resend}
       >
         {wait > 0 ? t('resendIn', { seconds: wait }) : t('resend')}
       </button>
@@ -328,8 +339,8 @@ function DetailsStep({
   });
 
   return (
-    <form method="post" onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
-      <p role="status" className="flex items-center gap-2 rounded-lg bg-primary-soft p-3 text-sm font-medium text-primary-pressed">
+    <form method="post" onSubmit={onSubmit} noValidate className={styles.form}>
+      <p role="status" className={styles.verified}>
         <svg
           aria-hidden
           viewBox="0 0 24 24"
@@ -343,7 +354,7 @@ function DetailsStep({
         {sent.email ? t('emailConfirmedNext', { email: sent.email }) : t('phoneConfirmedNext', { phone: sent.phone })}
       </p>
       <FormError message={error} />
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className={styles.nameRow}>
         <TextField
           label={t('firstName')}
           autoComplete="given-name"
@@ -358,16 +369,16 @@ function DetailsStep({
           {...form.register('last_name')}
         />
       </div>
-      <TextField
+      <PasswordField
         label={t('password')}
         hint={t('passwordHint')}
-        type="password"
         autoComplete="new-password"
         error={errors.password?.message ? t(errors.password.message) : undefined}
         {...form.register('password')}
       />
-      <Button type="submit" disabled={isSubmitting}>
+      <Button type="submit" disabled={isSubmitting} className={styles.primaryButton}>
         {isSubmitting ? t('common:loading') : t('signUp')}
+        <Icon name="arrow" />
       </Button>
     </form>
   );

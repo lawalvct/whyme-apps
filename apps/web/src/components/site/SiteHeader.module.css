@@ -130,3 +130,18 @@
   .navigation { gap: 12px; }
   .categories summary { padding-right: 10px; }
 }
+/* A focused header for the account-access pages. */
+.authHeader { border-bottom: 1px solid #e4e9dc; background: #fffefa; }
+.authRow { display: flex; align-items: center; justify-content: space-between; gap: 25px; min-height: 99px; padding-block: 20px; }
+.authActions { display: flex; align-items: center; gap: 28px; }
+.authActions .language { font-size: 12px; }
+.authBack { display: inline-flex; align-items: center; gap: 8px; min-height: 42px; font-size: 12px; color: #6e865d; }
+.authBack > svg { width: 16px; height: 16px; transform: rotate(180deg); }
+.authBack:hover { color: #087e48; }
+.authHeader a:focus-visible { outline: 2px solid #00834a; outline-offset: 4px; }
+@media (max-width: 640px) {
+  .authRow { min-height: 86px; gap: 15px; padding-block: 16px; }
+  .authActions { gap: 13px; }
+  .authBack { min-height: 44px; width: 30px; justify-content: center; }
+  .authBack > span { display: none; }
+}

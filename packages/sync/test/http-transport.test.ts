@@ -56,13 +56,56 @@ describe('createHttpTransport', () => {
       },
     });
 
-    const result = await transport.send(action, { serverIdFor: () => null });
+    const result = await transport.send(action, { serverIdFor: () => null, responseFor: () => null });
 
     expect(result).toMatchObject({ kind: 'ok', serverId: 'srv_9' });
     expect(seen?.url).toBe('https://api.test/api/v1/service-requests');
     const headers = seen?.init.headers as Record<string, string>;
     expect(headers['Idempotency-Key']).toBe(action.actionId);
     expect(headers['Accept-Language']).toBe('ig');
+  });
+
+  it('sends FormData as it is, letting the browser set the multipart Content-Type', async () => {
+    let seen: RequestInit | undefined;
+    const transport = createHttpTransport({
+      baseUrl: 'https://api.test',
+      routes: {
+        'upload.photo': () => {
+          const form = new FormData();
+          form.append('purpose', 'listing_photo');
+          form.append('file', new Blob(['jpeg'], { type: 'image/jpeg' }), 'photo.jpg');
+          return { method: 'POST', path: '/v1/uploads', body: form };
+        },
+      },
+      fetch: async (_url, init) => {
+        seen = init;
+        return new Response(JSON.stringify({ data: { id: 'up_1', status: 'processing' } }), { status: 201 });
+      },
+    });
+
+    const result = await transport.send({ ...action, actionType: 'upload.photo' }, { serverIdFor: () => null, responseFor: () => null });
+
+    expect(result).toMatchObject({ kind: 'ok', serverId: 'up_1' });
+    expect(seen?.body).toBeInstanceOf(FormData);
+    const headers = seen?.headers as Record<string, string>;
+    expect(headers['Content-Type']).toBeUndefined();
+    expect(headers['Idempotency-Key']).toBe(action.actionId);
+  });
+
+  it('rejects an action whose route cannot build the request', async () => {
+    const transport = createHttpTransport({
+      baseUrl: 'https://api.test',
+      routes: {
+        'upload.photo': () => {
+          throw new Error('photo missing');
+        },
+      },
+      fetch: async () => new Response(null, { status: 500 }),
+    });
+    expect(await transport.send({ ...action, actionType: 'upload.photo' }, { serverIdFor: () => null, responseFor: () => null })).toEqual({
+      kind: 'rejected',
+      code: 'invalid_action',
+    });
   });
 
   it('treats a thrown fetch as a network error', async () => {
@@ -73,7 +116,7 @@ describe('createHttpTransport', () => {
         throw new TypeError('Failed to fetch');
       },
     });
-    expect(await transport.send(action, { serverIdFor: () => null })).toEqual({ kind: 'retryable', code: 'network_error' });
+    expect(await transport.send(action, { serverIdFor: () => null, responseFor: () => null })).toEqual({ kind: 'retryable', code: 'network_error' });
     expect(await transport.isReachable()).toBe(false);
   });
 });

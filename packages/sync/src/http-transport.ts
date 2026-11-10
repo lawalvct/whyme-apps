@@ -3,6 +3,7 @@ import type { OutboxAction, SendContext, Transport, TransportResult } from './ty
 export interface RouteSpec {
   method: 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   path: string;
+  /** Sent as JSON, or as it is when it's FormData (multipart uploads). */
   body?: unknown;
 }
 
@@ -52,7 +53,15 @@ export function createHttpTransport(options: HttpTransportOptions): Transport {
     async send(action, ctx): Promise<TransportResult> {
       const route = options.routes[action.actionType];
       if (!route) return { kind: 'rejected', code: 'unknown_action' };
-      const spec = route(action, ctx);
+      let spec: RouteSpec;
+      try {
+        spec = route(action, ctx);
+      } catch {
+        // The route couldn't build the request, e.g. a stored photo is missing.
+        return { kind: 'rejected', code: 'invalid_action' };
+      }
+      // The browser sets the multipart Content-Type (with its boundary) itself.
+      const form = typeof FormData !== 'undefined' && spec.body instanceof FormData;
 
       let res: Response;
       try {
@@ -62,12 +71,12 @@ export function createHttpTransport(options: HttpTransportOptions): Transport {
             method: spec.method,
             headers: {
               Accept: 'application/json',
-              'Content-Type': 'application/json',
+              ...(form ? {} : { 'Content-Type': 'application/json' }),
               'Idempotency-Key': action.actionId,
               'X-Payload-Version': String(action.payloadVersion),
               ...(await options.headers?.()),
             },
-            body: spec.body === undefined ? undefined : JSON.stringify(spec.body),
+            body: spec.body === undefined ? undefined : form ? (spec.body as FormData) : JSON.stringify(spec.body),
           },
           timeoutMs,
         );

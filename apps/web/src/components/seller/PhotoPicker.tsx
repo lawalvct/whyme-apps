@@ -1,13 +1,14 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react';
-import { ApiRequestError, useApi, type OwnerPhoto } from '@whyme/data';
+import { ApiRequestError, isConnectionError, useApi, type OwnerPhoto } from '@whyme/data';
 import { cn } from '@/components/ui/cn';
 import { useT } from '@/lib/i18n';
 import { shrinkPhoto, uploadPhoto, waitForUpload } from '@/lib/uploads';
 import styles from './SellerWorkspace.module.css';
 
-type PhotoState = 'uploading' | 'processing' | 'ready' | 'rejected' | 'failed';
+/** `waiting`: picked without a connection; kept on this device and sent with the draft (OFF05). */
+type PhotoState = 'uploading' | 'processing' | 'ready' | 'rejected' | 'failed' | 'waiting';
 
 export interface PhotoItem {
   /** Stable React key: the upload's client ID while uploading, then kept. */
@@ -18,6 +19,8 @@ export interface PhotoItem {
   preview: string | null;
   /** Kept so a failed upload can be retried with the same client ID (idempotent). */
   file?: Blob;
+  /** The queued upload action, once the photo was saved with an offline draft. */
+  upload?: string;
 }
 
 const ACCEPTED = ['image/jpeg', 'image/png', 'image/webp'];
@@ -31,21 +34,33 @@ function fromServer(photos: readonly OwnerPhoto[]): PhotoItem[] {
   }));
 }
 
+/** What makes the list "changed": server photos by ID, the rest by their client key. */
+const identity = (list: PhotoItem[]) => list.filter((i) => i.state !== 'failed').map((i) => i.id ?? i.key).join(',');
+
 /**
  * A gallery being edited: photos upload as soon as they're picked (shrunk in
  * the browser first), and the form saves only the upload IDs in display order.
+ * `restored` reopens an offline draft's tiles, including photos still waiting to upload.
  */
-export function usePhotoList(initial: readonly OwnerPhoto[], limit: number, single = false) {
+export function usePhotoList(initial: readonly OwnerPhoto[], limit: number, single = false, restored?: PhotoItem[]) {
   const api = useApi();
-  const [items, setItems] = useState<PhotoItem[]>(() => fromServer(initial));
-  const [saved, setSaved] = useState<string[]>(() => initial.map((p) => p.id));
+  // A restored draft's photos are shown from the copies kept on this device.
+  const [start] = useState(() => {
+    const list = restored
+      ? restored.map((item) => (item.preview || !item.file ? item : { ...item, preview: URL.createObjectURL(item.file) }))
+      : fromServer(initial);
+    return { list, blobUrls: list.flatMap((item) => (item.preview?.startsWith('blob:') ? [item.preview] : [])) };
+  });
+  const [items, setItems] = useState<PhotoItem[]>(start.list);
+  const [saved, setSaved] = useState<string>(() => identity(start.list));
   const [notice, setNotice] = useState<string | null>(null);
   const objectUrls = useRef(new Set<string>());
 
   useEffect(() => {
     const urls = objectUrls.current;
+    start.blobUrls.forEach((url) => urls.add(url));
     return () => urls.forEach((url) => URL.revokeObjectURL(url));
-  }, []);
+  }, [start]);
 
   const patch = useCallback((key: string, change: Partial<PhotoItem>) => {
     setItems((list) => list.map((item) => (item.key === key ? { ...item, ...change } : item)));
@@ -54,15 +69,20 @@ export function usePhotoList(initial: readonly OwnerPhoto[], limit: number, sing
   const send = useCallback(
     async (key: string, file: Blob) => {
       patch(key, { state: 'uploading' });
+      let arrived = false;
       try {
         let upload = await uploadPhoto(file, key);
+        arrived = true;
         patch(key, { id: upload.id, state: upload.status === 'processing' ? 'processing' : upload.status === 'ready' ? 'ready' : 'rejected' });
         if (upload.status === 'processing') upload = await waitForUpload(api, upload.id);
         patch(key, { state: upload.status === 'ready' ? 'ready' : upload.status === 'rejected' ? 'rejected' : 'processing' });
       } catch (e) {
         // Still processing after a minute is fine: the API waits for it on publish.
         if (e instanceof ApiRequestError && e.code === 'photos_processing') return;
-        patch(key, { state: 'failed' });
+        // The server has it and is still preparing it; only checking on it failed.
+        if (arrived) return patch(key, { state: 'processing' });
+        // No connection: keep it on this device; it goes with the draft when saved.
+        patch(key, { state: isConnectionError(e) ? 'waiting' : 'failed' });
       }
     },
     [api, patch],
@@ -72,9 +92,21 @@ export function usePhotoList(initial: readonly OwnerPhoto[], limit: number, sing
   const reset = useCallback((photos: readonly OwnerPhoto[]) => {
     const next = fromServer(photos);
     setItems(next);
-    setSaved(next.map((p) => p.id ?? ''));
+    setSaved(identity(next));
     setNotice(null);
   }, []);
+
+  /** After an offline save: these photos are queued (key → upload action), and the list counts as saved. */
+  const markQueued = useCallback((uploads: Record<string, string>) => {
+    setItems((list) => {
+      const next = list.map((item) => (uploads[item.key] ? { ...item, upload: uploads[item.key] } : item));
+      setSaved(identity(next));
+      return next;
+    });
+  }, []);
+
+  /** A queued photo the server refused (e.g. not a real image). */
+  const markRejected = useCallback((key: string) => patch(key, { state: 'rejected' }), [patch]);
 
   const add = useCallback(
     (files: File[]) => {
@@ -139,12 +171,16 @@ export function usePhotoList(initial: readonly OwnerPhoto[], limit: number, sing
     notice,
     /** Still sending: the form waits, so the IDs it saves are complete. */
     busy: items.some((i) => i.state === 'uploading'),
-    dirty: ids.join(',') !== saved.join(','),
+    /** Photos kept on this device for lack of a connection: the form saves through the queue. */
+    waiting: items.some((i) => i.state === 'waiting'),
+    dirty: identity(items) !== saved,
     add,
     retry,
     remove,
     move,
     reset,
+    markQueued,
+    markRejected,
   };
 }
 
@@ -195,7 +231,7 @@ export function PhotoPicker({
                   {t('cover')}
                 </span>
               ) : null}
-              {item.state !== 'ready' ? <TileStatus state={item.state} onRetry={() => photos.retry(item.key)} /> : null}
+              {item.state !== 'ready' ? <TileStatus state={item.state} queued={Boolean(item.upload)} onRetry={() => photos.retry(item.key)} /> : null}
             </div>
             {readOnly ? null : <div className="flex justify-between">
               {photos.single ? (
@@ -288,20 +324,29 @@ function IconButton({
   );
 }
 
-function TileStatus({ state, onRetry }: { state: Exclude<PhotoState, 'ready'>; onRetry: () => void }) {
+function TileStatus({ state, queued, onRetry }: { state: Exclude<PhotoState, 'ready'>; queued: boolean; onRetry: () => void }) {
   const { t } = useT('seller');
   const busy = state === 'uploading' || state === 'processing';
+  const waiting = state === 'waiting';
   return (
     <div
-      role={busy ? 'status' : 'alert'}
+      role={busy || waiting ? 'status' : 'alert'}
       className={cn(
         'absolute inset-0 flex flex-col items-center justify-center gap-2 p-2 text-center text-xs font-semibold',
-        busy ? 'bg-background/70 text-text' : 'bg-background/90 text-danger',
+        busy ? 'bg-background/70 text-text' : waiting ? 'bg-background/60 text-text' : 'bg-background/90 text-danger',
       )}
     >
       {busy ? <span className="size-6 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden /> : null}
-      {state === 'uploading' ? t('uploading') : state === 'processing' ? t('processing') : state === 'rejected' ? t('photoRejected') : t('uploadFailed')}
-      {state === 'failed' ? (
+      {state === 'uploading'
+        ? t('uploading')
+        : state === 'processing'
+          ? t('processing')
+          : state === 'rejected'
+            ? t('photoRejected')
+            : waiting
+              ? t(queued ? 'photoQueued' : 'photoWaiting')
+              : t('uploadFailed')}
+      {state === 'failed' || (waiting && !queued) ? (
         <button type="button" onClick={onRetry} className="min-h-9 rounded-md bg-primary px-3 text-on-primary">
           {t('common:retry')}
         </button>

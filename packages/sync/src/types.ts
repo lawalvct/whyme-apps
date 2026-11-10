@@ -28,7 +28,10 @@ export interface OutboxAction {
   attempts: number;
   nextRetryAt: number | null;
   lastErrorCode: string | null;
-  /** Server body for conflict/rejected: current record or field errors. */
+  /**
+   * Server body: the saved record once acked (a follow-up action reads its new
+   * version from here), the current record or field errors for conflict/rejected.
+   */
   lastResponse: unknown;
   createdAt: number;
   ackedAt: number | null;
@@ -39,6 +42,12 @@ export interface OutboxStore {
   get(actionId: string): Promise<OutboxAction | undefined>;
   list(accountId: string): Promise<OutboxAction[]>;
   update(actionId: string, patch: Partial<OutboxAction>): Promise<void>;
+  /**
+   * Applies the patch only if `test` still passes, in one transaction, and says
+   * whether it did. Lets a tab change a waiting action without racing the tab
+   * that is sending the queue. Stores without it fall back to get + update.
+   */
+  updateIf?(actionId: string, test: (action: OutboxAction) => boolean, patch: Partial<OutboxAction>): Promise<boolean>;
   delete(actionId: string): Promise<void>;
 }
 
@@ -52,6 +61,8 @@ export type TransportResult =
 export interface SendContext {
   /** Server ID of an earlier acked action, e.g. an upload this action references. */
   serverIdFor(actionId: string): string | null;
+  /** Response body of an earlier acked action, e.g. the record version a follow-up edit is based on. */
+  responseFor(actionId: string): unknown;
 }
 
 export interface Transport {

@@ -4,11 +4,12 @@ import Link from 'next/link';
 import { useRef, useState, type ReactNode } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs';
-import { categoryLabel, unwrap, useApi, useSyncStatus, useTaxonomy, type PublicListing, type PublicProfile } from '@whyme/data';
+import { categoryLabel, isConnectionError, unwrap, useApi, useSyncStatus, useTaxonomy, type PublicListing, type PublicProfile } from '@whyme/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MarketplaceIcon as Icon } from '@/components/ui/MarketplaceIcon';
 import { formatNaira, routes } from '@/lib/format';
 import { useLanguage, useT } from '@/lib/i18n';
+import { searchKept, useKeptListings } from '@/lib/recent';
 import { SearchFilters, type SearchFilterPatch } from './SearchFilters';
 import { SearchListingCard, SearchProfileCard } from './SearchResultCard';
 import styles from './SearchView.module.css';
@@ -91,8 +92,15 @@ export function SearchView() {
     },
   });
 
-  const pages = results.data?.pages ?? [];
-  const items = pages.flatMap((page): Array<PublicListing | PublicProfile> => page.items);
+  // Offline: search what this device keeps (saved and recently viewed listings), clearly labelled.
+  const offline = !online || (results.isError && isConnectionError(results.error));
+  const kept = useKeptListings();
+  const keptMatches =
+    offline && state.type === 'offers' && kept
+      ? searchKept(kept, { q, kind: kind as 'product' | 'service' | undefined, category_id: filters.category_id, location_id: filters.location_id, min_price: filters.min_price, max_price: filters.max_price }, taxonomy)
+      : [];
+  const pages = offline ? [] : (results.data?.pages ?? []);
+  const items = offline ? keptMatches : pages.flatMap((page): Array<PublicListing | PublicProfile> => page.items);
   const suggested = pages[0]?.categories ?? [];
   const activeCount = Number(Boolean(kind)) + Number(state.category_id !== null) + Number(state.location_id !== null) + Number(minPrice !== null || maxPrice !== null);
   const resetPatch = { kind: null, category_id: null, location_id: null, min_price: null, max_price: null };
@@ -139,14 +147,14 @@ export function SearchView() {
 
           {suggested.length > 0 && <div className={styles.suggestions}><span>{t('matchingCategories')}:</span>{suggested.map((value) => <button key={value.id} type="button" onClick={() => updateFilters({ category_id: value.id })}>{categoryLabel(taxonomy?.categories.find((category) => category.id === value.id), language) ?? value.slug}<Icon name="arrow" /></button>)}</div>}
 
-          {!online ? <SearchMessage icon="globe" title={t('searchOfflineTitle')} body={t('onlineOnly')} />
+          {offline ? <OfflineResults type={state.type} kept={kept} matches={keptMatches} view={view} />
             : q.length === 1 ? <SearchMessage icon="search" title={t('searchKeepTyping')} body={t('searchMinimumQuery')} />
             : loading ? <div className={styles.resultsGrid} data-layout={view} data-type={state.type}>{Array.from({ length: 6 }, (_, index) => <Skeleton key={index} className={state.type === 'people' ? 'h-60' : 'h-96'} />)}</div>
             : results.isError ? <SearchMessage icon="globe" title={t('errorTitle')} body={t('errorBody')}><button type="button" className={styles.primaryButton} disabled={results.isFetching} onClick={() => void results.refetch()}>{t('common:retry')}</button></SearchMessage>
             : items.length === 0 ? <SearchMessage icon="search" title={t('noResults')} body={t('noResultsHint')}><button type="button" className={styles.primaryButton} onClick={clearAll}>{t('searchResetBrowse')}<Icon name="arrow" /></button></SearchMessage>
             : <div className={styles.resultsGrid} data-layout={view} data-type={state.type} aria-busy={results.isFetchingNextPage}>{state.type === 'offers' ? (items as PublicListing[]).map((listing) => <SearchListingCard key={listing.id} listing={listing} list={view === 'list'} />) : (items as PublicProfile[]).map((profile) => <SearchProfileCard key={profile.id} profile={profile} />)}</div>}
 
-          {items.length > 0 && online && q.length !== 1 && !results.isError && <div className={styles.resultsEnd}>{results.hasNextPage ? <button type="button" className={styles.loadMore} disabled={results.isFetchingNextPage} onClick={() => void results.fetchNextPage()}>{t(results.isFetchingNextPage ? 'common:loading' : 'loadMore')}<Icon name="plus" /></button> : <span>{t('searchEndOfResults')}</span>}</div>}
+          {items.length > 0 && !offline && q.length !== 1 && !results.isError && <div className={styles.resultsEnd}>{results.hasNextPage ? <button type="button" className={styles.loadMore} disabled={results.isFetchingNextPage} onClick={() => void results.fetchNextPage()}>{t(results.isFetchingNextPage ? 'common:loading' : 'loadMore')}<Icon name="plus" /></button> : <span>{t('searchEndOfResults')}</span>}</div>}
         </section>
       </div>
 
@@ -154,6 +162,28 @@ export function SearchView() {
         <div className={styles.dialogContent}><div className={styles.dialogHeading}><h2 id="mobile-filter-title"><Icon name="filter" />{t('searchFilters')}</h2><button type="button" aria-label={t('searchCloseFilters')} onClick={() => dialog.current?.close()}><Icon name="close" /></button></div><div className={styles.dialogBody}><SearchFilters {...filterProps} /></div><div className={styles.dialogFooter}><button type="button" className={styles.dialogReset} disabled={!activeCount} onClick={clearFilters}>{t('searchReset')}</button><button type="button" className={styles.primaryButton} onClick={() => dialog.current?.close()}>{t('searchShowResults')}<Icon name="arrow" /></button></div></div>
       </dialog>
     </div>
+  );
+}
+
+/** Results from this device while offline: saved and recently viewed listings only. */
+function OfflineResults({ type, kept, matches, view }: { type: 'offers' | 'people'; kept: PublicListing[] | undefined; matches: PublicListing[]; view: 'grid' | 'list' }) {
+  const { t } = useT('market');
+  if (type === 'people') return <SearchMessage icon="globe" title={t('offlineSearchTitle')} body={t('offlineSearchPeople')} />;
+  // Signed out or nothing kept yet: nothing to search on this device.
+  if (!kept?.length) return <SearchMessage icon="globe" title={t('searchOfflineTitle')} body={t('onlineOnly')} />;
+  return (
+    <>
+      <p role="status" className="mb-4 rounded-lg bg-surface p-3 text-sm font-semibold text-accent-text">
+        {t('offlineSearchTitle')}. {t('offlineSearchBody')}
+      </p>
+      {matches.length === 0 ? (
+        <SearchMessage icon="search" title={t('noResults')} body={t('offlineSearchEmpty')} />
+      ) : (
+        <div className={styles.resultsGrid} data-layout={view} data-type="offers">
+          {matches.map((listing) => <SearchListingCard key={listing.id} listing={listing} list={view === 'list'} />)}
+        </div>
+      )}
+    </>
   );
 }
 

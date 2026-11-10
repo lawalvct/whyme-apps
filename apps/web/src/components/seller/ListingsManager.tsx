@@ -1,16 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { parseAsStringLiteral, useQueryState } from 'nuqs';
-import { ensureOk, sellerKeys, unwrap, useApi, type OwnerListing } from '@whyme/data';
+import { ensureOk, sellerKeys, unwrap, useApi, useOfflineCopy, useOfflineFetcher, type OwnerListing } from '@whyme/data';
 import { Price } from '@/components/market/Price';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MarketplaceIcon as Icon } from '@/components/ui/MarketplaceIcon';
 import { routes } from '@/lib/format';
 import { useLanguage, useT } from '@/lib/i18n';
+import { discardListingDraft, useListingDrafts, type DraftStatus, type ListingDraft } from '@/lib/listing-drafts';
+import { useAccountRuntime } from '@/lib/offline';
 import { useAccount } from '@/lib/session';
 import { conflictRecord, Notice, PageTitle, sellerCapabilities, StatusBadge, StatusNote, useErrorText } from './common';
 import { StartSelling } from './StartSelling';
@@ -36,17 +38,22 @@ export function ListingsManager() {
   const [kind, setKind] = useQueryState('kind', parseAsStringLiteral(KINDS).withDefault('all'));
   const [notice, setNotice] = useState<{ tone: 'success' | 'info' | 'error'; text: string } | null>(null);
 
+  const fetchPage = async (cursor: string | null): Promise<Page> => {
+    // The cursor isn't in the generated query types.
+    const query = { status: filter === 'all' ? undefined : filter, kind: kind === 'all' ? undefined : kind, cursor: cursor ?? undefined } as Record<string, unknown>;
+    const body = unwrap(await api.GET('/v1/me/listings', { params: { query: query as never } }));
+    return { items: body.data, next: body.links.next };
+  };
+  // The first page of each filter is kept on the device, so the list opens offline.
+  const copyId = `${filter}:${kind}`;
+  const firstPage = useOfflineFetcher('my-listings', copyId, () => fetchPage(null));
+  const copyAt = useOfflineCopy('my-listings', copyId);
   const listings = useInfiniteQuery({
     queryKey: sellerKeys.listings({ status: filter, kind: kind === 'all' ? undefined : kind }),
     initialPageParam: null as string | null,
     getNextPageParam: (last: Page) => nextCursor(last.next),
     enabled: caps.vendor || caps.provider,
-    queryFn: async ({ pageParam }): Promise<Page> => {
-      // The cursor isn't in the generated query types.
-      const query = { status: filter === 'all' ? undefined : filter, kind: kind === 'all' ? undefined : kind, cursor: pageParam ?? undefined } as Record<string, unknown>;
-      const body = unwrap(await api.GET('/v1/me/listings', { params: { query: query as never } }));
-      return { items: body.data, next: body.links.next };
-    },
+    queryFn: ({ pageParam }) => (pageParam ? fetchPage(pageParam) : firstPage()),
   });
 
   if (!caps.vendor && !caps.provider) return <StartSelling />;
@@ -92,6 +99,10 @@ export function ListingsManager() {
 
       {notice ? <Notice tone={notice.tone}>{notice.text}</Notice> : null}
 
+      <PendingDrafts onNotice={setNotice} />
+
+      {copyAt ? <OfflineCopyNote at={copyAt} /> : null}
+
       {listings.isPending ? (
         <div className="flex flex-col gap-3">
           {[0, 1, 2].map((i) => (
@@ -116,6 +127,108 @@ export function ListingsManager() {
         </Button>
       ) : null}
     </div>
+  );
+}
+
+function OfflineCopyNote({ at }: { at: number }) {
+  const { t } = useT('sync');
+  const language = useLanguage();
+  const time = new Intl.DateTimeFormat(language === 'ig' ? 'ig-NG' : 'en-NG', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(at));
+  return (
+    <p role="status" className="text-sm font-semibold text-accent-text">
+      {t('offlineCopy', { time })}
+    </p>
+  );
+}
+
+const DRAFT_STATUS: Record<DraftStatus, { label: string; tone: string }> = {
+  waiting: { label: 'offline.statusWaiting', tone: 'bg-surface text-text-muted' },
+  sending: { label: 'offline.statusSending', tone: 'bg-primary-soft text-primary' },
+  needs_auth: { label: 'offline.statusAuth', tone: 'bg-surface text-warning' },
+  conflict: { label: 'offline.statusConflict', tone: 'bg-surface text-warning' },
+  in_review: { label: 'offline.statusInReview', tone: 'bg-surface text-warning' },
+  rejected: { label: 'offline.statusRejected', tone: 'bg-surface text-danger' },
+  photo_rejected: { label: 'offline.statusPhoto', tone: 'bg-surface text-danger' },
+};
+
+/** Listings saved on this device and not yet sent (OFF05): open to keep editing, or discard. */
+function PendingDrafts({ onNotice }: { onNotice: (notice: { tone: 'success' | 'info' | 'error'; text: string } | null) => void }) {
+  const { t } = useT('seller');
+  const sync = useAccountRuntime();
+  const drafts = useListingDrafts();
+  const queryClient = useQueryClient();
+  const [busy, setBusy] = useState<string | null>(null);
+  // A draft that leaves this list was sent (or discarded): show the server's list as it is now.
+  const count = drafts?.length ?? 0;
+  const previous = useRef(count);
+  useEffect(() => {
+    if (count < previous.current) void queryClient.invalidateQueries({ queryKey: ['me', 'seller', 'listings'] });
+    previous.current = count;
+  }, [count, queryClient]);
+  if (!sync || !drafts?.length) return null;
+
+  async function discard(draft: ListingDraft) {
+    const title = draft.payload.content.title.trim() || t('offline.untitled');
+    if (!sync || busy || !window.confirm(t('offline.discardConfirm', { title }))) return;
+    setBusy(draft.localId);
+    try {
+      await discardListingDraft(sync, draft.localId);
+      onNotice({ tone: 'success', text: t('offline.discarded') });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  return (
+    <section aria-labelledby="pending-drafts" className="flex flex-col gap-3 rounded-2xl border border-dashed border-border p-4">
+      <div>
+        <h2 id="pending-drafts" className="text-lg font-bold">{t('offline.pendingTitle')}</h2>
+        <p className="text-sm text-text-muted">{t('offline.pendingHint')}</p>
+      </div>
+      <ul className={styles.listingRows}>
+        {drafts.map((draft) => (
+          <PendingDraftRow key={draft.localId} draft={draft} busy={busy === draft.localId} disabled={busy !== null} onDiscard={() => void discard(draft)} />
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function PendingDraftRow({ draft, busy, disabled, onDiscard }: { draft: ListingDraft; busy: boolean; disabled: boolean; onDiscard: () => void }) {
+  const { t } = useT('seller');
+  const language = useLanguage();
+  const status = DRAFT_STATUS[draft.status ?? 'waiting'];
+  const href = draft.listingId ? routes.editListing(draft.listingId) : routes.listingDraft(draft.kind, draft.localId);
+  const savedAt = new Intl.DateTimeFormat(language === 'ig' ? 'ig-NG' : 'en-NG', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(draft.payload.savedAt));
+  const content = draft.payload.content;
+
+  return (
+    <li className={styles.listingRow}>
+      <Link href={href} className="flex min-w-0 flex-1 gap-3">
+        <div className="flex size-20 shrink-0 items-center justify-center rounded-lg bg-surface text-text-muted sm:size-24">
+          <Icon name={draft.kind === 'product' ? 'bag' : 'shop'} />
+        </div>
+        <div className="flex min-w-0 flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${status.tone}`}>{t(status.label)}</span>
+            <span className="text-xs text-text-muted">
+              {draft.listingId ? t('offline.changes') : t('offline.newDraft')} · {draft.kind === 'product' ? t('market:products') : t('market:services')}
+            </span>
+          </div>
+          <p className="truncate font-semibold text-text">{content.title.trim() || t('offline.untitled')}</p>
+          <Price kobo={content.price_kobo ?? 0} kind={draft.kind} className="text-sm font-semibold text-primary" />
+          <p className="text-xs text-text-muted">{t('offline.savedAt', { time: savedAt })}</p>
+        </div>
+      </Link>
+      <div className={styles.rowActions}>
+        <ButtonLink href={href} variant="secondary" className="min-h-11 px-4 text-sm">
+          {t('offline.open')}
+        </ButtonLink>
+        <Button variant="ghost" className="min-h-11 px-3 text-sm text-danger hover:bg-surface" disabled={disabled} onClick={onDiscard}>
+          {busy ? t('common:loading') : t('offline.discard')}
+        </Button>
+      </div>
+    </li>
   );
 }
 

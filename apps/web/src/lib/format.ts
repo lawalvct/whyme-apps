@@ -47,6 +47,8 @@ export const routes = {
   sellProfile: (kind: 'business' | 'provider') => `/sell/profile/${kind}`,
   sellListings: (status?: string) => (status ? `/sell/listings?status=${status}` : '/sell/listings'),
   newListing: (kind: 'product' | 'service') => `/sell/listings/new?kind=${kind}`,
+  /** A new listing saved on this device and not yet sent (offline draft). */
+  listingDraft: (kind: 'product' | 'service', draftId: string) => `/sell/listings/new?kind=${kind}&draft=${encodeURIComponent(draftId)}`,
   editListing: (id: string) => `/sell/listings/${id}`,
   signIn: (next?: string) => (next ? `/signin?next=${encodeURIComponent(next)}` : '/signin'),
   signUp: (next?: string) => (next ? `/signup?next=${encodeURIComponent(next)}` : '/signup'),

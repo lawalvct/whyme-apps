@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { useOfflineCopy } from '@whyme/data';
 import { RequireAccount } from '@/components/auth/RequireAccount';
 import { CardGrid } from '@/components/market/CardGrid';
@@ -9,6 +10,7 @@ import { SaveButton } from '@/components/market/SaveButton';
 import { Skeleton } from '@/components/ui/skeleton';
 import { routes } from '@/lib/format';
 import { useLanguage, useT } from '@/lib/i18n';
+import { clearRecentlyViewed, useRecentlyViewed } from '@/lib/recent';
 import { useSaved } from '@/lib/saved';
 
 /** Saved items (AT05): readable offline from this browser's copy; taken-down listings drop out on the next sync. */
@@ -58,6 +60,43 @@ function SavedList() {
           ))}
         </CardGrid>
       )}
+
+      <RecentlyViewed />
     </div>
+  );
+}
+
+/** Listings opened on this device (newest first); they open offline too. */
+function RecentlyViewed() {
+  const { t } = useT('market');
+  const recent = useRecentlyViewed();
+  const [clearing, setClearing] = useState(false);
+  if (!recent?.length) return null;
+
+  return (
+    <section aria-labelledby="recently-viewed" className="flex flex-col gap-3 border-t border-border pt-5">
+      <div className="flex items-end justify-between gap-3">
+        <div>
+          <h2 id="recently-viewed" className="text-xl font-bold">{t('recentTitle')}</h2>
+          <p className="text-sm text-text-muted">{t('recentHint')}</p>
+        </div>
+        <button
+          type="button"
+          disabled={clearing}
+          onClick={() => {
+            setClearing(true);
+            void clearRecentlyViewed().finally(() => setClearing(false));
+          }}
+          className="min-h-11 rounded-lg px-3 text-sm font-semibold text-primary hover:bg-primary-soft disabled:opacity-50"
+        >
+          {t('recentClear')}
+        </button>
+      </div>
+      <CardGrid>
+        {recent.slice(0, 12).map((listing) => (
+          <ListingCard key={listing.id} listing={listing} />
+        ))}
+      </CardGrid>
+    </section>
   );
 }

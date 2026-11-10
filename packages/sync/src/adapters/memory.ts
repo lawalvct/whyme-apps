@@ -22,6 +22,13 @@ export class MemoryOutboxStore implements OutboxStore {
     if (row) this.rows.set(actionId, { ...row, ...structuredClone(patch) });
   }
 
+  async updateIf(actionId: string, test: (action: OutboxAction) => boolean, patch: Partial<OutboxAction>): Promise<boolean> {
+    const row = this.rows.get(actionId);
+    if (!row || !test(structuredClone(row))) return false;
+    this.rows.set(actionId, { ...row, ...structuredClone(patch) });
+    return true;
+  }
+
   async delete(actionId: string): Promise<void> {
     this.rows.delete(actionId);
   }

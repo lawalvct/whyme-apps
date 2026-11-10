@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTaxonomy, type PublicListing } from '@whyme/data';
 import { CategoryName } from '@/components/market/CategoryName';
 import { ContactActions } from '@/components/market/ContactActions';
@@ -13,6 +13,7 @@ import { VerifiedBadge } from '@/components/market/VerifiedBadge';
 import { MarketplaceIcon as Icon } from '@/components/ui/MarketplaceIcon';
 import { routes } from '@/lib/format';
 import { useLanguage, useT } from '@/lib/i18n';
+import { rememberViewed } from '@/lib/recent';
 import { SearchListingCard } from './SearchResultCard';
 import styles from './ListingView.module.css';
 
@@ -25,6 +26,10 @@ export function ListingView({ listing, related = [] }: { listing: PublicListing;
   const [copying, setCopying] = useState(false);
   const copyLock = useRef(false);
   const isProduct = listing.kind === 'product';
+  // Signed in: kept on this device for "Recently viewed" and offline search.
+  useEffect(() => {
+    void rememberViewed(listing);
+  }, [listing]);
   const categoryHref = routes.search({ kind: listing.kind, category_id: listing.category.id });
   const sellerHref = listing.seller.profile_id ? routes.profile({ id: listing.seller.profile_id, slug: listing.seller.profile_slug }) : null;
   const sellerInitials = listing.seller.name.trim().split(/\s+/).slice(0, 2).map((word) => word[0]).join('');

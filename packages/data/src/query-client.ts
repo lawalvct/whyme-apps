@@ -9,13 +9,16 @@ export function isRetryable(error: unknown): boolean {
 }
 
 /**
- * One QueryClient per app. Online reads only: data that must work offline lives
- * in the local database instead (docs/01 §15.1).
+ * One QueryClient per app. Data that must work offline is kept in the local
+ * database (docs/01 §15.1); reads fall back to it through `withOfflineCopy`.
  */
 export function createQueryClient(): QueryClient {
   return new QueryClient({
     defaultOptions: {
       queries: {
+        // Run the first attempt even when the device says it's offline, so a kept copy can
+        // answer; only the retries wait for the connection ("online" would wait forever).
+        networkMode: 'offlineFirst',
         staleTime: 30_000,
         gcTime: 5 * 60_000,
         retry: (failureCount, error) => failureCount < 3 && isRetryable(error),
@@ -25,6 +28,8 @@ export function createQueryClient(): QueryClient {
       mutations: {
         // Writes that must survive going offline use the outbox, never a mutation retry.
         retry: false,
+        // Fail at once offline (the screen says so) instead of a button stuck on "Loading".
+        networkMode: 'always',
       },
     },
   });

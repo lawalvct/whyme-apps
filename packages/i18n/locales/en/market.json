@@ -333,5 +333,12 @@
   "savedHint": "Listings you saved. They open on this device even without internet.",
   "savedEmpty": "You haven't saved anything yet.",
   "savedBrowse": "Browse listings",
-  "savedLoadFailed": "Couldn't load your saved items. Check your connection and try again."
+  "savedLoadFailed": "Couldn't load your saved items. Check your connection and try again.",
+  "recentTitle": "Recently viewed",
+  "recentHint": "Listings you opened on this device. They open offline too.",
+  "recentClear": "Clear",
+  "offlineSearchTitle": "You're offline",
+  "offlineSearchBody": "Showing matches from your saved and recently viewed listings on this device.",
+  "offlineSearchEmpty": "Nothing on this device matches. Try again when you're back online.",
+  "offlineSearchPeople": "Searching businesses and providers needs a connection."
 }

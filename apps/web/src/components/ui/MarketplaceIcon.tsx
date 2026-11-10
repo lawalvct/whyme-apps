@@ -40,6 +40,8 @@ const paths = {
   return: <><path d="M4 9h11a6 6 0 0 1 0 12h-3M8 4 3 9l5 5" /></>,
   message: <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l-2 2V11.5a9.5 9.5 0 0 1 19 0ZM7 10h9M7 14h6" />,
   wallet: <><path d="M20 7H5a3 3 0 0 1 0-6h13v6M2 4v15a3 3 0 0 0 3 3h15V7M20 12h-6v5h6" /><path d="M17 14.5h.01" /></>,
+  eye: <><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></>,
+  eyeOff: <><path d="m3 3 18 18M10.5 5.1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-3 3.8M6.2 6.2A18 18 0 0 0 2 12s3.5 7 10 7a11 11 0 0 0 5.8-1.8M10 10a3 3 0 0 0 4 4" /></>,
 } as const;
 
 export type MarketplaceIconName = keyof typeof paths;
