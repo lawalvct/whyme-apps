@@ -896,6 +896,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * One published listing by its address: the slug, a slug it used before its title
+         *     changed, or its ID (older links). `slug` in the response is the current address;
+         *     clients redirect there when it differs from what they asked for
+         */
         get: operations["listings.show"];
         put?: never;
         post?: never;
@@ -929,6 +934,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * One published page by its address: the slug, a slug it used before, or its ID. `slug`
+         *     in the response is the current address; clients redirect there when it differs
+         */
         get: operations["profiles.show"];
         put?: never;
         post?: never;
@@ -988,6 +997,23 @@ export interface paths {
          *     category and area ("electrician warri"), most relevant first
          */
         get: operations["search.profiles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/sitemap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Published listings and seller pages: slug and last change, newest first */
+        get: operations["sitemap"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1406,6 +1432,8 @@ export interface components {
             category_id: number;
             location_id: number;
             title: string;
+            /** @description The public address once published: /listings/{slug}. */
+            slug: string;
             description: string;
             price_kobo: number | null;
             currency: string;
@@ -1452,6 +1480,8 @@ export interface components {
             status_reason: string | null;
             moderation_flags: unknown[];
             display_name: string;
+            /** @description The public address once published: /p/{slug}. */
+            slug: string;
             category_id: number;
             location_id: number;
             about: string | null;
@@ -1556,6 +1586,8 @@ export interface components {
             /** @enum {string} */
             kind: "product" | "service";
             title: string;
+            /** @description The public address: /listings/{slug}. */
+            slug: string;
             description: string;
             price_kobo: number | null;
             currency: string;
@@ -1593,6 +1625,8 @@ export interface components {
                 /** @description The business or trade name when they have a published profile. */
                 name: string;
                 profile_id: string | null;
+                /** @description Their page's address, /p/{slug}, when they have a published one. */
+                profile_slug: string | null;
                 verified: boolean;
             };
             published_at: string | null;
@@ -1602,7 +1636,7 @@ export interface components {
             id: string;
             /** @enum {string} */
             kind: "business" | "provider";
-            /** @description For readable web links (/b/{slug}-{id}); the ID is what identifies it. */
+            /** @description The public address: /p/{slug}. */
             slug: string;
             display_name: string;
             about: string | null;
@@ -3685,6 +3719,7 @@ export interface operations {
                     };
                 };
             };
+            404: components["responses"]["ModelNotFoundException"];
         };
     };
     "profiles.index": {
@@ -3896,6 +3931,36 @@ export interface operations {
                 };
             };
             422: components["responses"]["ValidationException"];
+        };
+    };
+    sitemap: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            listings: {
+                                slug: string;
+                                updated_at: string | null;
+                            }[];
+                            profiles: {
+                                slug: string;
+                                updated_at: string | null;
+                            }[];
+                        };
+                    };
+                };
+            };
         };
     };
     "taxonomy.show": {

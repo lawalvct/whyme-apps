@@ -629,7 +629,7 @@ function Fulfilment({ order }: { order: Order }) {
       )}
       <ReturnsPolicy terms={order.refund_policy} label={t('returnsAgreed')} className="mt-3" />
       {order.listing_id ? (
-        <Link href={routes.listing({ id: order.listing_id, title: order.title })} className="mt-3 inline-block font-semibold text-primary hover:underline">
+        <Link href={routes.listing({ id: order.listing_id })} className="mt-3 inline-block font-semibold text-primary hover:underline">
           {t('viewItem')}
         </Link>
       ) : null}

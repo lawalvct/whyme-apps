@@ -30,6 +30,14 @@ const paths = {
   scissors: <><circle cx="5" cy="6" r="3" /><circle cx="5" cy="18" r="3" /><path d="m8 8 13 13M8 16 21 3M12 12l-4-4" /></>,
   car: <><path d="m5 7 2-4h10l2 4 2 3v8H3v-8l2-3ZM5 7h14M3 13h18M6 18v3M18 18v3M6 10h1M17 10h1" /></>,
   check: <path d="m5 12 4 4L19 6" />,
+  close: <path d="m6 6 12 12M6 18 18 6" />,
+  list: <><path d="M9 5h12M9 12h12M9 19h12" /><path d="M3 5h.01M3 12h.01M3 19h.01" strokeWidth="3" /></>,
+  filter: <><path d="M3 6h7m4 0h7M3 12h2m4 0h12M3 18h11m4 0h3" /><circle cx="12" cy="6" r="2" /><circle cx="7" cy="12" r="2" /><circle cx="16" cy="18" r="2" /></>,
+  zoom: <><circle cx="10" cy="10" r="7" /><path d="m15 15 6 6M7 10h6M10 7v6" /></>,
+  image: <><rect x="3" y="3" width="18" height="18" rx="3" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="m3 17 5-5 4 4 4-6 5 7" /></>,
+  share: <><path d="M12 15V2m-5 5 5-5 5 5M5 11H3v10h18V11h-2" /></>,
+  truck: <><path d="M2 5h12v12H2V5Zm12 4h4l4 4v4h-8V9Z" /><circle cx="6" cy="18" r="2" fill="white" /><circle cx="18" cy="18" r="2" fill="white" /></>,
+  return: <><path d="M4 9h11a6 6 0 0 1 0 12h-3M8 4 3 9l5 5" /></>,
 } as const;
 
 export type MarketplaceIconName = keyof typeof paths;

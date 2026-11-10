@@ -5,18 +5,6 @@ export function formatNaira(kobo: number): string {
   return naira.format(kobo / 100);
 }
 
-/** Readable links: /listings/{id}/{slug}. The ID decides; the slug is for people and search engines. */
-export function slugify(text: string): string {
-  return (
-    text
-      .normalize('NFKD')
-      .replace(/\p{Mn}+/gu, '')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .slice(0, 60) || 'item'
-  );
-}
 
 /** "1500" or "1,500.50" naira typed by a seller → kobo. Null when empty or not a number. */
 export function nairaToKobo(input: string): number | null {
@@ -42,9 +30,12 @@ export const routes = {
     const qs = query.toString();
     return qs ? `/search?${qs}` : '/search';
   },
-  listing: (listing: { id: string; title: string }) => `/listings/${listing.id}/${slugify(listing.title)}`,
-  profile: (profile: { id: string; slug?: string; display_name?: string }) =>
-    `/p/${profile.id}/${profile.slug ?? slugify(profile.display_name ?? '')}`,
+  /**
+   * Readable addresses made from the name: /listings/infinix-hot-40i, /p/ada-phones. Links
+   * that only know the ID (an order, a chat) use it; the page then redirects to the slug.
+   */
+  listing: (listing: { id: string; slug?: string | null }) => `/listings/${listing.slug || listing.id}`,
+  profile: (profile: { id: string; slug?: string | null }) => `/p/${profile.slug || profile.id}`,
   messages: '/messages',
   conversation: (id: string) => `/messages/${id}`,
   checkout: (listingId: string) => `/checkout/${listingId}`,

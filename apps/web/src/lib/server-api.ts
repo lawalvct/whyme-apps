@@ -14,26 +14,53 @@ const api = createApiClient({
   headers: () => ({ 'Accept-Language': 'en', 'X-Platform': 'web' }),
 });
 
-export async function getListing(id: string): Promise<PublicListing | null> {
+/** A listing by its address: the slug, an older slug, or the ID (older links). */
+export async function getListing(key: string): Promise<PublicListing | null> {
   'use cache';
   cacheLife('minutes');
-  cacheTag(`listing:${id}`);
+  cacheTag(`listing:${key}`);
 
-  const { data, response } = await api.GET('/v1/listings/{listing}', { params: { path: { listing: id } } });
+  const { data, response } = await api.GET('/v1/listings/{listing}', { params: { path: { listing: key } } });
   if (response.status === 404) return null;
-  if (!data) throw new Error(`Listing ${id}: HTTP ${response.status}`);
+  if (!data) throw new Error(`Listing ${key}: HTTP ${response.status}`);
+  cacheTag(`listing:${data.data.id}`);
   return data.data;
 }
 
-export async function getProfile(id: string): Promise<PublicProfile | null> {
+/** A business or provider page by its address: the slug, an older slug, or the ID. */
+export async function getProfile(key: string): Promise<PublicProfile | null> {
   'use cache';
   cacheLife('minutes');
-  cacheTag(`profile:${id}`);
+  cacheTag(`profile:${key}`);
 
-  const { data, response } = await api.GET('/v1/profiles/{profile}', { params: { path: { profile: id } } });
+  const { data, response } = await api.GET('/v1/profiles/{profile}', { params: { path: { profile: key } } });
   if (response.status === 404) return null;
-  if (!data) throw new Error(`Profile ${id}: HTTP ${response.status}`);
+  if (!data) throw new Error(`Profile ${key}: HTTP ${response.status}`);
+  cacheTag(`profile:${data.data.id}`);
   return data.data;
+}
+
+/**
+ * Every published listing and seller page, for sitemap.xml. An unreachable API gives an
+ * empty list rather than a failed sitemap; it refills on the next revalidation.
+ */
+export async function getSitemapEntries(): Promise<{ listings: SitemapEntry[]; profiles: SitemapEntry[] }> {
+  'use cache';
+  cacheLife('hours');
+  cacheTag('listings');
+  cacheTag('profiles');
+
+  try {
+    const { data } = await api.GET('/v1/sitemap');
+    return data?.data ?? { listings: [], profiles: [] };
+  } catch {
+    return { listings: [], profiles: [] };
+  }
+}
+
+export interface SitemapEntry {
+  slug: string;
+  updated_at: string | null;
 }
 
 export async function getProfileListings(id: string): Promise<PublicListing[]> {

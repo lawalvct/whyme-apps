@@ -211,8 +211,8 @@ function Header({ conversation }: { conversation: Conversation }) {
   const { subject } = conversation;
   const href =
     subject.type === 'listing'
-      ? routes.listing({ id: subject.id, title: subject.title })
-      : routes.profile({ id: subject.id, display_name: subject.title });
+      ? routes.listing({ id: subject.id })
+      : routes.profile({ id: subject.id });
 
   const body = (
     <>
