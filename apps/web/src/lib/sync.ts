@@ -21,12 +21,17 @@ export function createWebSync(accountId: string) {
       routes: {
         'profile.update': (action) => ({ method: 'PATCH', path: '/v1/me', body: action.payload }),
         'capability.activate': (action) => ({ method: 'POST', path: '/v1/me/capabilities', body: action.payload }),
+        // Saved items: PUT and DELETE are idempotent, so a resend after a lost reply is harmless.
+        'saved.add': (action) => ({ method: 'PUT', path: `/v1/me/saved/${(action.payload as { listing_id: string }).listing_id}` }),
+        'saved.remove': (action) => ({ method: 'DELETE', path: `/v1/me/saved/${(action.payload as { listing_id: string }).listing_id}` }),
       },
     }),
   });
   const controller = createSyncController(engine);
-  return { db, engine, controller };
+  return { db, engine, controller, accountId };
 }
+
+export type WebSync = ReturnType<typeof createWebSync>;
 
 /**
  * Asks the browser not to evict saved work. When refused (private mode, low

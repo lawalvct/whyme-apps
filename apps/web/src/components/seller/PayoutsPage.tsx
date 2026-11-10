@@ -19,8 +19,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SelectField, TextField } from '@/components/ui/field';
 import { Skeleton } from '@/components/ui/skeleton';
+import { MarketplaceIcon as Icon } from '@/components/ui/MarketplaceIcon';
 import { formatNaira, routes } from '@/lib/format';
 import { useLanguage, useT } from '@/lib/i18n';
+import { Notice, PageTitle } from './common';
+import styles from './SellerWorkspace.module.css';
 
 function apiMessage(t: (key: string) => string, e: unknown): string {
   return t(errorKey(e instanceof ApiRequestError ? e.code : 'network_error'));
@@ -35,11 +38,8 @@ export function PayoutsPage() {
   const earnings = useEarnings();
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">{t('payouts.title')}</h1>
-        <p className="mt-1 text-sm text-text-muted">{t('payouts.intro')}</p>
-      </div>
+    <div className={`${styles.workspace} ${styles.controls}`}>
+      <PageTitle title={t('payouts.title')} intro={t('payouts.intro')} />
 
       {earnings.isPending ? (
         <Skeleton className="h-32 w-full" />
@@ -51,7 +51,7 @@ export function PayoutsPage() {
         <Totals totals={earnings.data.totals} />
       )}
 
-      <AccountCard />
+      <div className={styles.payoutLayout}><AccountCard /><aside className={styles.editorGuide}><Icon name="shield" /><h2>{t('workspace.payoutsGuide')}</h2><p>{t('workspace.payoutsGuideHint')}</p><Link href={routes.orders('sold')} className={styles.editorBack}>{t('workspace.viewSoldOrders')}<Icon name="arrow" /></Link></aside></div>
 
       {earnings.data ? <History payouts={earnings.data.payouts} /> : null}
     </div>
@@ -69,9 +69,9 @@ function Totals({ totals }: { totals: Earnings['totals'] }) {
   ];
 
   return (
-    <dl className="grid grid-cols-2 gap-3 md:grid-cols-5">
+    <dl className={styles.payoutTotals}>
       {items.map((item) => (
-        <div key={item.key} className="flex flex-col gap-1 rounded-2xl border border-border p-3">
+        <div key={item.key} data-state={item.key}>
           <dt className="text-xs font-semibold text-text-muted">{t(`payouts.totals.${item.key}`)}</dt>
           <dd className="text-lg font-bold">{formatNaira(item.value)}</dd>
           {item.hint ? <dd className="text-xs text-text-muted">{t(`payouts.totals.${item.key}_hint`)}</dd> : null}
@@ -89,11 +89,12 @@ function AccountCard() {
   const [saved, setSaved] = useState(false);
 
   if (account.isPending) return <Skeleton className="h-28 w-full" />;
+  if (account.isError) return <div className={styles.queryError}><Notice tone="error">{t('workspace.accountLoadFailed')}</Notice><Button variant="secondary" disabled={account.isFetching} onClick={() => void account.refetch()}>{t('overview.tryAgain')}</Button></div>;
   const current = account.data ?? null;
   const format = new Intl.DateTimeFormat(language === 'ig' ? 'ig-NG' : 'en-NG', { dateStyle: 'medium', timeStyle: 'short' });
 
   return (
-    <section className="flex flex-col gap-3 rounded-2xl border border-border p-4">
+    <section className={styles.accountCard}>
       <div>
         <h2 className="font-bold">{t('payouts.account')}</h2>
         <p className="text-sm text-text-muted">{t('payouts.accountIntro')}</p>
@@ -204,7 +205,7 @@ function AccountForm({ current, onDone, onCancel }: { current: PayoutAccount | n
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className={styles.bankForm}>
       <form method="post" onSubmit={check} noValidate className="flex flex-col gap-3">
         <SelectField
           label={t('payouts.bank')}
@@ -290,7 +291,7 @@ function History({ payouts }: { payouts: Earnings['payouts'] }) {
   const format = new Intl.DateTimeFormat(language === 'ig' ? 'ig-NG' : 'en-NG', { dateStyle: 'medium' });
 
   return (
-    <section className="flex flex-col gap-3">
+    <section className={styles.history}>
       <h2 className="font-bold">{t('payouts.history')}</h2>
       {payouts.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-text-muted">{t('payouts.noPayouts')}</p>

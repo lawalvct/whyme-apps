@@ -37,6 +37,7 @@ export const routes = {
   listing: (listing: { id: string; slug?: string | null }) => `/listings/${listing.slug || listing.id}`,
   profile: (profile: { id: string; slug?: string | null }) => `/p/${profile.slug || profile.id}`,
   messages: '/messages',
+  saved: '/saved',
   conversation: (id: string) => `/messages/${id}`,
   checkout: (listingId: string) => `/checkout/${listingId}`,
   orders: (tab?: 'sold') => (tab ? `/orders?tab=${tab}` : '/orders'),

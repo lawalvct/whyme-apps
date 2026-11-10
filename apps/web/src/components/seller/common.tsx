@@ -1,11 +1,12 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 import { ApiRequestError, type ListingStatus, type Me, type OwnerProfile } from '@whyme/data';
 import { errorKey } from '@whyme/i18n';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/components/ui/cn';
 import { useT } from '@/lib/i18n';
+import styles from './SellerWorkspace.module.css';
 
 type Status = ListingStatus | OwnerProfile['status'];
 
@@ -78,16 +79,20 @@ export function conflictRecord<T>(error: unknown): T | null {
 
 export function PageTitle({ title, intro, actions }: { title: string; intro?: ReactNode; actions?: ReactNode }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-3">
+    <header className={styles.pageTitle}>
       <div className="min-w-0">
         <h1 className="text-2xl font-bold">{title}</h1>
         {intro ? <p className="mt-1 max-w-2xl text-text-muted">{intro}</p> : null}
       </div>
       {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
-    </div>
+    </header>
   );
 }
 
-export function Card({ children, className }: { children: ReactNode; className?: string }) {
-  return <section className={cn('rounded-2xl border border-border p-5', className)}>{children}</section>;
+export function Card({ children, className, ...props }: ComponentProps<'section'>) {
+  return <section className={cn(styles.card, className)} {...props}>{children}</section>;
+}
+
+export function SectionTitle({ number, title, hint }: { number: string; title: string; hint?: string }) {
+  return <header className={styles.sectionTitle}><span>{number}</span><div><h2>{title}</h2>{hint && <p>{hint}</p>}</div></header>;
 }

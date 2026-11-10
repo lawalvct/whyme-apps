@@ -11,6 +11,68 @@ body {
   background: #fcfcf7;
 }
 
+/* Shared by page scrolling, menus, galleries, forms and other overflow areas. */
+:root {
+  --scrollbar-track: #eef2e8;
+  --scrollbar-thumb: #799269;
+  --scrollbar-thumb-hover: #4f7947;
+  --scrollbar-thumb-active: #176c40;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* Chromium/Safari support rounded thumbs and pointer feedback on both axes. */
+@supports selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: auto;
+    scrollbar-color: auto;
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: 999px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    min-width: 32px;
+    min-height: 32px;
+    border: 2px solid var(--scrollbar-track);
+    border-radius: 999px;
+    background: var(--scrollbar-thumb);
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+  }
+
+  *::-webkit-scrollbar-thumb:active {
+    background: var(--scrollbar-thumb-active);
+  }
+
+  *::-webkit-scrollbar-corner {
+    background: var(--scrollbar-track);
+  }
+
+  *::-webkit-scrollbar-button {
+    display: none;
+  }
+}
+
+@media (forced-colors: active) {
+  * { scrollbar-color: auto; scrollbar-width: auto; }
+  *::-webkit-scrollbar-track, *::-webkit-scrollbar-corner { background: Canvas; }
+  *::-webkit-scrollbar-thumb { background: ButtonText; border-color: Canvas; }
+  *::-webkit-scrollbar-thumb:hover, *::-webkit-scrollbar-thumb:active { background: Highlight; }
+}
+
 .site-main {
   max-width: 1344px;
   padding: 12px 32px;

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type { components } from '@whyme/api-client';
 import { unwrap, useApi } from './api';
+import { useOfflineFetcher } from './offline';
 
 /** An order as the signed-in buyer or seller sees it (GET /v1/orders/{id}). */
 export type Order = components['schemas']['OrderResource'];
@@ -42,20 +43,24 @@ export function paymentIsOpen(state: PaymentState | undefined): boolean {
   return state === 'awaiting_payment' || state === 'pending_verification' || state === 'unknown' || state === 'created';
 }
 
+/** One order. Readable offline from the device's copy of the last load. */
 export function useOrder(id: string, options: { refetchInterval?: number | false } = {}) {
   const api = useApi();
+  const fetcher = useOfflineFetcher('order', id, async () => unwrap(await api.GET('/v1/orders/{order}', { params: { path: { order: id } } })).data);
   return useQuery({
     queryKey: orderKeys.order(id),
-    queryFn: async () => unwrap(await api.GET('/v1/orders/{order}', { params: { path: { order: id } } })).data,
+    queryFn: fetcher,
     refetchInterval: options.refetchInterval,
   });
 }
 
+/** Orders bought or sold. Readable offline from the device's copy of the last load. */
 export function useOrders(role: 'buying' | 'selling') {
   const api = useApi();
+  const fetcher = useOfflineFetcher('orders', role, async () => unwrap(await api.GET('/v1/me/orders', { params: { query: { role } } })).data);
   return useQuery({
     queryKey: orderKeys.list(role),
-    queryFn: async () => unwrap(await api.GET('/v1/me/orders', { params: { query: { role } } })).data,
+    queryFn: fetcher,
   });
 }
 

@@ -4,12 +4,13 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, type ReactNode } from 'react';
 import { PhoneConfirmed } from '@/components/auth/ConfirmPhone';
-import { cn } from '@/components/ui/cn';
+import { MarketplaceIcon as Icon, type MarketplaceIconName } from '@/components/ui/MarketplaceIcon';
 import { Skeleton } from '@/components/ui/skeleton';
 import { routes } from '@/lib/format';
 import { useT } from '@/lib/i18n';
 import { useAccount } from '@/lib/session';
 import { sellerCapabilities } from './common';
+import styles from './SellerCentre.module.css';
 
 /**
  * The seller centre frame: its own navigation, and signed-out visitors are sent
@@ -28,19 +29,20 @@ export function SellerShell({ children }: { children: ReactNode }) {
   }, [status, router]);
 
   const caps = sellerCapabilities(user);
-  const links = [
-    { href: routes.sell, label: t('navOverview'), exact: true },
-    ...(caps.vendor || caps.provider ? [{ href: routes.sellListings(), label: t('navListings'), exact: false }] : []),
-    ...(caps.vendor ? [{ href: routes.sellProfile('business'), label: t('navBusiness'), exact: false }] : []),
-    ...(caps.provider ? [{ href: routes.sellProfile('provider'), label: t('navProvider'), exact: false }] : []),
-    ...(caps.vendor ? [{ href: routes.orders('sold'), label: t('navOrders'), exact: false }] : []),
-    ...(caps.vendor || caps.provider ? [{ href: routes.sellPayouts, label: t('navPayouts'), exact: false }] : []),
+  const links: { href: string; label: string; icon: MarketplaceIconName; exact: boolean }[] = [
+    { href: routes.sell, label: t('navOverview'), icon: 'grid', exact: true },
+    ...(caps.vendor || caps.provider ? [{ href: routes.sellListings(), label: t('navListings'), icon: 'list' as const, exact: false }] : []),
+    ...(caps.vendor ? [{ href: routes.sellProfile('business'), label: t('navBusiness'), icon: 'shop' as const, exact: false }] : []),
+    ...(caps.provider ? [{ href: routes.sellProfile('provider'), label: t('navProvider'), icon: 'tools' as const, exact: false }] : []),
+    ...(caps.vendor ? [{ href: routes.orders('sold'), label: t('navOrders'), icon: 'bag' as const, exact: false }] : []),
+    ...(caps.vendor || caps.provider ? [{ href: routes.sellPayouts, label: t('navPayouts'), icon: 'wallet' as const, exact: false }] : []),
   ];
 
   return (
-    <div className="flex flex-col gap-6">
-      <nav aria-label={t('centre')} className="-mx-4 overflow-x-auto px-4">
-        <ul className="flex min-h-12 min-w-max gap-1 border-b border-border">
+    <div className={styles.shell}>
+      <div className={styles.shellHeading}><Link href={routes.home}>{t('market:home')}</Link><Icon name="chevron" /><span>{t('centre')}</span><span className={styles.privateLabel}><Icon name="shield" />{t('overview.yourWorkspace')}</span></div>
+      <nav aria-label={t('centre')} className={styles.sellerNavigation}>
+        <ul>
           {status === 'signed_in'
             ? links.map((link) => {
                 const active = link.exact ? pathname === link.href : pathname.startsWith(link.href);
@@ -49,12 +51,9 @@ export function SellerShell({ children }: { children: ReactNode }) {
                     <Link
                       href={link.href}
                       aria-current={active ? 'page' : undefined}
-                      className={cn(
-                        '-mb-px flex min-h-12 items-center border-b-2 px-3 text-sm font-semibold',
-                        active ? 'border-primary text-primary' : 'border-transparent text-text-muted hover:text-text',
-                      )}
+                      className={styles.sellerNavLink}
                     >
-                      {link.label}
+                      <Icon name={link.icon} />{link.label}
                     </Link>
                   </li>
                 );

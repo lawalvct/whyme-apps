@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type { components, paths } from '@whyme/api-client';
 import { unwrap, useApi } from './api';
+import { useOfflineFetcher } from './offline';
 
 type ConfigBody = paths['/v1/config']['get']['responses'][200]['content']['application/json']['data'];
 
@@ -63,11 +64,12 @@ export function useConfig(options: { initialData?: AppConfig; initialDataUpdated
   });
 }
 
+/**
+ * Who is signed in. Offline it falls back to the device's copy of the last answer, so the
+ * signed-in area still opens without a connection; a 401 from the server still means signed out.
+ */
 export function useMe(enabled: boolean) {
   const api = useApi();
-  return useQuery({
-    queryKey: queryKeys.me,
-    queryFn: async () => unwrap(await api.GET('/v1/me')).data as Me,
-    enabled,
-  });
+  const fetcher = useOfflineFetcher('me', 'current', async () => unwrap(await api.GET('/v1/me')).data as Me);
+  return useQuery({ queryKey: queryKeys.me, queryFn: fetcher, enabled });
 }

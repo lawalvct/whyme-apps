@@ -6,8 +6,10 @@ import { queryKeys, unwrap, useApi, useTerms } from '@whyme/data';
 import { Button } from '@/components/ui/button';
 import { CheckboxField, FieldGroup } from '@/components/ui/field';
 import { Skeleton } from '@/components/ui/skeleton';
+import { MarketplaceIcon as Icon } from '@/components/ui/MarketplaceIcon';
 import { useLanguage, useT } from '@/lib/i18n';
-import { Card, Notice, useErrorText } from './common';
+import { Notice, useErrorText } from './common';
+import styles from './SellerCentre.module.css';
 
 type SellerCapability = 'vendor' | 'provider';
 
@@ -55,48 +57,50 @@ export function StartSelling({ only, compact = false }: { only?: SellerCapabilit
   }
 
   return (
-    <Card className={compact ? undefined : 'mx-auto w-full max-w-2xl'}>
-      <form method="post" onSubmit={(e) => void onSubmit(e)} noValidate className="flex flex-col gap-5">
-        <div>
-          <h2 className="text-xl font-bold">{compact ? t('addCapabilityTitle') : t('startTitle')}</h2>
-          {compact ? null : <p className="mt-1 text-text-muted">{t('startIntro')}</p>}
-        </div>
+    <section className={`${styles.onboarding} ${compact ? styles.compactOnboarding : ''}`}>
+      <header className={styles.onboardingHeader}><div><span className={styles.eyebrow}>{t('overview.madeForLocal')}</span>{compact ? <h2>{t('addCapabilityTitle')}</h2> : <h1>{t('startTitle')}</h1>}<p>{t(compact ? 'overview.addCapabilityHint' : 'startIntro')}</p></div><span><Icon name={only === 'provider' ? 'tools' : 'shop'} /></span></header>
+      <form method="post" onSubmit={(e) => void onSubmit(e)} noValidate className={styles.activationForm} aria-busy={busy}>
 
         {only ? (
-          <p className="text-sm text-text-muted">
-            <span className="font-semibold text-text">{options.find((o) => o.value === only)?.label}.</span>{' '}
-            {options.find((o) => o.value === only)?.hint}
+          <p className={styles.onlyCapability}>
+            <Icon name={only === 'vendor' ? 'bag' : 'tools'} />
+            <span>
+              <span className="font-semibold text-text">{options.find((o) => o.value === only)?.label}.</span>{' '}
+              {options.find((o) => o.value === only)?.hint}
+            </span>
           </p>
         ) : (
-          <FieldGroup legend={t('chooseOne')} className="gap-3">
+          <FieldGroup legend={t('overview.whatToOffer')} hint={t('overview.chooseBoth')} className={styles.capabilityGroup}>
             {options.map((option) => (
               <label
                 key={option.value}
-                className="flex cursor-pointer gap-3 rounded-xl border border-border p-4 has-checked:border-primary has-checked:bg-primary-soft"
+                className={styles.capabilityOption}
               >
                 <input
                   type="checkbox"
                   className="mt-1 size-5 shrink-0 accent-primary"
+                  disabled={busy}
                   checked={chosen.includes(option.value)}
                   onChange={(e) =>
                     setChosen((list) => (e.target.checked ? [...list, option.value] : list.filter((v) => v !== option.value)))
                   }
                 />
-                <span>
-                  <span className="block font-semibold">{option.label}</span>
-                  <span className="block text-sm text-text-muted">{option.hint}</span>
+                <span className={styles.capabilityIcon}><Icon name={option.value === 'vendor' ? 'bag' : 'tools'} /></span>
+                <span className={styles.capabilityCopy}>
+                  <strong>{option.label}</strong>
+                  <span>{option.hint}</span>
                 </span>
               </label>
             ))}
           </FieldGroup>
         )}
 
-        <div className="flex flex-col gap-2">
-          <h3 className="text-sm font-semibold">{t('termsHeading')}</h3>
+        <div className={styles.termsSection}>
+          <h3><Icon name="shield" />{t('termsHeading')}</h3>
           {terms.isPending ? (
             <Skeleton className="h-32 w-full" />
           ) : terms.data ? (
-            <div className="max-h-56 overflow-y-auto rounded-lg border border-border bg-surface p-4 text-sm leading-relaxed">
+            <div className={styles.termsBody} tabIndex={0} role="region" aria-label={t('termsHeading')}>
               <p className="font-semibold">{terms.data.title}</p>
               <p className="mb-2 text-xs text-text-muted">{t('termsVersion', { version: terms.data.version })}</p>
               <div className="whitespace-pre-line" lang={terms.data.locale}>
@@ -106,15 +110,16 @@ export function StartSelling({ only, compact = false }: { only?: SellerCapabilit
           ) : (
             <Notice tone="error">{t('termsUnavailable')}</Notice>
           )}
-          <CheckboxField label={t('acceptTerms')} checked={accepted} onChange={(e) => setAccepted(e.target.checked)} />
+          <CheckboxField label={t('acceptTerms')} className={styles.acceptTerms} checked={accepted} disabled={busy || !terms.data} onChange={(e) => setAccepted(e.target.checked)} />
         </div>
 
         {problem ? <Notice tone="error">{problem}</Notice> : null}
 
-        <Button type="submit" disabled={busy || !terms.data} className="self-start">
+        <Button type="submit" disabled={busy || !terms.data} className={styles.activateButton}>
           {busy ? t('common:loading') : only === 'vendor' ? t('alsoProducts') : only === 'provider' ? t('alsoServices') : t('activate')}
+          <Icon name="arrow" />
         </Button>
       </form>
-    </Card>
+    </section>
   );
 }

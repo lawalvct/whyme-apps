@@ -5,13 +5,15 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { chatKeys, orderKeys, queryKeys, sellerKeys, useApi, useOrderCounts, useUnreadMessages } from '@whyme/data';
+import { chatKeys, orderKeys, queryKeys, savedKeys, sellerKeys, useApi, useOrderCounts, useUnreadMessages } from '@whyme/data';
 import { isSupportedLanguage, languages } from '@whyme/i18n';
+import { useSignOutGuard } from '@/components/auth/SignOutGuard';
 import { buttonClass } from '@/components/ui/button';
 import { MarketplaceIcon as Icon } from '@/components/ui/MarketplaceIcon';
 import { useRotatingContent } from '@/components/ui/useRotatingContent';
 import { routes } from '@/lib/format';
 import { setLanguage, useLanguage, useT } from '@/lib/i18n';
+import { forgetAccountOnThisDevice } from '@/lib/offline';
 import { useAccount } from '@/lib/session';
 import styles from './SiteHeader.module.css';
 
@@ -153,6 +155,7 @@ function AccountArea({
   const api = useApi();
   const queryClient = useQueryClient();
   const router = useRouter();
+  const guard = useSignOutGuard();
 
   if (!user) {
     return (
@@ -169,16 +172,20 @@ function AccountArea({
   }
 
   async function signOut() {
+    // Unsent changes would be lost with this account's browser data: ask first.
+    if (!(await guard.confirm())) return;
     await api.POST('/v1/auth/logout');
+    await forgetAccountOnThisDevice();
     // Leaving a private page (seller centre, messages): a full load of the home page drops
     // everything the account had in memory (and beats those pages' own sign-in redirect).
-    if ([routes.sell, routes.messages, routes.orders(), '/checkout'].some((path) => window.location.pathname.startsWith(path))) {
+    if ([routes.sell, routes.messages, routes.orders(), routes.saved, '/checkout'].some((path) => window.location.pathname.startsWith(path))) {
       window.location.assign(routes.home);
       return;
     }
     queryClient.removeQueries({ queryKey: sellerKeys.all });
     queryClient.removeQueries({ queryKey: chatKeys.all });
     queryClient.removeQueries({ queryKey: orderKeys.all });
+    queryClient.removeQueries({ queryKey: savedKeys.all });
     queryClient.setQueryData(queryKeys.me, null);
     await queryClient.invalidateQueries({ queryKey: queryKeys.me });
     router.refresh();
@@ -186,6 +193,8 @@ function AccountArea({
 
   return (
     <div className="flex items-center gap-2">
+      {guard.dialog}
+      <SavedLink />
       <MessagesLink enabled={Boolean(user.phone_verified_at)} />
       <OrdersLink enabled={Boolean(user.phone_verified_at)} />
       <Link href={routes.sell} className={buttonClass('ghost', 'min-h-11 px-3 text-sm')}>
@@ -227,6 +236,17 @@ function OrdersLink({ enabled }: { enabled: boolean }) {
 }
 
 /** Messages, with the unread count (checked every 30 seconds; chat needs a confirmed phone). */
+/** Saved items: readable offline. An icon on small screens. */
+function SavedLink() {
+  const { t } = useT('market');
+  return (
+    <Link href={routes.saved} aria-label={t('savedTitle')} className={buttonClass('ghost', 'min-h-11 px-3 text-sm')}>
+      <Icon name="heart" className="size-5" />
+      <span className="hidden xl:inline">{t('savedNav')}</span>
+    </Link>
+  );
+}
+
 function MessagesLink({ enabled }: { enabled: boolean }) {
   const { t } = useT('chat');
   const unread = useUnreadMessages(enabled).data ?? 0;

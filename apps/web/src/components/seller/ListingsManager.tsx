@@ -8,13 +8,16 @@ import { ensureOk, sellerKeys, unwrap, useApi, type OwnerListing } from '@whyme/
 import { Price } from '@/components/market/Price';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { MarketplaceIcon as Icon } from '@/components/ui/MarketplaceIcon';
 import { routes } from '@/lib/format';
 import { useLanguage, useT } from '@/lib/i18n';
 import { useAccount } from '@/lib/session';
 import { conflictRecord, Notice, PageTitle, sellerCapabilities, StatusBadge, StatusNote, useErrorText } from './common';
 import { StartSelling } from './StartSelling';
+import styles from './SellerWorkspace.module.css';
 
 const FILTERS = ['all', 'published', 'pending_review', 'draft', 'paused', 'rejected'] as const;
+const KINDS = ['all', 'product', 'service'] as const;
 
 type Page = { items: OwnerListing[]; next: string | null };
 
@@ -30,16 +33,17 @@ export function ListingsManager() {
   const { user } = useAccount();
   const caps = sellerCapabilities(user);
   const [filter, setFilter] = useQueryState('status', parseAsStringLiteral(FILTERS).withDefault('all'));
+  const [kind, setKind] = useQueryState('kind', parseAsStringLiteral(KINDS).withDefault('all'));
   const [notice, setNotice] = useState<{ tone: 'success' | 'info' | 'error'; text: string } | null>(null);
 
   const listings = useInfiniteQuery({
-    queryKey: sellerKeys.listings({ status: filter }),
+    queryKey: sellerKeys.listings({ status: filter, kind: kind === 'all' ? undefined : kind }),
     initialPageParam: null as string | null,
     getNextPageParam: (last: Page) => nextCursor(last.next),
     enabled: caps.vendor || caps.provider,
     queryFn: async ({ pageParam }): Promise<Page> => {
       // The cursor isn't in the generated query types.
-      const query = { status: filter === 'all' ? undefined : filter, cursor: pageParam ?? undefined } as Record<string, unknown>;
+      const query = { status: filter === 'all' ? undefined : filter, kind: kind === 'all' ? undefined : kind, cursor: pageParam ?? undefined } as Record<string, unknown>;
       const body = unwrap(await api.GET('/v1/me/listings', { params: { query: query as never } }));
       return { items: body.data, next: body.links.next };
     },
@@ -48,24 +52,27 @@ export function ListingsManager() {
   if (!caps.vendor && !caps.provider) return <StartSelling />;
 
   const items = listings.data?.pages.flatMap((p) => p.items) ?? [];
+  const filtered = filter !== 'all' || kind !== 'all';
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className={styles.workspace}>
       <PageTitle
         title={t('navListings')}
+        intro={t('workspace.listingsIntro')}
         actions={
           <>
-            {caps.vendor ? <ButtonLink href={routes.newListing('product')}>{t('addProduct')}</ButtonLink> : null}
+            {caps.vendor ? <ButtonLink href={routes.newListing('product')}><Icon name="plus" />{t('addProduct')}</ButtonLink> : null}
             {caps.provider ? (
               <ButtonLink href={routes.newListing('service')} variant={caps.vendor ? 'secondary' : 'primary'}>
-                {t('addService')}
+                <Icon name="plus" />{t('addService')}
               </ButtonLink>
             ) : null}
           </>
         }
       />
 
-      <div role="group" aria-label={t('navListings')} className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+      <div className={styles.filters}>
+      <div role="group" aria-label={t('workspace.filterStatus')} className={styles.filterPills}>
         {FILTERS.map((value) => (
           <button
             key={value}
@@ -75,11 +82,12 @@ export function ListingsManager() {
               setNotice(null);
               void setFilter(value === 'all' ? null : value);
             }}
-            className="min-h-11 shrink-0 rounded-full border border-border px-4 text-sm font-medium text-text-muted aria-pressed:border-primary aria-pressed:bg-primary-soft aria-pressed:text-primary-pressed"
           >
             {value === 'all' ? t('all') : t(`status.${value}`)}
           </button>
         ))}
+      </div>
+      <label className={styles.kindFilter}>{t('workspace.listingType')}<select value={kind} onChange={(event) => void setKind(event.target.value as typeof kind)}><option value="all">{t('workspace.allTypes')}</option><option value="product">{tMarket('products')}</option><option value="service">{tMarket('services')}</option></select></label>
       </div>
 
       {notice ? <Notice tone={notice.tone}>{notice.text}</Notice> : null}
@@ -91,13 +99,11 @@ export function ListingsManager() {
           ))}
         </div>
       ) : listings.isError ? (
-        <Notice tone="error">{t('errors:network_error')}</Notice>
+        <div className={styles.queryError}><Notice tone="error">{t('errors:network_error')}</Notice><Button variant="secondary" disabled={listings.isFetching} onClick={() => void listings.refetch()}>{t('overview.tryAgain')}</Button></div>
       ) : items.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-border p-8 text-center text-text-muted">
-          {filter === 'all' ? t('noListings') : t('noListingsFiltered')}
-        </p>
+        <section className={styles.emptyState}><span><Icon name={filtered ? 'filter' : 'bag'} /></span><h2>{t(filtered ? 'workspace.noMatches' : 'overview.emptyTitle')}</h2><p>{t(filtered ? 'workspace.noMatchesHint' : 'overview.emptyHint')}</p><div className={styles.emptyActions}>{filtered ? <Button variant="secondary" onClick={() => { void setFilter(null); void setKind(null); }}>{t('workspace.clearFilters')}</Button> : <ButtonLink href={routes.newListing(caps.vendor ? 'product' : 'service')}><Icon name="plus" />{t(caps.vendor ? 'addProduct' : 'addService')}</ButtonLink>}</div></section>
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul className={styles.listingRows}>
           {items.map((listing) => (
             <ListingRow key={listing.id} listing={listing} onNotice={setNotice} />
           ))}
@@ -105,7 +111,7 @@ export function ListingsManager() {
       )}
 
       {listings.hasNextPage ? (
-        <Button variant="secondary" className="self-center" disabled={listings.isFetchingNextPage} onClick={() => void listings.fetchNextPage()}>
+        <Button variant="secondary" className={styles.loadMore} disabled={listings.isFetchingNextPage} onClick={() => void listings.fetchNextPage()}>
           {listings.isFetchingNextPage ? t('common:loading') : tMarket('loadMore')}
         </Button>
       ) : null}
@@ -165,7 +171,7 @@ function ListingRow({
   const canPublish = listing.status === 'draft' || listing.status === 'rejected' || listing.status === 'expired';
 
   return (
-    <li className="flex flex-col gap-3 rounded-2xl border border-border p-3 sm:flex-row sm:items-start sm:p-4">
+    <li className={styles.listingRow}>
       <Link href={routes.editListing(listing.id)} className="flex min-w-0 flex-1 gap-3">
         <div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-surface sm:size-24">
           {cover ? (
@@ -189,7 +195,7 @@ function ListingRow({
         </div>
       </Link>
 
-      <div className="flex flex-wrap gap-2 sm:justify-end">
+      <div className={styles.rowActions}>
         {canPublish ? (
           <Button className="min-h-11 px-4 text-sm" disabled={busy !== null} onClick={() => void act('publish')}>
             {busy === 'publish' ? t('common:loading') : t('publish')}

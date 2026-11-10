@@ -15,7 +15,7 @@
 .previous svg { transform: rotate(180deg); }
 .next { right: 16px; }
 .thumbnailRow { display: flex; align-items: center; gap: 15px; margin-top: 13px; }
-.thumbnails { display: flex; gap: 9px; overflow-x: auto; padding: 3px; scrollbar-width: thin; }
+.thumbnails { display: flex; gap: 9px; overflow-x: auto; padding: 3px; }
 .thumbnails > button { flex-shrink: 0; padding: 3px; border: 1px solid #e0e7d7; border-radius: 10px; cursor: pointer; background: #fffefa; }
 .thumbnails > button[aria-pressed='true'] { border: 2px solid #65864c; padding: 2px; box-shadow: 0 0 0 2px #e7eedb; }
 .thumbnail { height: 64px; width: 74px; border-radius: 6px; }

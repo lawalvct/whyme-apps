@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type { components, paths } from '@whyme/api-client';
 import { ApiRequestError, unwrap, useApi } from './api';
+import { useOfflineFetcher } from './offline';
 
 export type OwnerListing = components['schemas']['OwnerListingResource'];
 export type OwnerProfile = components['schemas']['OwnerProfileResource'];
@@ -29,11 +30,8 @@ export const listingCapability = { product: 'vendor', service: 'provider' } as c
 /** The owner's business and provider profiles (GET /me/profiles). */
 export function useMyProfiles(enabled = true) {
   const api = useApi();
-  return useQuery({
-    queryKey: sellerKeys.profiles,
-    queryFn: async () => unwrap(await api.GET('/v1/me/profiles')).data,
-    enabled,
-  });
+  const fetcher = useOfflineFetcher('my-profiles', 'all', async () => unwrap(await api.GET('/v1/me/profiles')).data);
+  return useQuery({ queryKey: sellerKeys.profiles, queryFn: fetcher, enabled });
 }
 
 /** One profile, or null when the owner hasn't started it yet (404). */
@@ -56,11 +54,8 @@ export function useMyProfile(kind: ProfileKind, enabled = true) {
 /** One of the owner's listings, with its status and the version to send with edits. */
 export function useMyListing(id: string | null) {
   const api = useApi();
-  return useQuery({
-    queryKey: sellerKeys.listing(id ?? ''),
-    queryFn: async () => unwrap(await api.GET('/v1/me/listings/{listing}', { params: { path: { listing: id ?? '' } } })).data,
-    enabled: Boolean(id),
-  });
+  const fetcher = useOfflineFetcher('my-listing', id ?? '', async () => unwrap(await api.GET('/v1/me/listings/{listing}', { params: { path: { listing: id ?? '' } } })).data);
+  return useQuery({ queryKey: sellerKeys.listing(id ?? ''), queryFn: fetcher, enabled: Boolean(id) });
 }
 
 /** The current terms in the reader's language, or English (GET /terms/{type}). */

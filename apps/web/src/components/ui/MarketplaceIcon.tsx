@@ -38,6 +38,8 @@ const paths = {
   share: <><path d="M12 15V2m-5 5 5-5 5 5M5 11H3v10h18V11h-2" /></>,
   truck: <><path d="M2 5h12v12H2V5Zm12 4h4l4 4v4h-8V9Z" /><circle cx="6" cy="18" r="2" fill="white" /><circle cx="18" cy="18" r="2" fill="white" /></>,
   return: <><path d="M4 9h11a6 6 0 0 1 0 12h-3M8 4 3 9l5 5" /></>,
+  message: <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l-2 2V11.5a9.5 9.5 0 0 1 19 0ZM7 10h9M7 14h6" />,
+  wallet: <><path d="M20 7H5a3 3 0 0 1 0-6h13v6M2 4v15a3 3 0 0 0 3 3h15V7M20 12h-6v5h6" /><path d="M17 14.5h.01" /></>,
 } as const;
 
 export type MarketplaceIconName = keyof typeof paths;

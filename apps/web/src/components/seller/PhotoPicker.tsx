@@ -5,6 +5,7 @@ import { ApiRequestError, useApi, type OwnerPhoto } from '@whyme/data';
 import { cn } from '@/components/ui/cn';
 import { useT } from '@/lib/i18n';
 import { shrinkPhoto, uploadPhoto, waitForUpload } from '@/lib/uploads';
+import styles from './SellerWorkspace.module.css';
 
 type PhotoState = 'uploading' | 'processing' | 'ready' | 'rejected' | 'failed';
 
@@ -178,9 +179,9 @@ export function PhotoPicker({
   const notice = photos.notice === 'photoLimit' ? t('photoLimit', { count: photos.limit }) : photos.notice ? t(photos.notice) : null;
 
   return (
-    <fieldset className="flex flex-col gap-2">
+    <fieldset className={styles.photoPicker}>
       <legend className="mb-1 text-sm font-medium">{label}</legend>
-      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      <ul className={`${styles.photoGrid} ${photos.single ? styles.singlePhoto : ''}`}>
         {photos.items.map((item, index) => (
           <li key={item.key} className="flex flex-col gap-1">
             <div className="relative aspect-square overflow-hidden rounded-xl border border-border bg-surface">
@@ -222,7 +223,7 @@ export function PhotoPicker({
             <button
               type="button"
               onClick={() => input.current?.click()}
-              className="flex aspect-square w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border text-sm font-semibold text-primary hover:border-primary hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-primary"
+              className={styles.uploadTile}
             >
               <svg aria-hidden viewBox="0 0 24 24" className="size-8 fill-none stroke-current" strokeWidth={1.75}>
                 <path d="M12 5v14M5 12h14" />

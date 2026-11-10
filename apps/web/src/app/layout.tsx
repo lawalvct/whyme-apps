@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Inter } from "next/font/google";
 import { Providers } from "@/components/Providers";
 import { SiteFooter } from "@/components/site/SiteFooter";
@@ -25,7 +26,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col bg-background text-text">
         <Providers>
           <SkipLink />
-          <SiteHeader />
+          <Suspense fallback={<div aria-hidden="true" className="h-40 bg-white max-sm:h-72" />}>
+            <SiteHeader />
+          </Suspense>
           <main id="content" className="site-main mx-auto w-full flex-1">
             {children}
           </main>

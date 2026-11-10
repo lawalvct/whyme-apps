@@ -1,9 +1,11 @@
 'use client';
 
-import { forwardRef, type SelectHTMLAttributes } from 'react';
+import { forwardRef, useState, type SelectHTMLAttributes } from 'react';
 import { categoryLabel, useTaxonomy, type TaxonomyLocation } from '@whyme/data';
 import { CheckboxField, FieldGroup, SelectField } from '@/components/ui/field';
 import { useLanguage, useT } from '@/lib/i18n';
+import { MarketplaceIcon as Icon } from '@/components/ui/MarketplaceIcon';
+import styles from './SellerWorkspace.module.css';
 
 type SelectProps = SelectHTMLAttributes<HTMLSelectElement> & { label: string; hint?: string; error?: string };
 
@@ -89,13 +91,17 @@ export function AreaChecklist({
   hint?: string;
   error?: string;
 }) {
+  const { t } = useT('seller');
+  const [search, setSearch] = useState('');
   const { data } = useTaxonomy();
   const lgas = (data?.locations ?? []).filter((l) => l.type === 'lga').sort((a, b) => a.name.localeCompare(b.name));
+  const visible = lgas.filter((lga) => lga.name.toLowerCase().includes(search.trim().toLowerCase()));
 
   return (
-    <FieldGroup legend={legend} hint={hint} error={error}>
-      <div className="grid gap-x-4 sm:grid-cols-2 lg:grid-cols-3">
-        {lgas.map((lga) => (
+    <FieldGroup legend={legend} hint={hint} error={error} className={styles.areaPicker}>
+      <div className={styles.areaToolbar}><div className={styles.areaSearch}><Icon name="search" /><input type="search" aria-label={t('workspace.searchAreas')} placeholder={t('workspace.searchAreas')} value={search} onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') event.preventDefault(); }} /></div><span className={styles.areaCount} aria-live="polite">{t('workspace.areasSelected', { count: value.length })}</span></div>
+      <div className={styles.areaList}>
+        {visible.map((lga) => (
           <CheckboxField
             key={lga.id}
             label={lga.name}
@@ -103,6 +109,7 @@ export function AreaChecklist({
             onChange={(e) => onChange(e.target.checked ? [...value, lga.id] : value.filter((id) => id !== lga.id))}
           />
         ))}
+        {visible.length === 0 && <p className={styles.areaEmpty}>{t('workspace.noAreas')}</p>}
       </div>
     </FieldGroup>
   );

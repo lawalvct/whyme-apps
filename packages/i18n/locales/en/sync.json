@@ -18,5 +18,17 @@
   "offlineCopy": "Offline copy – last updated {{time}}",
   "needsSignIn": "Sign in again to send your saved work",
   "conflict": "This was changed elsewhere. Review the latest version and apply your change again.",
-  "storageNotPersistent": "This browser may delete saved work (private browsing or low storage). Keep the page open until it's sent."
+  "storageNotPersistent": "This browser may delete saved work (private browsing or low storage). Keep the page open until it's sent.",
+  "offlineBanner": "You're offline. You can still read what this device saved; changes send when you're back online.",
+  "offlineBannerUnsent_one": "You're offline. {{count}} change is saved on this device and will send when you're back online.",
+  "offlineBannerUnsent_other": "You're offline. {{count}} changes are saved on this device and will send when you're back online.",
+  "updateAvailable": "A new version of WHY ME is ready.",
+  "updateRefresh": "Refresh",
+  "offlineTitle": "You're offline",
+  "offlineBody": "This page hasn't been opened on this device before, so there's no copy of it here. Pages you've opened, your saved items, orders and messages still work.",
+  "offlineRetry": "Try again",
+  "offlineSaved": "Saved items",
+  "offlineOrders": "Orders",
+  "offlineMessages": "Messages",
+  "offlineHome": "Home"
 }

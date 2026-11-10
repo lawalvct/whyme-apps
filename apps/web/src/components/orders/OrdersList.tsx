@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { parseAsStringLiteral, useQueryState } from 'nuqs';
 import { useQueryClient } from '@tanstack/react-query';
 import { orderKeys, useOrders, type Order } from '@whyme/data';
-import { cn } from '@/components/ui/cn';
+import { MarketplaceIcon as Icon } from '@/components/ui/MarketplaceIcon';
+import { ButtonLink } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatNaira, routes } from '@/lib/format';
 import { useLanguage, useT } from '@/lib/i18n';
@@ -12,6 +13,8 @@ import { useUserEvents } from '@/lib/realtime';
 import { useAccount } from '@/lib/session';
 import { chatTime } from '@/components/chat/time';
 import { FundsStatus, OrderStatus } from './OrderStatus';
+import { PageTitle } from '@/components/seller/common';
+import styles from '@/components/seller/SellerWorkspace.module.css';
 
 const TABS = ['bought', 'sold'] as const;
 
@@ -26,29 +29,22 @@ export function OrdersList() {
   useUserEvents(user?.id, { 'order.updated': () => void queryClient.invalidateQueries({ queryKey: orderKeys.all }) });
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
-      <div>
-        <h1 className="text-2xl font-bold">{t('ordersTitle')}</h1>
-        <p className="mt-1 text-sm text-text-muted">{t('ordersIntro')}</p>
-      </div>
+    <div className={`${styles.workspace} ${styles.ordersPage}`}>
+      <Link href={tab === 'sold' ? routes.sell : routes.home} className={styles.editorBack}>← {t(tab === 'sold' ? 'seller:centre' : 'market:home')}</Link>
+      <PageTitle title={t('ordersTitle')} intro={t('ordersIntro')} />
 
-      <div role="tablist" className="flex gap-2">
+      <div className={styles.filters}><div role="group" aria-label={t('viewOrders')} className={styles.filterPills}>
         {TABS.map((name) => (
           <button
             key={name}
             type="button"
-            role="tab"
-            aria-selected={tab === name}
+            aria-pressed={tab === name}
             onClick={() => void setTab(name === 'bought' ? null : name)}
-            className={cn(
-              'min-h-11 rounded-full px-4 text-sm font-semibold',
-              tab === name ? 'bg-primary text-on-primary' : 'bg-surface text-text hover:bg-primary-soft',
-            )}
           >
             {t(name)}
           </button>
         ))}
-      </div>
+      </div></div>
 
       {orders.isPending ? (
         <div className="flex flex-col gap-2">
@@ -61,16 +57,15 @@ export function OrdersList() {
           {t('loadFailed')}
         </p>
       ) : orders.data.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-border p-8 text-center text-text-muted">
-          {t(tab === 'sold' ? 'emptySold' : 'emptyBought')}
-        </p>
+        <section className={styles.emptyState}><span><Icon name="bag" /></span><h2>{t(tab === 'sold' ? 'emptySoldTitle' : 'emptyBoughtTitle')}</h2><p>{t(tab === 'sold' ? 'emptySold' : 'emptyBought')}</p><div className={styles.emptyActions}><ButtonLink href={tab === 'sold' ? routes.sellListings() : routes.search({ kind: 'product' })}>{t(tab === 'sold' ? 'seller:manageListings' : 'browseProducts')}</ButtonLink></div></section>
       ) : (
-        <ul className="flex flex-col divide-y divide-border rounded-2xl border border-border">
+        <ul className={styles.ordersList}>
           {orders.data.map((order) => (
             <OrderRow key={order.id} order={order} />
           ))}
         </ul>
       )}
+      <div className={styles.orderProtection}><Icon name="shield" /><p>{t('orderListSafety')}</p></div>
     </div>
   );
 }

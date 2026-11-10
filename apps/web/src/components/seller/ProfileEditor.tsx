@@ -20,14 +20,17 @@ import {
 import { Button, ButtonLink } from '@/components/ui/button';
 import { CheckboxField, FieldGroup, TextAreaField, TextField } from '@/components/ui/field';
 import { Skeleton } from '@/components/ui/skeleton';
+import { MarketplaceIcon as Icon } from '@/components/ui/MarketplaceIcon';
+import { Photo } from '@/components/market/Photo';
 import { routes } from '@/lib/format';
 import { translateFieldError, useT } from '@/lib/i18n';
 import { useAccount } from '@/lib/session';
-import { Card, conflictRecord, Notice, PageTitle, sellerCapabilities, StatusBadge, StatusNote, useErrorText } from './common';
+import { Card, conflictRecord, Notice, PageTitle, SectionTitle, sellerCapabilities, StatusBadge, StatusNote, useErrorText } from './common';
 import { PhotoPicker, usePhotoList } from './PhotoPicker';
 import { StartSelling } from './StartSelling';
 import { AreaChecklist, CategorySelect, LocationSelect } from './TaxonomyFields';
 import { useLeaveGuard } from './useLeaveGuard';
+import styles from './SellerWorkspace.module.css';
 
 const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
 type Day = (typeof DAYS)[number];
@@ -102,7 +105,7 @@ export function ProfileEditor({ kind }: { kind: ProfileKind }) {
     );
   }
 
-  if (profile.isError) return <Notice tone="error">{t('errors:network_error')}</Notice>;
+  if (profile.isError || taxonomy.isError) return <div className={styles.queryError}><Notice tone="error">{t('errors:network_error')}</Notice><Button variant="secondary" onClick={() => { void profile.refetch(); void taxonomy.refetch(); }}>{t('overview.tryAgain')}</Button></div>;
 
   // Keyed by kind only: creating the profile mustn't remount the form and lose its message.
   return <ProfileForm key={kind} kind={kind} profile={profile.data ?? null} />;
@@ -198,7 +201,7 @@ function ProfileForm({ kind, profile }: { kind: ProfileKind; profile: OwnerProfi
   const hours = form.watch('hours');
 
   return (
-    <form method="post" onSubmit={(e) => void run(false)(e)} noValidate className="flex max-w-3xl flex-col gap-6">
+    <form method="post" onSubmit={(e) => void run(false)(e)} noValidate className={`${styles.editor} ${styles.controls}`}>
       <PageTitle
         title={kind === 'business' ? t('businessPage') : t('providerPage')}
         intro={t('profileIntro')}
@@ -212,15 +215,17 @@ function ProfileForm({ kind, profile }: { kind: ProfileKind; profile: OwnerProfi
       />
 
       {current ? (
-        <div className="flex flex-col gap-1">
+        <div className={styles.statusBlock}>
           <StatusBadge status={current.status} />
           <StatusNote status={current.status} reason={current.status_reason} />
           {current.status === 'published' ? <p className="text-sm text-text-muted">{t('editLiveWarning')}</p> : null}
         </div>
       ) : null}
 
-      <fieldset disabled={inReview} className="flex min-w-0 flex-col gap-6">
-      <Card className="flex flex-col gap-4">
+      <div className={styles.editorLayout}>
+      <fieldset disabled={inReview} className={styles.editorFields}>
+      <Card className={styles.basicsCard}>
+        <SectionTitle number="01" title={t('workspace.profileBasics')} hint={t('workspace.profileBasicsHint')} />
         <TextField
           label={kind === 'business' ? t('displayNameBusiness') : t('displayNameProvider')}
           autoComplete="organization"
@@ -233,9 +238,10 @@ function ProfileForm({ kind, profile }: { kind: ProfileKind; profile: OwnerProfi
           error={fieldError(errors.category_id?.message)}
           {...form.register('category_id', { valueAsNumber: true })}
         />
-        <LocationSelect label={t('location')} error={fieldError(errors.location_id?.message)} {...form.register('location_id', { valueAsNumber: true })} />
-        <TextAreaField label={t('about')} hint={t('aboutHint')} error={fieldError(errors.about?.message)} {...form.register('about')} />
+        <LocationSelect className={styles.fullField} label={t('location')} error={fieldError(errors.location_id?.message)} {...form.register('location_id', { valueAsNumber: true })} />
+        <TextAreaField className={styles.fullField} label={t('about')} hint={t('aboutHint')} error={fieldError(errors.about?.message)} {...form.register('about')} />
         <TextField
+          className={styles.fullField}
           label={t('availabilityNote')}
           hint={t('availabilityHint')}
           error={fieldError(errors.availability_note?.message)}
@@ -244,16 +250,17 @@ function ProfileForm({ kind, profile }: { kind: ProfileKind; profile: OwnerProfi
       </Card>
 
       {kind === 'business' ? (
-        <Card>
+        <Card className={styles.hoursCard}>
+          <SectionTitle number="02" title={t('workspace.weeklySchedule')} hint={t('workspace.hoursIntro')} />
           <FieldGroup legend={t('openingHours')} hint={t('openingHoursHint')}>
             <div className="flex flex-col divide-y divide-border">
               {hours.map((h, i) => (
-                <div key={h.day} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2">
-                  <CheckboxField className="w-36" label={tMarket(h.day)} {...form.register(`hours.${i}.open`)} />
+                <div key={h.day} className={styles.hourRow}>
+                  <CheckboxField label={tMarket(h.day)} {...form.register(`hours.${i}.open`)} />
                   {h.open ? (
-                    <div className="flex items-center gap-2">
+                    <div className={styles.hourTimes}>
                       <label className="sr-only" htmlFor={`opens-${h.day}`}>
-                        {t('opensAt')}
+                        {t('workspace.opensOn', { day: tMarket(h.day) })}
                       </label>
                       <input
                         id={`opens-${h.day}`}
@@ -263,7 +270,7 @@ function ProfileForm({ kind, profile }: { kind: ProfileKind; profile: OwnerProfi
                       />
                       <span aria-hidden>–</span>
                       <label className="sr-only" htmlFor={`closes-${h.day}`}>
-                        {t('closesAt')}
+                        {t('workspace.closesOn', { day: tMarket(h.day) })}
                       </label>
                       <input
                         id={`closes-${h.day}`}
@@ -274,7 +281,7 @@ function ProfileForm({ kind, profile }: { kind: ProfileKind; profile: OwnerProfi
                       />
                     </div>
                   ) : (
-                    <span className="text-sm text-text-muted">{tMarket('closed')}</span>
+                    <span className={styles.closedLabel}>{tMarket('closed')}</span>
                   )}
                   {errors.hours?.[i]?.to ? (
                     <p role="alert" className="w-full text-sm text-danger">
@@ -287,7 +294,8 @@ function ProfileForm({ kind, profile }: { kind: ProfileKind; profile: OwnerProfi
           </FieldGroup>
         </Card>
       ) : (
-        <Card className="flex flex-col gap-4">
+        <Card className={styles.providerDetails}>
+          <div className={styles.fullField}><SectionTitle number="02" title={t('workspace.serviceDetails')} hint={t('workspace.serviceDetailsHint')} /></div>
           <Controller
             control={form.control}
             name="service_area_ids"
@@ -314,6 +322,7 @@ function ProfileForm({ kind, profile }: { kind: ProfileKind; profile: OwnerProfi
       )}
 
       <Card className="flex flex-col gap-6">
+        <SectionTitle number="03" title={t('workspace.photosTitle')} hint={t('workspace.photosIntro')} />
         <PhotoPicker photos={logo} label={t('logo')} hint={t('logoHint')} error={imageErrors.logo_id} readOnly={inReview} />
         <PhotoPicker
           photos={photos}
@@ -324,10 +333,15 @@ function ProfileForm({ kind, profile }: { kind: ProfileKind; profile: OwnerProfi
         />
       </Card>
       </fieldset>
+      <aside className={styles.editorAside} aria-label={t('workspace.profilePreview')}>
+        <section className={styles.previewCard}><span className={styles.eyebrow}>{t('workspace.profilePreview')}</span><div className={styles.previewAvatar}>{logo.items[0]?.preview ? <Photo src={logo.items[0].preview} alt="" className={styles.previewPhoto} /> : <Icon name={kind === 'business' ? 'shop' : 'tools'} />}</div><h2>{form.watch('display_name') || t(kind === 'business' ? 'displayNameBusiness' : 'displayNameProvider')}</h2><span className={styles.previewKind}>{t(kind === 'business' ? 'businessPage' : 'providerPage')}</span><p>{form.watch('about') || t('workspace.previewHint')}</p><span className={styles.previewHint}><Icon name="image" />{t('workspace.previewNote')}</span></section>
+        <section className={styles.editorGuide}><h2>{t('workspace.beforePublish')}</h2><p>{t('workspace.beforePublishHint')}</p><p>{t('publishHint')}</p></section>
+      </aside>
+      </div>
 
       {notice ? <Notice tone={notice.tone}>{notice.text}</Notice> : null}
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className={styles.actionBar}>
         {inReview ? (
           notice ? null : <Notice tone="info">{t('inReviewLocked')}</Notice>
         ) : canPublish ? (

@@ -5,6 +5,7 @@ import { useRef, useState } from 'react';
 import { useTaxonomy, type PublicListing } from '@whyme/data';
 import { CategoryName } from '@/components/market/CategoryName';
 import { ContactActions } from '@/components/market/ContactActions';
+import { SaveButton } from '@/components/market/SaveButton';
 import { ListingGallery } from '@/components/market/ListingGallery';
 import { Price } from '@/components/market/Price';
 import { ReturnsPolicy } from '@/components/market/ReturnsPolicy';
@@ -50,7 +51,7 @@ export function ListingView({ listing, related = [] }: { listing: PublicListing;
   return (
     <article className={styles.page}>
       <nav className={styles.breadcrumb} aria-label={t('searchBreadcrumb')}><ol><li><Link href={routes.home}>{t('home')}</Link><Icon name="chevron" /></li><li><Link href={routes.search({ kind: listing.kind })}>{t(isProduct ? 'products' : 'services')}</Link><Icon name="chevron" /></li><li><Link href={categoryHref}><CategoryName id={listing.category.id} fallback={listing.category.name} /></Link><Icon name="chevron" /></li><li aria-current="page">{listing.title}</li></ol></nav>
-      <div className={styles.toolbar}><Link href={categoryHref} className={styles.backLink}><Icon name="arrow" />{t('listingBackToCategory')}</Link><div className={styles.shareArea}><span role="status" className={styles.copyError}>{copyError === listing.id ? t('listingCopyFailed') : null}</span><button type="button" onClick={() => void copyLink()} disabled={copying} className={styles.shareButton}><Icon name={copiedFor === listing.id ? 'check' : 'share'} /><span aria-live="polite">{t(copiedFor === listing.id ? 'listingLinkCopied' : 'listingCopyLink')}</span></button></div></div>
+      <div className={styles.toolbar}><Link href={categoryHref} className={styles.backLink}><Icon name="arrow" />{t('listingBackToCategory')}</Link><div className={styles.shareArea}><span role="status" className={styles.copyError}>{copyError === listing.id ? t('listingCopyFailed') : null}</span><SaveButton listing={listing} className={styles.shareButton} /><button type="button" onClick={() => void copyLink()} disabled={copying} className={styles.shareButton}><Icon name={copiedFor === listing.id ? 'check' : 'share'} /><span aria-live="polite">{t(copiedFor === listing.id ? 'listingLinkCopied' : 'listingCopyLink')}</span></button></div></div>
 
       <div className={styles.detailGrid}>
         <div className={styles.galleryArea}><ListingGallery key={listing.id} photos={listing.photos} title={listing.title} /></div>

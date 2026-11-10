@@ -325,5 +325,13 @@
     "within_one": "Accepted within {{count}} day",
     "within_other": "Accepted within {{count}} days",
     "none": "No returns. You're still protected if it doesn't arrive or isn't as described."
-  }
+  },
+  "save": "Save",
+  "saved": "Saved",
+  "savedNav": "Saved",
+  "savedTitle": "Saved items",
+  "savedHint": "Listings you saved. They open on this device even without internet.",
+  "savedEmpty": "You haven't saved anything yet.",
+  "savedBrowse": "Browse listings",
+  "savedLoadFailed": "Couldn't load your saved items. Check your connection and try again."
 }

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type { components, paths } from '@whyme/api-client';
 import { unwrap, useApi } from './api';
+import { useOfflineFetcher } from './offline';
 
 /** A bank a payout can go to. */
 export interface Bank {
@@ -57,18 +58,14 @@ export function useBanks(enabled = true) {
 
 export function usePayoutAccount() {
   const api = useApi();
-  return useQuery({
-    queryKey: payoutKeys.account,
-    queryFn: async () => (unwrap(await api.GET('/v1/me/payout-account')).data ?? null) as PayoutAccount | null,
-  });
+  const fetcher = useOfflineFetcher('payout-account', 'me', async () => (unwrap(await api.GET('/v1/me/payout-account')).data ?? null) as PayoutAccount | null);
+  return useQuery({ queryKey: payoutKeys.account, queryFn: fetcher });
 }
 
 export function useEarnings() {
   const api = useApi();
-  return useQuery({
-    queryKey: payoutKeys.earnings,
-    queryFn: async () => unwrap(await api.GET('/v1/me/earnings')).data as unknown as Earnings,
-  });
+  const fetcher = useOfflineFetcher('earnings', 'me', async () => unwrap(await api.GET('/v1/me/earnings')).data as unknown as Earnings);
+  return useQuery({ queryKey: payoutKeys.earnings, queryFn: fetcher });
 }
 
 export function usePayoutBreakdown(orderId: string, enabled = true) {

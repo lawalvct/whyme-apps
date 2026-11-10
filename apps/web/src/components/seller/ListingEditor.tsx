@@ -25,11 +25,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { koboToNaira, nairaToKobo, routes } from '@/lib/format';
 import { translateFieldError, useT } from '@/lib/i18n';
 import { useAccount } from '@/lib/session';
-import { Card, conflictRecord, Notice, PageTitle, sellerCapabilities, StatusBadge, StatusNote, useErrorText } from './common';
+import { Card, conflictRecord, Notice, PageTitle, SectionTitle, sellerCapabilities, StatusBadge, StatusNote, useErrorText } from './common';
 import { PhotoPicker, usePhotoList } from './PhotoPicker';
 import { StartSelling } from './StartSelling';
 import { AreaChecklist, CategorySelect, LocationSelect } from './TaxonomyFields';
 import { useLeaveGuard } from './useLeaveGuard';
+import styles from './SellerWorkspace.module.css';
 
 const schema = z.object({
   title: z.string().trim().min(3, { message: 'seller:titleTooShort' }).max(120),
@@ -243,24 +244,25 @@ function ListingForm({
   const inReview = status === 'pending_review';
 
   return (
-    <form method="post" onSubmit={(e) => void run(false)(e)} noValidate className="flex max-w-3xl flex-col gap-6">
+    <form method="post" onSubmit={(e) => void run(false)(e)} noValidate className={`${styles.editor} ${styles.singleEditor} ${styles.controls}`}>
       <div className="flex flex-col gap-2">
-        <Link href={routes.sellListings()} className="text-sm font-semibold text-primary hover:underline">
+        <Link href={routes.sellListings()} className={styles.editorBack}>
           ← {t('navListings')}
         </Link>
         <PageTitle title={inReview ? current?.title ?? '' : current ? t('editListing') : product ? t('newProduct') : t('newService')} />
       </div>
 
       {current ? (
-        <div className="flex flex-col gap-1">
+        <div className={styles.statusBlock}>
           <StatusBadge status={current.status} />
           <StatusNote status={current.status} reason={current.status_reason} />
           {status === 'published' ? <p className="text-sm text-text-muted">{t('editLiveWarning')}</p> : null}
         </div>
       ) : null}
 
-      <fieldset disabled={inReview} className="flex min-w-0 flex-col gap-6">
+      <fieldset disabled={inReview} className={styles.editorFields}>
       <Card className="flex flex-col gap-4">
+        <SectionTitle number="01" title={t('workspace.listingBasics')} hint={t('workspace.listingBasicsHint')} />
         <TextField
           label={t('listingTitle')}
           hint={product ? t('listingTitleHintProduct') : t('listingTitleHintService')}
@@ -284,6 +286,7 @@ function ListingForm({
       </Card>
 
       <Card className="flex flex-col gap-4">
+        <SectionTitle number="02" title={t(product ? 'workspace.priceDelivery' : 'workspace.priceAvailability')} />
         <div className="grid gap-4 sm:grid-cols-2">
           <TextField
             label={product ? t('price') : t('priceService')}
@@ -344,10 +347,12 @@ function ListingForm({
       </Card>
 
       <Card>
+        <div className="mb-5"><SectionTitle number="03" title={t('workspace.photosTitle')} hint={t('workspace.listingPhotosHint')} /></div>
         <PhotoPicker photos={photos} label={t('photos')} hint={t('photosHint', { count: photoLimit })} error={photoError} readOnly={inReview} />
       </Card>
 
       <Card className="flex flex-col gap-4">
+        <SectionTitle number="04" title={t('returns.title')} />
         <FieldGroup legend={t('returns.title')} hint={t(product ? 'returns.hintProduct' : 'returns.hintService')}>
           <CheckboxField type="radio" value="unset" label={t('returns.unset')} {...form.register('returns')} />
           <CheckboxField type="radio" value="none" label={t('returns.none')} {...form.register('returns')} />
@@ -379,7 +384,7 @@ function ListingForm({
 
       {notice ? <Notice tone={notice.tone}>{notice.text}</Notice> : null}
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className={styles.actionBar}>
         {inReview ? (
           notice ? null : <Notice tone="info">{t('inReviewLocked')}</Notice>
         ) : canPublish ? (

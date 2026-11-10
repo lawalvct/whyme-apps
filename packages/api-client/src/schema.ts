@@ -964,6 +964,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/saved": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The person's saved listings that are still published, most recently saved first */
+        get: operations["me.saved.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/saved/{listing}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Saves a published listing. Saving it again changes nothing */
+        put: operations["me.saved.store"];
+        post?: never;
+        /** Removes a listing from saved items, even one no longer published. Removing it again changes nothing */
+        delete: operations["me.saved.destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/search/listings": {
         parameters: {
             query?: never;
@@ -3827,6 +3862,83 @@ export interface operations {
                     };
                 };
             };
+        };
+    };
+    "me.saved.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `PublicListingResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PublicListingResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.saved.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                listing: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            listing_id: unknown;
+                            saved: boolean;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.saved.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                listing: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            listing_id: string;
+                            saved: boolean;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
         };
     };
     "search.listings": {
