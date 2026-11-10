@@ -10,6 +10,7 @@ import { ListingGallery } from '@/components/market/ListingGallery';
 import { Price } from '@/components/market/Price';
 import { ReturnsPolicy } from '@/components/market/ReturnsPolicy';
 import { VerifiedBadge } from '@/components/market/VerifiedBadge';
+import { KeptPageNote } from '@/components/pwa/KeptPageNote';
 import { MarketplaceIcon as Icon } from '@/components/ui/MarketplaceIcon';
 import { routes } from '@/lib/format';
 import { useLanguage, useT } from '@/lib/i18n';
@@ -57,6 +58,8 @@ export function ListingView({ listing, related = [] }: { listing: PublicListing;
     <article className={styles.page}>
       <nav className={styles.breadcrumb} aria-label={t('searchBreadcrumb')}><ol><li><Link href={routes.home}>{t('home')}</Link><Icon name="chevron" /></li><li><Link href={routes.search({ kind: listing.kind })}>{t(isProduct ? 'products' : 'services')}</Link><Icon name="chevron" /></li><li><Link href={categoryHref}><CategoryName id={listing.category.id} fallback={listing.category.name} /></Link><Icon name="chevron" /></li><li aria-current="page">{listing.title}</li></ol></nav>
       <div className={styles.toolbar}><Link href={categoryHref} className={styles.backLink}><Icon name="arrow" />{t('listingBackToCategory')}</Link><div className={styles.shareArea}><span role="status" className={styles.copyError}>{copyError === listing.id ? t('listingCopyFailed') : null}</span><SaveButton listing={listing} className={styles.shareButton} /><button type="button" onClick={() => void copyLink()} disabled={copying} className={styles.shareButton}><Icon name={copiedFor === listing.id ? 'check' : 'share'} /><span aria-live="polite">{t(copiedFor === listing.id ? 'listingLinkCopied' : 'listingCopyLink')}</span></button></div></div>
+
+      <KeptPageNote />
 
       <div className={styles.detailGrid}>
         <div className={styles.galleryArea}><ListingGallery key={listing.id} photos={listing.photos} title={listing.title} /></div>

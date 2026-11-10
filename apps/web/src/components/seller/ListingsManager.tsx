@@ -213,6 +213,7 @@ function PendingDraftRow({ draft, busy, disabled, onDiscard }: { draft: ListingD
             <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${status.tone}`}>{t(status.label)}</span>
             <span className="text-xs text-text-muted">
               {draft.listingId ? t('offline.changes') : t('offline.newDraft')} · {draft.kind === 'product' ? t('market:products') : t('market:services')}
+              {draft.publishQueued ? ` · ${t('offline.publishQueued')}` : ''}
             </span>
           </div>
           <p className="truncate font-semibold text-text">{content.title.trim() || t('offline.untitled')}</p>

@@ -27,11 +27,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { koboToNaira, nairaToKobo, routes } from '@/lib/format';
 import { translateFieldError, useT } from '@/lib/i18n';
 import { draftIdOf, saveListingDraft, useListingDraft, watchListingDraft, type ListingDraft } from '@/lib/listing-drafts';
-import { isUploadRef, type ListingContent, type PhotoUploadPayload } from '@/lib/listing-queue';
+import type { ListingContent, PhotoUploadPayload } from '@/lib/listing-queue';
 import { useAccountRuntime } from '@/lib/offline';
 import { useAccount } from '@/lib/session';
 import { Card, conflictRecord, Notice, PageTitle, SectionTitle, sellerCapabilities, StatusBadge, StatusNote, useErrorText } from './common';
-import { PhotoPicker, usePhotoList, type PhotoItem } from './PhotoPicker';
+import { DraftNotice } from './DraftNotice';
+import { PhotoPicker, restoreTiles, usePhotoList } from './PhotoPicker';
 import { StartSelling } from './StartSelling';
 import { AreaChecklist, CategorySelect, LocationSelect } from './TaxonomyFields';
 import { useLeaveGuard } from './useLeaveGuard';
@@ -93,22 +94,6 @@ function applyFieldErrors<T extends FieldValues>(form: UseFormReturn<T>, error: 
     if (known.includes(name)) form.setError(name as Path<T>, { type: 'server', message: messages[0] });
   }
   return fields?.photo_ids?.[0];
-}
-
-/** The tiles of a draft saved on this device: server photos, and photos still waiting to upload. */
-function restorePhotos(draft: ListingDraft, serverPhotos: OwnerListing['photos']): PhotoItem[] {
-  return draft.payload.photos.flatMap((ref): PhotoItem[] => {
-    if (!isUploadRef(ref)) {
-      const photo = serverPhotos.find((p) => p.id === ref.id);
-      const preview = photo ? (photo.urls.thumb ?? photo.urls.medium) : (ref.preview ?? null);
-      return [{ key: ref.id, id: ref.id, state: photo?.status === 'rejected' ? 'rejected' : 'ready', preview }];
-    }
-    const action = draft.uploads.get(ref.upload);
-    const file = (action?.payload as PhotoUploadPayload | undefined)?.file;
-    if (!action || !(file instanceof Blob)) return [];
-    if (action.state === 'acked' && action.serverId) return [{ key: ref.key, id: action.serverId, state: 'ready', preview: null, file }];
-    return [{ key: ref.key, id: null, state: action.state === 'rejected' ? 'rejected' : 'waiting', preview: null, file, upload: ref.upload }];
-  });
 }
 
 /**
@@ -188,7 +173,7 @@ function ListingForm({
   const [photoError, setPhotoError] = useState<string | undefined>();
   // Reopened with unsent changes: the form starts from them, not from the server's copy.
   const [restored] = useState(() => (draft && draft.unsent.length > 0 ? draft : null));
-  const photos = usePhotoList(listing?.photos ?? [], photoLimit, false, restored ? restorePhotos(restored, listing?.photos ?? []) : undefined);
+  const photos = usePhotoList(listing?.photos ?? [], photoLimit, false, restored ? restoreTiles(restored.payload.photos, restored.uploads, listing?.photos ?? []) : undefined);
   const form = useZodForm(schema, {
     defaultValues: toForm(restored ? ({ ...listing, ...restored.payload.content } as OwnerListing) : listing, defaults),
   });
@@ -203,11 +188,18 @@ function ListingForm({
   // Follow the queued saves: once all are confirmed show the server's copy; on a
   // conflict keep the seller's changes but base the next save on the latest version.
   const sawPending = useRef(pending);
+  const sawPublish = useRef(Boolean(draft?.publishQueued));
   const shownProblem = useRef<string | null>(null);
   const onQueueChange = useEffectEvent((next: ListingDraft | null) => {
     if (!next) return;
+    // A save went through but something after it waits (e.g. a refused Publish): build on that version.
+    if (next.record && next.record.version > (current?.version ?? 0) && next.unsent.length > 0) {
+      setCurrent(next.record);
+      if (!current) window.history.replaceState(null, '', routes.editListing(next.record.id));
+    }
     if (next.unsent.length > 0) {
       sawPending.current = true;
+      if (next.publishQueued) sawPublish.current = true;
       const problem = next.problem;
       const problemKey = problem ? `${problem.actionId}:${problem.lastErrorCode}:${problem.attempts}` : null;
       if (!problem || shownProblem.current === problemKey) return;
@@ -233,7 +225,12 @@ function ListingForm({
         loaded(saved);
       }
       window.history.replaceState(null, '', routes.editListing(saved.id));
-      setNotice({ tone: 'success', text: t('offline.sent') });
+      const published = sawPublish.current;
+      sawPublish.current = false;
+      setNotice({
+        tone: 'success',
+        text: !published ? t('offline.sent') : saved.status === 'published' ? t('submittedLive') : t('submittedReview'),
+      });
     }
   });
   useEffect(() => (sync ? watchListingDraft(sync, queueKey, onQueueChange) : undefined), [sync, queueKey]);
@@ -296,6 +293,8 @@ function ListingForm({
         baseVersion: current?.version ?? null,
         content: contentOf(values),
         photos: photos.items,
+        // Only where Publish is offered; "Save" withdraws a Publish still waiting.
+        publish: publish && canPublish,
       });
       photos.markQueued(uploads);
       form.reset(form.getValues());
@@ -523,30 +522,6 @@ function ListingForm({
       </div>
     </form>
   );
-}
-
-/**
- * What happened to this listing's queued saves. A problem (refused, changed elsewhere)
- * shows over the form's own notice; "waiting" shows only when there's nothing newer to say.
- */
-function DraftNotice({ draft, fallback }: { draft: ListingDraft | null; fallback: { tone: 'success' | 'info' | 'error'; text: string } | null }) {
-  const { t } = useT('seller');
-  const errorText = useErrorText();
-  const status = draft && draft.unsent.length > 0 ? draft.status : null;
-  let problem: { tone: 'info' | 'error'; text: string } | null = null;
-  if (status === 'conflict') problem = { tone: 'info', text: t('offline.conflict') };
-  else if (status === 'in_review') problem = { tone: 'info', text: t('offline.inReview') };
-  else if (status === 'rejected') {
-    const reason = errorText(new ApiRequestError(422, draft?.problem?.lastResponse as never));
-    problem = { tone: 'error', text: t('offline.rejected', { reason }) };
-  } else if (status === 'photo_rejected') problem = { tone: 'error', text: t('offline.photoRejected') };
-  else if (status === 'needs_auth') problem = { tone: 'error', text: t('offline.needsAuth') };
-
-  const shown =
-    problem ??
-    fallback ??
-    (status === 'sending' ? { tone: 'info' as const, text: t('offline.sending') } : status === 'waiting' ? { tone: 'info' as const, text: t('offline.waiting') } : null);
-  return shown ? <Notice tone={shown.tone}>{shown.text}</Notice> : null;
 }
 
 /** Where WHY ME's check of the returns policy stands. Buyers see the policy only once approved. */

@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { ApiRequestError, isConnectionError, useApi, type OwnerPhoto } from '@whyme/data';
+import type { OutboxAction } from '@whyme/sync';
+import { isUploadRef, type PhotoRef, type PhotoUploadPayload } from '@/lib/listing-queue';
 import { cn } from '@/components/ui/cn';
 import { useT } from '@/lib/i18n';
 import { shrinkPhoto, uploadPhoto, waitForUpload } from '@/lib/uploads';
@@ -32,6 +34,25 @@ function fromServer(photos: readonly OwnerPhoto[]): PhotoItem[] {
     state: p.status === 'rejected' ? 'rejected' : p.status === 'processing' ? 'processing' : 'ready',
     preview: p.urls.thumb ?? p.urls.medium,
   }));
+}
+
+/**
+ * The tiles of a draft saved on this device: server photos (by ID, previews from the server's
+ * copy when it has one), and photos still waiting to upload (from the copy kept with the draft).
+ */
+export function restoreTiles(refs: PhotoRef[], uploads: Map<string, OutboxAction>, serverPhotos: readonly OwnerPhoto[]): PhotoItem[] {
+  return refs.flatMap((ref): PhotoItem[] => {
+    if (!isUploadRef(ref)) {
+      const photo = serverPhotos.find((p) => p.id === ref.id);
+      const preview = photo ? (photo.urls.thumb ?? photo.urls.medium) : (ref.preview ?? null);
+      return [{ key: ref.id, id: ref.id, state: photo?.status === 'rejected' ? 'rejected' : 'ready', preview }];
+    }
+    const action = uploads.get(ref.upload);
+    const file = (action?.payload as PhotoUploadPayload | undefined)?.file;
+    if (!action || !(file instanceof Blob)) return [];
+    if (action.state === 'acked' && action.serverId) return [{ key: ref.key, id: action.serverId, state: 'ready', preview: null, file }];
+    return [{ key: ref.key, id: null, state: action.state === 'rejected' ? 'rejected' : 'waiting', preview: null, file, upload: ref.upload }];
+  });
 }
 
 /** What makes the list "changed": server photos by ID, the rest by their client key. */

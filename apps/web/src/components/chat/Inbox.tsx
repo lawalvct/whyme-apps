@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { chatKeys, unwrap, useApi, type Conversation } from '@whyme/data';
+import { chatKeys, unwrap, useApi, useOfflineCopy, useOfflineFetcher, type Conversation } from '@whyme/data';
 import { cn } from '@/components/ui/cn';
 import { Skeleton } from '@/components/ui/skeleton';
 import { routes } from '@/lib/format';
@@ -29,9 +29,14 @@ export function Inbox() {
     'conversation.updated': () => void queryClient.invalidateQueries({ queryKey: chatKeys.inbox }),
   });
 
+  // Kept on the device, so the inbox opens offline.
+  const fetchInbox = useOfflineFetcher('inbox', 'all', async () => unwrap(await api.GET('/v1/me/conversations')).data as unknown as Conversation[]);
+  const copyAt = useOfflineCopy('inbox', 'all');
+  const language = useLanguage();
+  const { t: tSync } = useT('sync');
   const inbox = useQuery({
     queryKey: chatKeys.inbox,
-    queryFn: async () => unwrap(await api.GET('/v1/me/conversations')).data as unknown as Conversation[],
+    queryFn: fetchInbox,
     // Live updates refresh it at once; the slow check is only a safety net.
     refetchInterval: live ? 120_000 : 15_000,
   });
@@ -41,6 +46,13 @@ export function Inbox() {
       <div>
         <h1 className="text-2xl font-bold">{t('inboxTitle')}</h1>
         <p className="mt-1 text-sm text-text-muted">{t('inboxIntro')}</p>
+        {copyAt ? (
+          <p role="status" className="mt-1 text-sm font-semibold text-accent-text">
+            {tSync('offlineCopy', {
+              time: new Intl.DateTimeFormat(language === 'ig' ? 'ig-NG' : 'en-NG', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(copyAt)),
+            })}
+          </p>
+        ) : null}
       </div>
 
       {inbox.isPending ? (

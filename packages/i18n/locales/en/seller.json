@@ -315,12 +315,12 @@
   },
   "offline": {
     "savedOnDevice": "Saved on this device. It will be sent when you're back online.",
-    "savedPublishLater": "Saved on this device. You can publish it once it has been sent.",
+    "savedPublishLater": "Saved on this device. It will be published when you're back online.",
     "waiting": "Your changes are saved on this device and will be sent when you're back online.",
     "sending": "Sending your changes…",
     "sent": "Sent. Your listing is saved.",
-    "conflict": "This listing was changed somewhere else while your changes waited. Your changes are still here: check them and save again.",
-    "inReview": "WHY ME is checking this listing, so your changes can't be sent yet. Save again after the check, or discard them.",
+    "conflict": "This was changed somewhere else while your changes waited. Your changes are still here: check them and save again.",
+    "inReview": "WHY ME is checking this, so your changes can't be sent yet. Save again after the check, or discard them.",
     "rejected": "Your changes couldn't be sent: {{reason}}",
     "photoRejected": "A photo couldn't be sent. Remove it and save again.",
     "needsAuth": "Sign in again to send your changes.",
@@ -341,6 +341,9 @@
     "open": "Open",
     "discard": "Discard",
     "discardConfirm": "Discard the unsent changes to “{{title}}”? This can't be undone.",
-    "discarded": "Unsent changes discarded."
+    "discarded": "Unsent changes discarded.",
+    "waitingPublish": "Your changes are saved on this device. They will be sent and published when you're back online.",
+    "publishQueued": "Publishes when sent",
+    "sentPage": "Sent. Your page is saved."
   }
 }

@@ -1,17 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   ApiRequestError,
   applyServerErrors,
+  isConnectionError,
   sellerKeys,
   unwrap,
   useApi,
   useConfig,
   useMyProfile,
+  useOfflineCache,
   useTaxonomy,
   useZodForm,
   type OwnerProfile,
@@ -24,9 +26,14 @@ import { MarketplaceIcon as Icon } from '@/components/ui/MarketplaceIcon';
 import { Photo } from '@/components/market/Photo';
 import { routes } from '@/lib/format';
 import { translateFieldError, useT } from '@/lib/i18n';
+import type { PhotoUploadPayload } from '@/lib/listing-queue';
+import { useAccountRuntime } from '@/lib/offline';
+import { saveProfileDraft, useProfileDraft, watchProfileDraft, type ProfileDraft } from '@/lib/profile-drafts';
+import type { ProfileContent } from '@/lib/profile-queue';
 import { useAccount } from '@/lib/session';
 import { Card, conflictRecord, Notice, PageTitle, SectionTitle, sellerCapabilities, StatusBadge, StatusNote, useErrorText } from './common';
-import { PhotoPicker, usePhotoList } from './PhotoPicker';
+import { DraftNotice } from './DraftNotice';
+import { PhotoPicker, restoreTiles, usePhotoList } from './PhotoPicker';
 import { StartSelling } from './StartSelling';
 import { AreaChecklist, CategorySelect, LocationSelect } from './TaxonomyFields';
 import { useLeaveGuard } from './useLeaveGuard';
@@ -93,10 +100,12 @@ export function ProfileEditor({ kind }: { kind: ProfileKind }) {
   const allowed = kind === 'business' ? caps.vendor : caps.provider;
   const profile = useMyProfile(kind, allowed);
   const taxonomy = useTaxonomy();
+  // Saves of this page still waiting in the send queue (made offline).
+  const draft = useProfileDraft(allowed ? kind : null);
 
   if (!allowed) return <StartSelling only={kind === 'business' ? 'vendor' : 'provider'} />;
 
-  if (profile.isPending || taxonomy.isPending) {
+  if (profile.isPending || taxonomy.isPending || draft === undefined) {
     return (
       <div className="flex max-w-3xl flex-col gap-4">
         <Skeleton className="h-10 w-72" />
@@ -108,10 +117,10 @@ export function ProfileEditor({ kind }: { kind: ProfileKind }) {
   if (profile.isError || taxonomy.isError) return <div className={styles.queryError}><Notice tone="error">{t('errors:network_error')}</Notice><Button variant="secondary" onClick={() => { void profile.refetch(); void taxonomy.refetch(); }}>{t('overview.tryAgain')}</Button></div>;
 
   // Keyed by kind only: creating the profile mustn't remount the form and lose its message.
-  return <ProfileForm key={kind} kind={kind} profile={profile.data ?? null} />;
+  return <ProfileForm key={kind} kind={kind} profile={profile.data ?? draft?.record ?? null} draft={draft ?? null} />;
 }
 
-function ProfileForm({ kind, profile }: { kind: ProfileKind; profile: OwnerProfile | null }) {
+function ProfileForm({ kind, profile, draft }: { kind: ProfileKind; profile: OwnerProfile | null; draft: ProfileDraft | null }) {
   const { t } = useT('seller');
   const { t: tMarket } = useT('market');
   const api = useApi();
@@ -120,29 +129,87 @@ function ProfileForm({ kind, profile }: { kind: ProfileKind; profile: OwnerProfi
   const config = useConfig();
   const photoLimit = Number(config.data?.settings['profiles.max_photos.basic'] ?? 8);
 
+  const sync = useAccountRuntime();
+  const offlineCache = useOfflineCache();
   const [current, setCurrent] = useState(profile);
   const [notice, setNotice] = useState<{ tone: 'success' | 'info' | 'error'; text: string } | null>(null);
   const [imageErrors, setImageErrors] = useState<{ logo_id?: string; photo_ids?: string }>({});
-  const logo = usePhotoList(profile?.logo ? [profile.logo] : [], 1, true);
-  const photos = usePhotoList(profile?.photos ?? [], photoLimit);
-  const form = useZodForm(schema, { defaultValues: toForm(profile) });
+  // Reopened with unsent changes: the form starts from them, not from the server's copy.
+  const [restored] = useState(() => (draft && draft.unsent.length > 0 ? draft : null));
+  const serverLogo = profile?.logo ? [profile.logo] : [];
+  const logo = usePhotoList(serverLogo, 1, true, restored ? restoreTiles(restored.payload.logo, restored.uploads, serverLogo) : undefined);
+  const photos = usePhotoList(profile?.photos ?? [], photoLimit, false, restored ? restoreTiles(restored.payload.photos, restored.uploads, profile?.photos ?? []) : undefined);
+  const form = useZodForm(schema, {
+    defaultValues: toForm(restored ? ({ ...profile, ...restored.payload.content } as OwnerProfile) : profile),
+  });
   const { errors, isSubmitting, isDirty } = form.formState;
   const fieldError = (message: string | undefined) => translateFieldError(t, message);
+  const pending = Boolean(draft && draft.unsent.length > 0);
 
   useLeaveGuard(isDirty || logo.dirty || photos.dirty);
+
+  // Follow the queued saves, as in the listing editor: show the server's copy once sent;
+  // on a conflict keep the seller's changes and base the next save on the latest version.
+  const sawPending = useRef(pending);
+  const sawPublish = useRef(Boolean(draft?.publishQueued));
+  const shownProblem = useRef<string | null>(null);
+  const onQueueChange = useEffectEvent((next: ProfileDraft | null) => {
+    if (!next) return;
+    if (next.record && next.record.version > (current?.version ?? 0) && next.unsent.length > 0) setCurrent(next.record);
+    if (next.unsent.length > 0) {
+      sawPending.current = true;
+      if (next.publishQueued) sawPublish.current = true;
+      const problem = next.problem;
+      const problemKey = problem ? `${problem.actionId}:${problem.lastErrorCode}:${problem.attempts}` : null;
+      if (!problem || shownProblem.current === problemKey) return;
+      shownProblem.current = problemKey;
+      if (next.status === 'conflict' || next.status === 'in_review') {
+        const latest = (problem.lastResponse as { data?: OwnerProfile } | null)?.data;
+        if (latest?.id) setCurrent(latest);
+      } else if (next.status === 'rejected') {
+        const failure = new ApiRequestError(422, problem.lastResponse as never);
+        applyServerErrors(form, failure);
+        setImageErrors({ logo_id: failure.body?.fields?.logo_id?.[0], photo_ids: failure.body?.fields?.photo_ids?.[0] });
+      } else if (next.status === 'photo_rejected') {
+        const key = (problem.payload as PhotoUploadPayload).client_id;
+        logo.markRejected(key);
+        photos.markRejected(key);
+      }
+      return;
+    }
+    if (sawPending.current && next.record) {
+      sawPending.current = false;
+      const saved = next.record;
+      if (isDirty || logo.dirty || photos.dirty) {
+        // The seller kept typing: don't overwrite it; the next save goes on top of this version.
+        setCurrent(saved);
+        queryClient.setQueryData(sellerKeys.profile(kind), saved);
+      } else {
+        loaded(saved);
+      }
+      const published = sawPublish.current;
+      sawPublish.current = false;
+      setNotice({
+        tone: 'success',
+        text: !published ? t('offline.sentPage') : saved.status === 'published' ? t('submittedLive') : t('submittedReview'),
+      });
+    }
+  });
+  useEffect(() => (sync ? watchProfileDraft(sync, kind, onQueueChange) : undefined), [sync, kind]);
 
   function loaded(saved: OwnerProfile) {
     setCurrent(saved);
     queryClient.setQueryData(sellerKeys.profile(kind), saved);
+    // Keep the device's copy current, so the page opens offline as it is now.
+    void offlineCache?.put('my-profile', kind, saved).catch(() => undefined);
     void queryClient.invalidateQueries({ queryKey: sellerKeys.profiles });
     form.reset(toForm(saved));
     logo.reset(saved.logo ? [saved.logo] : []);
     photos.reset(saved.photos);
   }
 
-  async function save(values: FormOutput): Promise<OwnerProfile> {
-    const body = {
-      version: current?.version ?? null,
+  function contentOf(values: FormOutput): ProfileContent {
+    return {
       display_name: values.display_name,
       category_id: values.category_id,
       location_id: values.location_id,
@@ -153,12 +220,39 @@ function ProfileForm({ kind, profile }: { kind: ProfileKind; profile: OwnerProfi
       service_area_ids: kind === 'provider' ? values.service_area_ids : [],
       years_experience: kind === 'provider' && values.years_experience !== '' ? Number(values.years_experience) : null,
       rate_note: kind === 'provider' ? values.rate_note || null : null,
-      logo_id: logo.ids[0] ?? null,
-      photo_ids: photos.ids,
     };
+  }
+
+  async function save(values: FormOutput): Promise<OwnerProfile> {
+    const body = { ...contentOf(values), version: current?.version ?? null, logo_id: logo.ids[0] ?? null, photo_ids: photos.ids };
     // The save response isn't typed by the spec (it can be 200 or 201), so it's read as the owner resource.
     const result = await api.PUT('/v1/me/profiles/{kind}', { params: { path: { kind } }, body: body as never });
     return (unwrap(result) as unknown as { data: OwnerProfile }).data;
+  }
+
+  /** Keeps the save on this device until it can be sent (no connection, photos waiting, or earlier saves still queued). */
+  async function queueSave(values: FormOutput, publish: boolean) {
+    if (!sync) return setNotice({ tone: 'error', text: errorText(null) });
+    try {
+      const { uploads } = await saveProfileDraft(sync, {
+        kind,
+        baseVersion: current?.version ?? null,
+        content: contentOf(values),
+        logo: logo.items,
+        photos: photos.items,
+        // Only where Publish is offered; "Save" withdraws a Publish still waiting.
+        publish: publish && canPublish,
+      });
+      logo.markQueued(uploads);
+      photos.markQueued(uploads);
+      form.reset(form.getValues());
+      shownProblem.current = null;
+      setNotice({ tone: 'info', text: t(publish ? 'offline.savedPublishLater' : 'offline.savedOnDevice') });
+      if (navigator.onLine) void sync.controller.run().catch(() => undefined);
+    } catch {
+      // The browser refused to store it (e.g. storage full): nothing was saved.
+      setNotice({ tone: 'error', text: t('offline.notStored') });
+    }
   }
 
   const run = (publish: boolean) =>
@@ -166,11 +260,15 @@ function ProfileForm({ kind, profile }: { kind: ProfileKind; profile: OwnerProfi
       setNotice(null);
       setImageErrors({});
       if (logo.busy || photos.busy) return setNotice({ tone: 'info', text: t('waitForPhotos') });
+      // Earlier saves still queued go first, so this one can't overtake them.
+      if (sync && (!navigator.onLine || logo.waiting || photos.waiting || pending)) return queueSave(values, publish);
 
+      let savedOnline = false;
       try {
         // Always saved first: the API returns an unchanged profile as it is, and this
         // never trusts a dirty flag from a render that may predate the last keystroke.
         let saved = await save(values);
+        savedOnline = true;
         if (publish && (saved.status === 'draft' || saved.status === 'rejected')) {
           saved = unwrap(
             await api.POST('/v1/me/profiles/{kind}/submit', { params: { path: { kind } }, body: { version: saved.version } }),
@@ -182,6 +280,8 @@ function ProfileForm({ kind, profile }: { kind: ProfileKind; profile: OwnerProfi
         loaded(saved);
         setNotice({ tone: 'success', text: saved.status === 'pending_review' && current?.status === 'published' ? t('submittedReview') : t('saved') });
       } catch (e) {
+        // The connection dropped before the save arrived: keep it on this device instead.
+        if (!savedOnline && sync && isConnectionError(e)) return queueSave(values, publish);
         const latest = conflictRecord<OwnerProfile>(e);
         if (latest) {
           loaded(latest);
@@ -339,7 +439,7 @@ function ProfileForm({ kind, profile }: { kind: ProfileKind; profile: OwnerProfi
       </aside>
       </div>
 
-      {notice ? <Notice tone={notice.tone}>{notice.text}</Notice> : null}
+      <DraftNotice draft={draft} fallback={notice} />
 
       <div className={styles.actionBar}>
         {inReview ? (

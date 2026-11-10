@@ -29,5 +29,9 @@
   "removedNote": "This message was removed by WHY ME.",
   "removedPreview": "Message removed",
   "closedNote": "WHY ME closed this conversation: {{reason}}",
-  "closedLabel": "Closed"
+  "closedLabel": "Closed",
+  "queuedOffline": "Saved on this device. It sends when you're back online.",
+  "queuedSignIn": "Sign in again to send it.",
+  "editMessage": "Edit",
+  "deleteMessage": "Delete"
 }

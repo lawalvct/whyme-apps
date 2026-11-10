@@ -1,10 +1,11 @@
 import type { OutboxAction, RouteSpec, SendContext } from '@whyme/sync';
-import type { ListingKind, OwnerListing } from '@whyme/data';
+import type { ListingKind } from '@whyme/data';
 
 /**
  * Listing drafts saved offline go through the send queue (docs/01 §6.3, OFF05):
  * photos first (`upload.photo`), then the listing (`listing.create` or
- * `listing.update`), which depends on them and reads their upload IDs when sent.
+ * `listing.update`), which depends on them and reads their upload IDs when sent,
+ * then `listing.submit` if the seller tapped Publish.
  */
 
 /** What the editor saves, in the API's field names (photo IDs are worked out when sent). */
@@ -37,6 +38,12 @@ export interface ListingDraftPayload {
   savedAt: number;
 }
 
+/** "Publish" after a queued save: the save's reply gives the listing and its new version. */
+export interface ListingSubmitPayload {
+  listing_id: string | null;
+  after: string;
+}
+
 export interface PhotoUploadPayload {
   client_id: string;
   file: Blob;
@@ -50,18 +57,18 @@ export function isUploadRef(ref: PhotoRef): ref is { upload: string; key: string
   return 'upload' in ref;
 }
 
-/** The saved record in an acked listing action's reply. */
-export function recordOf(action: OutboxAction | undefined): OwnerListing | null {
-  const body = action?.lastResponse as { data?: OwnerListing } | null | undefined;
-  return body?.data && typeof body.data === 'object' && 'id' in body.data ? body.data : null;
-}
-
-function photoIds(photos: PhotoRef[], ctx: SendContext): string[] {
+export function photoIds(photos: PhotoRef[], ctx: SendContext): string[] {
   // A photo whose upload is missing (removed while waiting) is left out rather than blocking the draft.
   return photos.map((ref) => (isUploadRef(ref) ? ctx.serverIdFor(ref.upload) : ref.id)).filter((id): id is string => Boolean(id));
 }
 
-type Route = (action: OutboxAction, ctx: SendContext) => RouteSpec;
+export type Route = (action: OutboxAction, ctx: SendContext) => RouteSpec;
+
+/** The record and version to submit, from the reply to the save it follows. */
+export function submitTarget(after: string, ctx: SendContext): { id: string | null; version: number | null } {
+  const reply = ctx.responseFor(after) as { data?: { id?: string; version?: number } } | null;
+  return { id: reply?.data?.id ?? null, version: reply?.data?.version ?? null };
+}
 
 export const listingRoutes: Record<string, Route> = {
   'upload.photo': (action) => {
@@ -93,5 +100,13 @@ export const listingRoutes: Record<string, Route> = {
       path: `/v1/me/listings/${encodeURIComponent(id)}`,
       body: { ...payload.content, version, photo_ids: photoIds(payload.photos, ctx) },
     };
+  },
+
+  'listing.submit': (action, ctx) => {
+    const payload = action.payload as ListingSubmitPayload;
+    const target = submitTarget(payload.after, ctx);
+    const id = target.id ?? payload.listing_id;
+    if (!id || !target.version) throw new Error('listing unknown');
+    return { method: 'POST', path: `/v1/me/listings/${encodeURIComponent(id)}/submit`, body: { version: target.version } };
   },
 };

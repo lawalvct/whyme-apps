@@ -2,7 +2,9 @@ import { createHttpTransport, SyncEngine } from '@whyme/sync';
 import { DexieOutboxStore } from '@whyme/sync/dexie';
 import { createSyncController } from '@whyme/data';
 import { API_BASE_URL, appHeaders } from './api';
+import { chatRoutes } from './chat-routes';
 import { listingRoutes } from './listing-queue';
+import { profileRoutes } from './profile-queue';
 import { LocalDb } from './local-db';
 
 /**
@@ -27,6 +29,10 @@ export function createWebSync(accountId: string) {
         'saved.remove': (action) => ({ method: 'DELETE', path: `/v1/me/saved/${(action.payload as { listing_id: string }).listing_id}` }),
         // Listing drafts saved offline, with their photos (lib/listing-queue.ts).
         ...listingRoutes,
+        // Chat messages typed offline (lib/chat-routes.ts).
+        ...chatRoutes,
+        // Business and provider pages saved offline (lib/profile-queue.ts).
+        ...profileRoutes,
       },
     }),
   });

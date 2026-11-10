@@ -10,6 +10,7 @@ import { Photo } from '@/components/market/Photo';
 import { PhotoGallery } from '@/components/market/PhotoGallery';
 import { SafetyNote } from '@/components/market/SafetyNote';
 import { VerifiedBadge } from '@/components/market/VerifiedBadge';
+import { KeptPageNote } from '@/components/pwa/KeptPageNote';
 import { useT } from '@/lib/i18n';
 
 const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
@@ -21,6 +22,7 @@ export function ProfileView({ profile, listings }: { profile: PublicProfile; lis
 
   return (
     <article className="flex flex-col gap-8">
+      <KeptPageNote />
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <Photo src={profile.logo?.medium} alt={profile.display_name} priority className="size-24 shrink-0 rounded-full border border-border" />
         <div className="flex flex-col gap-1">
