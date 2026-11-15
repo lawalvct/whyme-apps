@@ -35,6 +35,8 @@ export function SellerShell({ children }: { children: ReactNode }) {
     ...(caps.vendor ? [{ href: routes.sellProfile('business'), label: t('navBusiness'), icon: 'shop' as const, exact: false }] : []),
     ...(caps.provider ? [{ href: routes.sellProfile('provider'), label: t('navProvider'), icon: 'tools' as const, exact: false }] : []),
     ...(caps.vendor ? [{ href: routes.orders('sold'), label: t('navOrders'), icon: 'bag' as const, exact: false }] : []),
+    ...(caps.provider ? [{ href: routes.requests('received'), label: t('navRequests'), icon: 'tools' as const, exact: false }] : []),
+    { href: routes.sellJobs, label: t('navEmployer'), icon: 'user' as const, exact: false },
     ...(caps.vendor || caps.provider ? [{ href: routes.sellPayouts, label: t('navPayouts'), icon: 'wallet' as const, exact: false }] : []),
   ];
 

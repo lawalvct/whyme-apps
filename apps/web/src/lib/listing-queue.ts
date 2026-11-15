@@ -48,6 +48,7 @@ export interface PhotoUploadPayload {
   client_id: string;
   file: Blob;
   name: string;
+  purpose?: 'listing_photo' | 'request_photo';
 }
 
 export const LISTING_ENTITY = 'listing';
@@ -75,7 +76,7 @@ export const listingRoutes: Record<string, Route> = {
     const payload = action.payload as PhotoUploadPayload;
     if (!(payload.file instanceof Blob)) throw new Error('photo missing');
     const form = new FormData();
-    form.append('purpose', 'listing_photo');
+    form.append('purpose', payload.purpose ?? 'listing_photo');
     form.append('client_id', payload.client_id);
     form.append('file', payload.file, payload.name);
     return { method: 'POST', path: '/v1/uploads', body: form };

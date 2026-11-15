@@ -56,11 +56,11 @@ export function Notice({ tone, children, className }: { tone: NoticeTone; childr
 }
 
 /** Which seller capabilities this account has switched on (ACC07). */
-export function sellerCapabilities(user: Me | null): { vendor: boolean; provider: boolean } {
+export function sellerCapabilities(user: Me | null): { vendor: boolean; provider: boolean; employer: boolean } {
   const active = new Set(
     (user?.capabilities ?? []).filter((c) => c.status === 'active').map((c) => c.capability),
   );
-  return { vendor: active.has('vendor'), provider: active.has('provider') };
+  return { vendor: active.has('vendor'), provider: active.has('provider'), employer: active.has('employer') };
 }
 
 /** The translated message for a failed request, by the API's error code. */

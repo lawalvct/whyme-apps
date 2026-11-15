@@ -2,9 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import type { components } from '@whyme/api-client';
 import { unwrap, useApi } from './api';
 
-/** What a conversation is about: a listing, or a business/provider page. */
+/** What a conversation is about: a listing, a business/provider page, a service request, or a job application. */
 export interface ConversationSubject {
-  type: 'listing' | 'profile';
+  type: 'listing' | 'profile' | 'service_request' | 'job_application';
   id: string;
   kind: string | null;
   title: string;

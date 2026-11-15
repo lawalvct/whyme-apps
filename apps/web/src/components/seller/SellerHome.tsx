@@ -39,6 +39,7 @@ export function SellerHome() {
     { href: routes.sellListings(), icon: 'grid', title: t('navListings'), hint: t('overview.listingsShortcut') },
     { href: routes.messages, icon: 'message', title: t('overview.messages'), hint: t('overview.messagesShortcut') },
     ...(caps.vendor ? [{ href: routes.orders('sold'), icon: 'bag' as const, title: t('navOrders'), hint: t('overview.ordersShortcut') }] : []),
+    ...(caps.provider ? [{ href: routes.requests('received'), icon: 'tools' as const, title: t('navRequests'), hint: t('overview.requestsShortcut') }] : []),
     { href: routes.sellPayouts, icon: 'wallet', title: t('navPayouts'), hint: t('overview.payoutsShortcut') },
   ];
 

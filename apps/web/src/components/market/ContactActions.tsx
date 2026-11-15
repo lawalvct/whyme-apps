@@ -40,12 +40,13 @@ export function ContactActions({
   const router = useRouter();
   const checkoutOpen = useConfig().data?.features?.protected_checkout_enabled === true;
   const canBuy = kind === 'product' && subject.type === 'listing' && checkoutOpen;
+  const canRequest = kind === 'service' || kind === 'provider';
   // What waits for the phone to be confirmed: the note for buy/request, or opening the chat.
   const [shown, setShown] = useState<'confirm-buy' | 'confirm-chat' | 'note' | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const primary = kind === 'product' ? t('buyNow') : kind === 'service' ? t('requestService') : null;
+  const primary = kind === 'product' ? t('buyNow') : canRequest ? t('requestService') : null;
 
   if (status !== 'signed_in') {
     return (
@@ -76,9 +77,10 @@ export function ContactActions({
 
   const confirmed = Boolean(user?.phone_verified_at);
 
-  /** After the phone is confirmed: checkout for a product, or the "coming soon" note. */
+  /** After the phone is confirmed: checkout for a product, new request for a service/provider, or the "unavailable" note. */
   function buy() {
     if (canBuy) router.push(routes.checkout(subject.id));
+    else if (canRequest) router.push(routes.newRequest(subject.type === 'listing' ? { listing: subject.id } : { profile: subject.id }));
     else setShown('note');
   }
 

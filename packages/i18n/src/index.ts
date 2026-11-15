@@ -11,6 +11,8 @@ import enMarket from '../locales/en/market.json';
 import enSeller from '../locales/en/seller.json';
 import enChat from '../locales/en/chat.json';
 import enOrders from '../locales/en/orders.json';
+import enRequests from '../locales/en/requests.json';
+import enJobs from '../locales/en/jobs.json';
 import igCommon from '../locales/ig/common.json';
 import igAuth from '../locales/ig/auth.json';
 import igSettings from '../locales/ig/settings.json';
@@ -20,6 +22,8 @@ import igMarket from '../locales/ig/market.json';
 import igSeller from '../locales/ig/seller.json';
 import igChat from '../locales/ig/chat.json';
 import igOrders from '../locales/ig/orders.json';
+import igRequests from '../locales/ig/requests.json';
+import igJobs from '../locales/ig/jobs.json';
 
 export const defaultLanguage = 'en' as const;
 
@@ -32,12 +36,12 @@ export const languages = [
 
 export type LanguageCode = (typeof languages)[number]['code'];
 
-export const namespaces = ['common', 'auth', 'settings', 'sync', 'errors', 'market', 'seller', 'chat', 'orders'] as const;
+export const namespaces = ['common', 'auth', 'settings', 'sync', 'errors', 'market', 'seller', 'chat', 'orders', 'requests', 'jobs'] as const;
 export type Namespace = (typeof namespaces)[number];
 
 export const resources = {
-  en: { common: enCommon, auth: enAuth, settings: enSettings, sync: enSync, errors: enErrors, market: enMarket, seller: enSeller, chat: enChat, orders: enOrders },
-  ig: { common: igCommon, auth: igAuth, settings: igSettings, sync: igSync, errors: igErrors, market: igMarket, seller: igSeller, chat: igChat, orders: igOrders },
+  en: { common: enCommon, auth: enAuth, settings: enSettings, sync: enSync, errors: enErrors, market: enMarket, seller: enSeller, chat: enChat, orders: enOrders, requests: enRequests, jobs: enJobs },
+  ig: { common: igCommon, auth: igAuth, settings: igSettings, sync: igSync, errors: igErrors, market: igMarket, seller: igSeller, chat: igChat, orders: igOrders, requests: igRequests, jobs: igJobs },
 } as const;
 
 export function isSupportedLanguage(code: string | null | undefined): code is LanguageCode {

@@ -4,6 +4,196 @@
  */
 
 export interface paths {
+    "/v1/jobs/{vacancy}/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Seeker: submit an application to a published vacancy (JOB03, JOB04, AT11) */
+        post: operations["jobs.apply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/applications/{application}/cv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Streams the CV document snapshotted on an application from `media_private`.
+         *     Reached only via a short-lived relative-signed link issued to the applicant
+         *     or the vacancy's employer (AT13, DEC18)
+         */
+        get: operations["applications.cv"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/vacancies/{vacancy}/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Employer: list applications submitted to one of their own vacancies */
+        get: operations["me.vacancies.applications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My applications (`role=applicant`, default) or applications to my vacancies (`role=employer`) */
+        get: operations["me.applications.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/applications/counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Counts of active applications waiting on the employer (`employer`) or active for the seeker (`applicant`) */
+        get: operations["me.applications.counts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/applications/{application}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["me.applications.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/applications/{application}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Employer: mark an application as `reviewing` */
+        post: operations["me.applications.review"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/applications/{application}/shortlist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Employer: shortlist an applicant (`shortlisted`) */
+        post: operations["me.applications.shortlist"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/applications/{application}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Employer: accept an applicant (`accepted`) */
+        post: operations["me.applications.accept"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/applications/{application}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Employer: reject an applicant (`rejected`), with an optional note */
+        post: operations["me.applications.reject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/applications/{application}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Applicant: withdraw an application (`withdrawn`). Final for that vacancy */
+        post: operations["me.applications.withdraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/auth/otp": {
         parameters: {
             query?: never;
@@ -306,6 +496,22 @@ export interface paths {
         put?: never;
         /** Buyer: the problem is sorted. Money the buyer had confirmed becomes eligible for release again */
         post: operations["disputes.withdraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/employer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["me.employer.show"];
+        put: operations["me.employer.save"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -725,6 +931,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/vacancies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["me.vacancies.index"];
+        put?: never;
+        post: operations["me.vacancies.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/vacancies/{vacancy}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["me.vacancies.show"];
+        put?: never;
+        post?: never;
+        delete: operations["me.vacancies.destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["me.vacancies.update"];
+        trace?: never;
+    };
+    "/v1/me/vacancies/{vacancy}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["me.vacancies.submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/vacancies/{vacancy}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["me.vacancies.close"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/banks": {
         parameters: {
             query?: never;
@@ -964,6 +1234,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["jobs.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/jobs/{vacancy}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One vacancy by its address: slug, older slug, or ID. Draft, pending-review,
+         *     rejected and moderator-hidden vacancies are never visible here (SAF06)
+         */
+        get: operations["jobs.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me/saved": {
         parameters: {
             query?: never;
@@ -1034,6 +1340,348 @@ export interface paths {
         get: operations["search.profiles"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cvs/{cv}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Streams a CV document from `media_private`. Reached only via a short-lived
+         *     relative-signed link (owner preview or authorised employer in Slice 5, AT13)
+         */
+        get: operations["cvs.file"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/seeker": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["me.seeker.show"];
+        put: operations["me.seeker.save"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/cvs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["me.cvs.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/cvs/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["me.cvs.upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/cvs/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["me.cvs.generate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/cvs/{cv}/default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["me.cvs.default"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/cvs/{cv}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["me.cvs.destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My service requests, newest first: `role=customer` (default) or `role=provider` */
+        get: operations["me.requests.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/requests/counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * How many requests wait for this person: for the provider to answer (`provider`),
+         *     or for the customer to confirm completion (`customer`)
+         */
+        get: operations["me.requests.counts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sends a service request to a provider. Send an `Idempotency-Key` and `client_id`;
+         *     a replay returns the same request
+         */
+        post: operations["requests.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/requests/{serviceRequest}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["requests.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/requests/{serviceRequest}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Provider: accept a submitted service request */
+        post: operations["requests.accept"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/requests/{serviceRequest}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Provider: decline a service request, with a reason the customer sees */
+        post: operations["requests.decline"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/requests/{serviceRequest}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Provider: mark work started (`in_progress`) */
+        post: operations["requests.start"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/requests/{serviceRequest}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Provider: mark work finished (`completion_submitted`), asking the customer to confirm */
+        post: operations["requests.complete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/requests/{serviceRequest}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Customer: confirm the service is completed. Repeating is a no-op (STA01) */
+        post: operations["requests.confirm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/requests/{serviceRequest}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Customer: cancel a request before work has started */
+        post: operations["requests.cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/requests/{serviceRequest}/quotes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Provider: send or revise a price quote (`v1`, `v2`…) for this request (ORD05) */
+        post: operations["requests.quotes.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/requests/{serviceRequest}/quotes/{quote}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Customer: accept a specific quote version, locking in the agreed price (ORD05) */
+        post: operations["requests.quotes.accept"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/requests/{serviceRequest}/quotes/{quote}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Customer: decline a specific quote version (e.g. asking for a revised price) */
+        post: operations["requests.quotes.decline"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1152,6 +1800,94 @@ export interface components {
             capability: components["schemas"]["Capability"];
             terms_version_id?: number | null;
         };
+        /** ApplicationActionRequest */
+        ApplicationActionRequest: {
+            version: number;
+            note?: string | null;
+        };
+        /** ApplicationResource */
+        ApplicationResource: {
+            id: string;
+            number: string;
+            client_id: string | null;
+            /** @enum {string} */
+            role: "applicant" | "employer";
+            /** @enum {string} */
+            status: "held" | "applied" | "reviewing" | "shortlisted" | "accepted" | "rejected" | "withdrawn";
+            status_note: string | null;
+            cover_note: string | null;
+            vacancy: {
+                id: string;
+                slug: string;
+                title: string;
+                company_name: string;
+                /** @enum {string} */
+                employment_type: "full_time" | "part_time" | "temporary" | "internship" | "apprenticeship" | "contract";
+                location: {
+                    id: number;
+                    name: string;
+                };
+                salary_min_kobo: number | null;
+                salary_max_kobo: number | null;
+                currency: string;
+                deadline_at: string;
+                is_open: boolean;
+            } | null;
+            applicant: {
+                name: string;
+                headline: string | null;
+                bio: string | null;
+                location_name: string | null;
+                skills: string[];
+                experience: {
+                    role: string;
+                    company: string;
+                    period?: string | null;
+                    summary?: string | null;
+                }[];
+                education: {
+                    institution: string;
+                    qualification: string;
+                    year?: string | null;
+                }[];
+            };
+            cv: {
+                id: string | null;
+                title: string;
+                /** @enum {string} */
+                source: "uploaded" | "generated";
+                mime: string;
+                size_bytes: number;
+                download_url: string;
+            };
+            version: number;
+            client_created_at: string | null;
+            submitted_at: string;
+            reviewed_at: string | null;
+            shortlisted_at: string | null;
+            decided_at: string | null;
+            withdrawn_at: string | null;
+            created_at: string | null;
+            events?: {
+                to: string;
+                /** @enum {string} */
+                actor: "applicant" | "employer" | "admin" | "system";
+                note: string | null;
+                at: string;
+            }[];
+        };
+        /**
+         * ApplicationStatus
+         * @description Lifecycle of a job application (JOB03, JOB04, PRD §5). `held` is for applications whose cover note triggered a ContentGuard hold: only the applicant and staff see them until reviewed.
+         * @enum {string}
+         */
+        ApplicationStatus: "held" | "applied" | "reviewing" | "shortlisted" | "accepted" | "rejected" | "withdrawn";
+        /** AttachCvRequest */
+        AttachCvRequest: {
+            upload_id: string;
+            title?: string | null;
+            is_default?: boolean;
+        };
         /**
          * Capability
          * @description Selling, service and employer features are added to the one account (ACC01, ACC07). Buying, requesting services and applying need no capability.
@@ -1190,6 +1926,26 @@ export interface components {
                 available: boolean;
             } | {
                 /** @constant */
+                type: "job_application";
+                id: string;
+                /** @constant */
+                kind: "job";
+                title: string;
+                price_kobo: string | null;
+                thumb: null;
+                available: string;
+            } | {
+                /** @constant */
+                type: "service_request";
+                id: string;
+                /** @constant */
+                kind: "service";
+                title: string;
+                price_kobo: string;
+                thumb: null;
+                available: string;
+            } | {
+                /** @constant */
                 type: "profile";
                 id: string;
                 kind: string;
@@ -1221,11 +1977,33 @@ export interface components {
             unread_count: number;
             created_at: string | null;
         };
+        /** CvResource */
+        CvResource: {
+            id: string;
+            /** @enum {string} */
+            source: "uploaded" | "generated";
+            title: string;
+            locale: string;
+            mime: string;
+            extension: string;
+            size_bytes: number;
+            is_default: boolean;
+            download_url: string;
+            created_at: string | null;
+        };
         /**
          * DeclineOrderRequest
          * @description Declining a paid order needs a reason the buyer sees (ORD07).
          */
         DeclineOrderRequest: {
+            version: number;
+            note: string;
+        };
+        /**
+         * DeclineServiceRequestRequest
+         * @description Declining a service request needs a short reason the customer sees (REQ02).
+         */
+        DeclineServiceRequestRequest: {
             version: number;
             note: string;
         };
@@ -1281,6 +2059,35 @@ export interface components {
         /** DisputeStatementRequest */
         DisputeStatementRequest: {
             body: string;
+        };
+        /** EmployerProfileResource */
+        EmployerProfileResource: {
+            id: string;
+            company_name: string;
+            slug: string;
+            location_id: number;
+            location: {
+                id: number;
+                name: string;
+            };
+            about: string | null;
+            verified: boolean;
+            version: number;
+            created_at: string | null;
+            updated_at: string | null;
+        };
+        /**
+         * EmploymentType
+         * @description The six employment types in JOB01.
+         * @enum {string}
+         */
+        EmploymentType: "full_time" | "part_time" | "temporary" | "internship" | "apprenticeship" | "contract";
+        /** GenerateCvRequest */
+        GenerateCvRequest: {
+            title?: string | null;
+            /** @enum {string|null} */
+            locale?: "en" | "ig" | null;
+            is_default?: boolean;
         };
         /**
          * ListingKind
@@ -1441,6 +2248,10 @@ export interface components {
             /** @description The buyer can report a problem: paid, money not yet released or refunded, nothing already open. */
             can_report_problem: boolean;
             paid_at: string | null;
+            /** @description When the buyer should confirm or report a problem by (set once the seller says it was delivered). Null otherwise. */
+            confirm_due_at: string | null;
+            /** @description The deadline passed with no answer: WHY ME staff are looking at it. */
+            buyer_response_overdue: boolean;
             created_at: string | null;
             version: number;
             /** @description Status history, oldest first. Only on the single-order endpoints. */
@@ -1562,6 +2373,48 @@ export interface components {
             published_at: string | null;
             updated_at: string | null;
         };
+        /** OwnerVacancyResource */
+        OwnerVacancyResource: {
+            id: string;
+            client_id: string | null;
+            /** @enum {string} */
+            status: "draft" | "pending_review" | "published" | "rejected" | "closed" | "expired" | "hidden";
+            status_reason: string | null;
+            moderation_flags: unknown[];
+            category_id: number;
+            category: {
+                id: number;
+                slug: string;
+                name: string;
+            };
+            location_id: number;
+            location: {
+                id: number;
+                name: string;
+            };
+            title: string;
+            slug: string;
+            company_name: string;
+            /** @enum {string} */
+            employment_type: "full_time" | "part_time" | "temporary" | "internship" | "apprenticeship" | "contract";
+            description: string;
+            requirements: string | null;
+            experience: string | null;
+            salary_min_kobo: number | null;
+            salary_max_kobo: number | null;
+            currency: string;
+            deadline_at: string;
+            application_method: string;
+            is_open: boolean;
+            applications_count: number;
+            version: number;
+            submitted_at: string | null;
+            published_at: string | null;
+            expires_at: string | null;
+            closed_at: string | null;
+            created_at: string | null;
+            updated_at: string | null;
+        };
         /** PayOrderRequest */
         PayOrderRequest: {
             /**
@@ -1609,6 +2462,11 @@ export interface components {
             accept_terms: "yes" | "on" | "1" | 1 | "true" | true;
             client_id?: string | null;
         };
+        /**
+         * PreferredTime
+         * @enum {string}
+         */
+        PreferredTime: "morning" | "afternoon" | "evening" | "any";
         /**
          * ProfileKind
          * @description A business sells products (LST04); a provider offers services (LST03).
@@ -1713,6 +2571,41 @@ export interface components {
             member_since: string | null;
             published_at: string | null;
         };
+        /** PublicVacancyResource */
+        PublicVacancyResource: {
+            id: string;
+            title: string;
+            slug: string;
+            company_name: string;
+            /** @enum {string} */
+            employment_type: "full_time" | "part_time" | "temporary" | "internship" | "apprenticeship" | "contract";
+            description: string;
+            requirements: string | null;
+            experience: string | null;
+            salary_min_kobo: number | null;
+            salary_max_kobo: number | null;
+            currency: string;
+            deadline_at: string;
+            application_method: string;
+            is_open: boolean;
+            category: {
+                id: number;
+                slug: string;
+                name: string;
+            };
+            location: {
+                id: number;
+                name: string;
+            };
+            employer: {
+                id: string;
+                company_name: string;
+                about: string | null;
+                verified: boolean;
+            };
+            published_at: string | null;
+            expires_at: string | null;
+        };
         /** RegisterRequest */
         RegisterRequest: {
             first_name: string;
@@ -1744,11 +2637,24 @@ export interface components {
             /** Format: email */
             email?: string;
         };
+        /**
+         * RequestStatus
+         * @description Server-side lifecycle of a service request (REQ02, PRD §5). `held` is for requests ContentGuard wasn't sure about: only the customer and moderators see them until a moderator delivers (`submitted`) or refuses (`rejected`).
+         * @enum {string}
+         */
+        RequestStatus: "held" | "submitted" | "accepted" | "declined" | "in_progress" | "completion_submitted" | "completed" | "cancelled" | "rejected";
         /** ResetPasswordRequest */
         ResetPasswordRequest: {
             phone: string;
             code: string;
             password: string;
+        };
+        /** SaveEmployerProfileRequest */
+        SaveEmployerProfileRequest: {
+            company_name: string;
+            location_id: number;
+            about?: string | null;
+            version?: number | null;
         };
         /**
          * SaveProfileRequest
@@ -1776,6 +2682,54 @@ export interface components {
             logo_id?: string | null;
             photo_ids?: string[];
         };
+        /** SaveSeekerProfileRequest */
+        SaveSeekerProfileRequest: {
+            location_id?: number | null;
+            headline?: string | null;
+            bio?: string | null;
+            skills?: string[] | null;
+            experience?: {
+                role: string;
+                company: string;
+                period: string;
+                summary?: string | null;
+            }[] | null;
+            education?: {
+                qualification: string;
+                institution: string;
+                year: string;
+            }[] | null;
+            discoverable?: boolean;
+            version?: number | null;
+        };
+        /** SeekerProfileResource */
+        SeekerProfileResource: {
+            id: string;
+            location_id: number | null;
+            location: {
+                id: number;
+                name: string;
+                /** @enum {string} */
+                type: "state" | "lga" | "area";
+            } | null;
+            headline: string | null;
+            bio: string | null;
+            skills: unknown[];
+            experience: {
+                role: string;
+                company: string;
+                period: string;
+                summary: string | null;
+            }[];
+            education: {
+                qualification: string;
+                institution: string;
+                year: string;
+            }[];
+            discoverable: boolean;
+            version: number;
+            updated_at: string | null;
+        };
         /** SellerPayoutResource */
         SellerPayoutResource: {
             id: string;
@@ -1799,13 +2753,143 @@ export interface components {
             client_id?: string | null;
             body: string;
         };
+        /**
+         * SendServiceQuoteRequest
+         * @description Provider sends or revises a quote on a service request (ORD05).
+         */
+        SendServiceQuoteRequest: {
+            /** @description The `ServiceRequest` version the provider was looking at. */
+            version: number;
+            /** @description The real amount in kobo the provider will accept the job for (at least ₦1). */
+            amount_kobo: number;
+            /** @description What is included in the quote and any conditions. Screened by ContentGuard. */
+            scope: string;
+            /** @description Optional estimate in days to complete the work. */
+            estimated_days?: number | null;
+        };
+        /**
+         * ServiceRequestActionRequest
+         * @description A service request action sends the version the person was looking at, so
+         *     acting on an out-of-date screen is refused with the current request (OFF06).
+         */
+        ServiceRequestActionRequest: {
+            version: number;
+            note?: string | null;
+        };
+        /** ServiceRequestResource */
+        ServiceRequestResource: {
+            id: string;
+            number: string;
+            client_id: string | null;
+            /** @enum {string} */
+            role: "customer" | "provider";
+            /** @enum {string} */
+            status: "held" | "submitted" | "accepted" | "declined" | "in_progress" | "completion_submitted" | "completed" | "cancelled" | "rejected";
+            /** @description Why WHY ME refused a held request; shown only to the customer. */
+            rejection_reason: string | null;
+            title: string;
+            description: string;
+            category: {
+                id: number;
+                slug: string;
+                name: string;
+            };
+            location: {
+                id: number;
+                name: string;
+            };
+            listing: {
+                id: string;
+                slug: string;
+                title: string;
+            } | null;
+            profile: {
+                id: string;
+                slug: string;
+                display_name: string;
+            } | null;
+            other_party: {
+                name: string;
+            };
+            preferred_date: string | null;
+            /** @enum {string|null} */
+            preferred_time: "morning" | "afternoon" | "evening" | "any" | null;
+            budget_min_kobo: number | null;
+            budget_max_kobo: number | null;
+            currency: string;
+            accepted_quote_id: string | null;
+            /** @description Snapshotted agreed price in kobo once the customer accepts a quote (ORD05). */
+            agreed_amount_kobo: number | null;
+            agreed_scope: string | null;
+            quote_accepted_at: string | null;
+            latest_quote: {
+                id: string;
+                version: number;
+                amount_kobo: number;
+                currency: string;
+                scope: string;
+                estimated_days: number | null;
+                /** @enum {string} */
+                status: "sent" | "superseded" | "accepted" | "rejected";
+                rejection_note: string | null;
+                sent_at: string;
+                accepted_at: string | null;
+                rejected_at: string | null;
+                superseded_at: string | null;
+            } | null;
+            quotes: {
+                id: string;
+                version: number;
+                amount_kobo: number;
+                currency: string;
+                scope: string;
+                estimated_days: number | null;
+                /** @enum {string} */
+                status: "sent" | "superseded" | "accepted" | "rejected";
+                rejection_note: string | null;
+                sent_at: string;
+                accepted_at: string | null;
+                rejected_at: string | null;
+                superseded_at: string | null;
+            }[];
+            photos: {
+                id: string;
+                width: number | null;
+                height: number | null;
+                urls: {
+                    large: string | null;
+                    medium: string | null;
+                    thumb: string | null;
+                };
+            }[];
+            /** @description When the customer prepared it on their device (offline or online, REQ03). */
+            client_created_at: string | null;
+            /** @description When the server received and recorded it (REQ03). */
+            submitted_at: string;
+            accepted_at: string | null;
+            started_at: string | null;
+            completed_at: string | null;
+            cancelled_at: string | null;
+            created_at: string | null;
+            version: number;
+            /** @description Status history, oldest first. Only on the single-request endpoints. */
+            events?: {
+                to: string;
+                /** @enum {string} */
+                actor: "customer" | "provider" | "admin" | "system";
+                note: string | null;
+                quote_version: number | null;
+                amount_kobo: number | null;
+                at: string;
+            }[];
+        };
         /** StartConversationRequest */
         StartConversationRequest: {
             /**
-             * @description What it's about: a listing, or a business/provider page.
+             * @description What it's about: a listing, a business/provider page, a service request, or a job application.
              * @enum {string}
              */
-            subject_type: "listing" | "profile";
+            subject_type: "listing" | "profile" | "service_request" | "job_application";
             subject_id: string;
         };
         /** StoreListingRequest */
@@ -1834,6 +2918,31 @@ export interface components {
             photo_ids?: string[];
         };
         /**
+         * StoreServiceRequestRequest
+         * @description Customer service request input (REQ01, REQ03).
+         *
+         *     Addressed to one provider via either a service `listing_id` or a provider
+         *     `profile_id`. Contact/payment details in `title` and `description` are checked
+         *     by ContentGuard in CreateServiceRequest.
+         */
+        StoreServiceRequestRequest: {
+            listing_id?: string | null;
+            profile_id?: string | null;
+            category_id?: number | null;
+            location_id: number;
+            title: string;
+            description: string;
+            /** Format: date-time */
+            preferred_date?: string | null;
+            preferred_time?: components["schemas"]["PreferredTime"] | null;
+            budget_min_kobo?: number | null;
+            budget_max_kobo?: number | null;
+            photo_ids?: string[];
+            client_id?: string | null;
+            /** Format: date-time */
+            client_created_at?: string | null;
+        };
+        /**
          * StoreUploadRequest
          * @description Multipart upload. The apps shrink photos to about 1600 px before sending
          *     (docs/01 §6.5); these limits stop oversized or hostile files reaching the
@@ -1844,6 +2953,30 @@ export interface components {
             client_id?: string | null;
             /** Format: binary */
             file: string;
+        };
+        /** StoreVacancyRequest */
+        StoreVacancyRequest: {
+            client_id?: string | null;
+            category_id: number;
+            location_id: number;
+            title: string;
+            company_name?: string | null;
+            employment_type: components["schemas"]["EmploymentType"];
+            description: string;
+            requirements?: string | null;
+            experience?: string | null;
+            salary_min_kobo?: number | null;
+            salary_max_kobo?: number | null;
+            /** Format: date-time */
+            deadline_at: string;
+        };
+        /** SubmitApplicationRequest */
+        SubmitApplicationRequest: {
+            client_id?: string | null;
+            cv_id?: string | null;
+            cover_note?: string | null;
+            /** Format: date-time */
+            client_created_at?: string | null;
         };
         /** TermsResource */
         TermsResource: {
@@ -1887,18 +3020,39 @@ export interface components {
             /** @enum {string} */
             locale?: "en" | "ig";
         };
+        /** UpdateVacancyRequest */
+        UpdateVacancyRequest: {
+            version: number;
+            category_id?: number;
+            location_id?: number;
+            title?: string;
+            company_name?: string;
+            employment_type?: components["schemas"]["EmploymentType"];
+            description?: string;
+            requirements?: string | null;
+            experience?: string | null;
+            salary_min_kobo?: number | null;
+            salary_max_kobo?: number | null;
+            /** Format: date-time */
+            deadline_at?: string;
+        };
         /**
          * UploadPurpose
          * @description What a file is for. Each purpose has its own types, size limit and the sizes generated from it (DEC12: owner-tunable later; these are the proposed values). Verification documents, CVs and chat attachments join this list in later slices.
+         *     | |
+         *     |---|
+         *     | `listing_photo` <br/>  |
+         *     | `request_photo` <br/> Photos a customer adds to a service request: seen only by the customer and the provider. |
+         *     | `cv_document` <br/> A CV document (PDF or DOCX) uploaded by a job seeker: kept on the private disk. |
          * @enum {string}
          */
-        UploadPurpose: "listing_photo";
+        UploadPurpose: "listing_photo" | "request_photo" | "cv_document";
         /** UploadResource */
         UploadResource: {
             id: string;
             client_id: string | null;
-            /** @constant */
-            purpose: "listing_photo";
+            /** @enum {string} */
+            purpose: "listing_photo" | "request_photo" | "cv_document";
             /** @enum {string} */
             status: "processing" | "ready" | "rejected";
             rejection_reason: string | null;
@@ -1928,6 +3082,16 @@ export interface components {
             email_verified_at: string | null;
             capabilities?: components["schemas"]["CapabilityResource"][];
             created_at: string | null;
+        };
+        /**
+         * VacancyStatus
+         * @description draft → pending_review → published / rejected → closed / expired, with hidden set by moderators (JOB01, JOB06, SAF06).
+         * @enum {string}
+         */
+        VacancyStatus: "draft" | "pending_review" | "published" | "rejected" | "closed" | "expired" | "hidden";
+        /** VacancyTransitionRequest */
+        VacancyTransitionRequest: {
+            version: number;
         };
         /**
          * VerifyOtpRequest
@@ -1993,6 +3157,347 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    "jobs.apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vacancy: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["SubmitApplicationRequest"];
+            };
+        };
+        responses: {
+            /** @description `ApplicationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ApplicationResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "applications.cv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                application: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Transfer-Encoding": "chunked";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "me.vacancies.applications": {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["ApplicationStatus"] | null;
+            };
+            header?: never;
+            path: {
+                vacancy: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `ApplicationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ApplicationResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description The "cursor" that points to the next set of items. */
+                            next_cursor: string | null;
+                            /** @description The "cursor" that points to the previous set of items. */
+                            prev_cursor: string | null;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.applications.index": {
+        parameters: {
+            query?: {
+                role?: "applicant" | "employer" | null;
+                status?: components["schemas"]["ApplicationStatus"] | null;
+                vacancy_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `ApplicationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ApplicationResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description The "cursor" that points to the next set of items. */
+                            next_cursor: string | null;
+                            /** @description The "cursor" that points to the previous set of items. */
+                            prev_cursor: string | null;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.applications.counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            employer: number;
+                            applicant: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.applications.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                application: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `ApplicationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ApplicationResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.applications.review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                application: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplicationActionRequest"];
+            };
+        };
+        responses: {
+            /** @description `ApplicationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ApplicationResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.applications.shortlist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                application: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplicationActionRequest"];
+            };
+        };
+        responses: {
+            /** @description `ApplicationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ApplicationResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.applications.accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                application: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplicationActionRequest"];
+            };
+        };
+        responses: {
+            /** @description `ApplicationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ApplicationResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.applications.reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                application: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplicationActionRequest"];
+            };
+        };
+        responses: {
+            /** @description `ApplicationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ApplicationResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.applications.withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                application: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplicationActionRequest"];
+            };
+        };
+        responses: {
+            /** @description `ApplicationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ApplicationResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "auth.otp": {
         parameters: {
             query?: never;
@@ -2531,6 +4036,69 @@ export interface operations {
                 content: {
                     "application/json": {
                         data: components["schemas"]["DisputeResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.employer.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            profile: components["schemas"]["EmployerProfileResource"] | null;
+                            entitlement: {
+                                free_job_available: boolean;
+                                free_job_consumed_at: string | null;
+                                free_term_days: number;
+                            };
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.employer.save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveEmployerProfileRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            profile: components["schemas"]["EmployerProfileResource"];
+                            entitlement: {
+                                free_job_available: boolean;
+                                free_job_consumed_at: string | null;
+                                free_term_days: number;
+                            };
+                        };
                     };
                 };
             };
@@ -3377,6 +4945,212 @@ export interface operations {
             422: components["responses"]["ValidationException"];
         };
     };
+    "me.vacancies.index": {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["VacancyStatus"] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `OwnerVacancyResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OwnerVacancyResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description The "cursor" that points to the next set of items. */
+                            next_cursor: string | null;
+                            /** @description The "cursor" that points to the previous set of items. */
+                            prev_cursor: string | null;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.vacancies.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StoreVacancyRequest"];
+            };
+        };
+        responses: {
+            /** @description `OwnerVacancyResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OwnerVacancyResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.vacancies.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vacancy: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `OwnerVacancyResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OwnerVacancyResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.vacancies.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vacancy: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.vacancies.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vacancy: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateVacancyRequest"];
+            };
+        };
+        responses: {
+            /** @description `OwnerVacancyResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OwnerVacancyResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.vacancies.submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vacancy: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VacancyTransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `OwnerVacancyResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OwnerVacancyResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.vacancies.close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vacancy: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VacancyTransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `OwnerVacancyResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OwnerVacancyResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "banks.index": {
         parameters: {
             query?: never;
@@ -3864,6 +5638,76 @@ export interface operations {
             };
         };
     };
+    "jobs.index": {
+        parameters: {
+            query?: {
+                q?: string | null;
+                category_id?: number | null;
+                location_id?: number | null;
+                employment_type?: components["schemas"]["EmploymentType"] | null;
+                min_salary?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `PublicVacancyResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PublicVacancyResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description The "cursor" that points to the next set of items. */
+                            next_cursor: string | null;
+                            /** @description The "cursor" that points to the previous set of items. */
+                            prev_cursor: string | null;
+                        };
+                    };
+                };
+            };
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "jobs.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vacancy: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `PublicVacancyResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PublicVacancyResource"];
+                    };
+                };
+            };
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
     "me.saved.index": {
         parameters: {
             query?: never;
@@ -4042,6 +5886,597 @@ export interface operations {
                     };
                 };
             };
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "cvs.file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cv: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Transfer-Encoding": "chunked";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "me.seeker.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            profile: components["schemas"]["SeekerProfileResource"] | null;
+                            cvs: components["schemas"]["CvResource"][];
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.seeker.save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["SaveSeekerProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description `SeekerProfileResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SeekerProfileResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.cvs.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `CvResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CvResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.cvs.upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttachCvRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.cvs.generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["GenerateCvRequest"];
+            };
+        };
+        responses: {
+            /** @description `CvResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CvResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.cvs.default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cv: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `CvResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CvResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.cvs.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cv: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.requests.index": {
+        parameters: {
+            query?: {
+                role?: "customer" | "provider" | null;
+                status?: components["schemas"]["RequestStatus"] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `ServiceRequestResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ServiceRequestResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description The "cursor" that points to the next set of items. */
+                            next_cursor: string | null;
+                            /** @description The "cursor" that points to the previous set of items. */
+                            prev_cursor: string | null;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.requests.counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            provider: number;
+                            customer: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "requests.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StoreServiceRequestRequest"];
+            };
+        };
+        responses: {
+            /** @description `ServiceRequestResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ServiceRequestResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "requests.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                serviceRequest: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `ServiceRequestResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ServiceRequestResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "requests.accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                serviceRequest: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceRequestActionRequest"];
+            };
+        };
+        responses: {
+            /** @description `ServiceRequestResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ServiceRequestResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "requests.decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                serviceRequest: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeclineServiceRequestRequest"];
+            };
+        };
+        responses: {
+            /** @description `ServiceRequestResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ServiceRequestResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "requests.start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                serviceRequest: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceRequestActionRequest"];
+            };
+        };
+        responses: {
+            /** @description `ServiceRequestResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ServiceRequestResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "requests.complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                serviceRequest: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceRequestActionRequest"];
+            };
+        };
+        responses: {
+            /** @description `ServiceRequestResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ServiceRequestResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "requests.confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                serviceRequest: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceRequestActionRequest"];
+            };
+        };
+        responses: {
+            /** @description `ServiceRequestResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ServiceRequestResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "requests.cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                serviceRequest: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceRequestActionRequest"];
+            };
+        };
+        responses: {
+            /** @description `ServiceRequestResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ServiceRequestResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "requests.quotes.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                serviceRequest: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendServiceQuoteRequest"];
+            };
+        };
+        responses: {
+            /** @description `ServiceRequestResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ServiceRequestResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "requests.quotes.accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                serviceRequest: string;
+                quote: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceRequestActionRequest"];
+            };
+        };
+        responses: {
+            /** @description `ServiceRequestResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ServiceRequestResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "requests.quotes.decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                serviceRequest: string;
+                quote: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceRequestActionRequest"];
+            };
+        };
+        responses: {
+            /** @description `ServiceRequestResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ServiceRequestResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
             422: components["responses"]["ValidationException"];
         };
     };

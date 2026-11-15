@@ -158,14 +158,23 @@ export interface DraftPhoto {
  * Photos for a queued save: server photos by ID; photos waiting for a connection are queued
  * as uploads (once: a tile that already has its upload action keeps it).
  */
-export async function queuePhotos(sync: WebSync, items: DraftPhoto[]): Promise<{ refs: PhotoRef[]; uploads: Record<string, string> }> {
+export async function queuePhotos(
+  sync: WebSync,
+  items: DraftPhoto[],
+  purpose: 'listing_photo' | 'request_photo' = 'listing_photo',
+): Promise<{ refs: PhotoRef[]; uploads: Record<string, string> }> {
   const uploads: Record<string, string> = {};
   const refs: PhotoRef[] = [];
   for (const item of items) {
     if (item.id && item.state !== 'failed') {
       refs.push({ id: item.id, preview: item.preview?.startsWith('blob:') ? null : item.preview });
     } else if (item.state === 'waiting' && item.file) {
-      const payload: PhotoUploadPayload = { client_id: item.key, file: item.file, name: item.file instanceof File ? item.file.name : 'photo.jpg' };
+      const payload: PhotoUploadPayload = {
+        client_id: item.key,
+        file: item.file,
+        name: item.file instanceof File ? item.file.name : 'photo.jpg',
+        purpose,
+      };
       const upload =
         item.upload ?? (await sync.engine.enqueue({ entityType: UPLOAD_ENTITY, localId: item.key, actionType: 'upload.photo', payload })).actionId;
       uploads[item.key] = upload;

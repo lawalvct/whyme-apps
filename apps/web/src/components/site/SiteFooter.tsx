@@ -25,6 +25,7 @@ export function SiteFooter() {
             <ul>
               <li><Link href={routes.search({ kind: 'product' })}>{t('shopProducts')}</Link></li>
               <li><Link href={routes.search({ kind: 'service' })}>{t('footerBrowseServices')}</Link></li>
+              <li><Link href={routes.jobs()}>{t('jobs')}</Link></li>
               <li><Link href={routes.search({ type: 'people', kind: 'business' })}>{t('footerLocalBusinesses')}</Link></li>
               <li><Link href={routes.search({ type: 'people', kind: 'provider' })}>{t('footerFindExperts')}</Link></li>
             </ul>

@@ -42,7 +42,32 @@ export const routes = {
   checkout: (listingId: string) => `/checkout/${listingId}`,
   orders: (tab?: 'sold') => (tab ? `/orders?tab=${tab}` : '/orders'),
   order: (id: string) => `/orders/${id}`,
+  newRequest: (target: { listing?: string; profile?: string; draft?: string }) => {
+    const query = new URLSearchParams();
+    if (target.listing) query.set('listing', target.listing);
+    if (target.profile) query.set('profile', target.profile);
+    if (target.draft) query.set('draft', target.draft);
+    const qs = query.toString();
+    return qs ? `/requests/new?${qs}` : '/requests/new';
+  },
+  requests: (tab?: 'received') => (tab ? `/requests?tab=${tab}` : '/requests'),
+  request: (id: string) => `/requests/${id}`,
+  jobs: (params: Record<string, string | number | undefined> = {}) => {
+    const query = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined && value !== '') query.set(key, String(value));
+    }
+    const qs = query.toString();
+    return qs ? `/jobs?${qs}` : '/jobs';
+  },
+  job: (vacancy: { id: string; slug?: string | null }) => `/jobs/${vacancy.slug || vacancy.id}`,
+  seekerProfile: '/jobs/profile',
+  applications: (tab?: 'employer') => (tab ? `/jobs/applications?tab=${tab}` : '/jobs/applications'),
+  application: (id: string) => `/jobs/applications/${id}`,
   sell: '/sell',
+  sellJobs: '/sell/jobs',
+  newVacancy: '/sell/jobs/new',
+  editVacancy: (id: string) => `/sell/jobs/${id}`,
   sellPayouts: '/sell/payouts',
   sellProfile: (kind: 'business' | 'provider') => `/sell/profile/${kind}`,
   sellListings: (status?: string) => (status ? `/sell/listings?status=${status}` : '/sell/listings'),

@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
-import type { PublicListing, PublicProfile, TaxonomyCategory } from '@whyme/data';
+import { useTaxonomy, type PublicListing, type PublicProfile, type TaxonomyCategory } from '@whyme/data';
 import { CategoryName } from '@/components/market/CategoryName';
 import { Photo } from '@/components/market/Photo';
 import { Price } from '@/components/market/Price';
@@ -14,7 +14,9 @@ import { useT } from '@/lib/i18n';
 import styles from './HomeMarketplace.module.css';
 
 const categoryIcons: Record<string, MarketplaceIconName> = {
-  'phones-gadgets': 'phone', fashion: 'shirt', 'home-kitchen': 'home', 'food-groceries': 'leaf',
+  'phones-gadgets': 'phone', 'electronics-appliances': 'bolt', fashion: 'shirt', 'home-kitchen': 'home',
+  'health-beauty': 'sparkle', 'food-groceries': 'leaf', 'vehicles-parts': 'car', 'building-materials': 'tools',
+  'babies-kids': 'heart', 'other-products': 'bag',
   electrician: 'bolt', plumber: 'droplet', mechanic: 'car', 'hairdresser-barber': 'scissors',
   tailor: 'scissors', cleaner: 'sparkle', painter: 'home', carpenter: 'tools',
 };
@@ -29,22 +31,25 @@ type HomeMarketplaceProps = {
 /** Home discovery uses the same public catalogue and routes as search. */
 export function HomeMarketplace({ products, services, providers, categories }: HomeMarketplaceProps) {
   const { t } = useT('market');
-  const [categoryKind, setCategoryKind] = useState<'product' | 'service'>(() => categories.some((category) => category.type === 'product') ? 'product' : 'service');
+  const liveTaxonomy = useTaxonomy();
+  const allCategories = liveTaxonomy.data?.categories?.length ? liveTaxonomy.data.categories : categories;
+  const [selectedCategoryKind, setSelectedCategoryKind] = useState<'product' | 'service' | null>(null);
   const [categoriesExpanded, setCategoriesExpanded] = useState(false);
-  const productCategories = categories.filter((category) => category.type === 'product');
-  const serviceCategories = categories.filter((category) => category.type === 'service');
+  const productCategories = allCategories.filter((category) => category.type === 'product');
+  const serviceCategories = allCategories.filter((category) => category.type === 'service');
+  const categoryKind = selectedCategoryKind ?? (productCategories.length > 0 ? 'product' : 'service');
   const visibleCategories = categoryKind === 'product' ? productCategories : serviceCategories;
   const foodCategory = productCategories.find((category) => category.slug === 'food-groceries');
 
   return (
     <div className={styles.marketplace}>
-      {categories.length > 0 && (
+      {allCategories.length > 0 && (
         <section className={styles.section} aria-labelledby="browse-categories-title">
           <div className={styles.sectionHeader}>
             <div><span className={styles.kicker}>{t('homeBrowseEyebrow')}</span><h2 id="browse-categories-title">{t('homeBrowseTitle')}</h2></div>
             <div className={styles.categoryToggle} role="group" aria-label={t('category')}>
-              {productCategories.length > 0 && <button type="button" aria-pressed={categoryKind === 'product'} onClick={() => { setCategoryKind('product'); setCategoriesExpanded(false); }}><Icon name="bag" />{t('products')}</button>}
-              {serviceCategories.length > 0 && <button type="button" aria-pressed={categoryKind === 'service'} onClick={() => { setCategoryKind('service'); setCategoriesExpanded(false); }}><Icon name="tools" />{t('services')}</button>}
+              {productCategories.length > 0 && <button type="button" aria-pressed={categoryKind === 'product'} onClick={() => { setSelectedCategoryKind('product'); setCategoriesExpanded(false); }}><Icon name="bag" />{t('products')}</button>}
+              {serviceCategories.length > 0 && <button type="button" aria-pressed={categoryKind === 'service'} onClick={() => { setSelectedCategoryKind('service'); setCategoriesExpanded(false); }}><Icon name="tools" />{t('services')}</button>}
             </div>
           </div>
           <ul id="home-category-list" className={styles.categoryGrid} data-kind={categoryKind} data-expanded={categoriesExpanded}>

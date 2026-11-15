@@ -171,7 +171,12 @@ function Banner({ order, onCheck, checkingNow }: { order: Order; onCheck: () => 
           </Panel>
         );
       case 'completion_submitted':
-        return <Panel>{t('sellerWaitingConfirm')}</Panel>;
+        return (
+          <Panel>
+            <p>{t('sellerWaitingConfirm')}</p>
+            <ConfirmDeadline order={order} role="seller" />
+          </Panel>
+        );
       case 'completed':
         // With a problem reported, the dispute panel says where the money is instead.
         if (order.dispute?.active) return null;
@@ -445,6 +450,7 @@ function ConfirmReceipt({ order }: { order: Order }) {
     <div className="flex flex-col gap-3 rounded-xl border border-border bg-background p-3">
       <p className="font-semibold">{t('confirmTitle')}</p>
       <p className="text-sm">{t('confirmHint', { total })}</p>
+      <ConfirmDeadline order={order} role="buyer" />
       {asking ? (
         <>
           <p className="font-semibold">{t('confirmQuestion', { total, seller: order.other_party.name })}</p>
@@ -467,6 +473,21 @@ function ConfirmReceipt({ order }: { order: Order }) {
       <MessageSeller order={order} />
     </div>
   );
+}
+
+/**
+ * The buyer's deadline to confirm or report a problem (DEC07), and what happens after it:
+ * nothing is released by itself; WHY ME staff look at the order.
+ */
+function ConfirmDeadline({ order, role }: { order: Order; role: 'buyer' | 'seller' }) {
+  const { t } = useT('orders');
+  const language = useLanguage();
+  if (order.buyer_response_overdue) {
+    return <p className="text-sm font-semibold">{t(role === 'buyer' ? 'deadlineOverdueBuyer' : 'deadlineOverdueSeller')}</p>;
+  }
+  if (!order.confirm_due_at) return null;
+  const date = new Intl.DateTimeFormat(language === 'ig' ? 'ig-NG' : 'en-NG', { dateStyle: 'medium' }).format(new Date(order.confirm_due_at));
+  return <p className="text-sm text-text-muted">{t(role === 'buyer' ? 'deadlineBuyer' : 'deadlineSeller', { date })}</p>;
 }
 
 /** Buyer, before paying: cancel the order (nothing was charged). */

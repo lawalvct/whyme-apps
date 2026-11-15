@@ -14,7 +14,7 @@ export function useStartConversation() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  return async (subject: { type: 'listing' | 'profile'; id: string }) => {
+  return async (subject: { type: 'listing' | 'profile' | 'service_request'; id: string }) => {
     const conversation = unwrap(
       await api.POST('/v1/conversations', { body: { subject_type: subject.type, subject_id: subject.id } }),
     ).data as unknown as Conversation;

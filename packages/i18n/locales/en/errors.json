@@ -60,5 +60,22 @@
   "bank_unknown": "Choose your bank from the list.",
   "bank_account_not_found": "The bank couldn't find that account number. Check the number and the bank.",
   "invalid_outcome": "That outcome doesn't fit this order's current status.",
-  "bank_lookup_unavailable": "We couldn't check the account with the bank just now. Please try again in a little while."
+  "bank_lookup_unavailable": "We couldn't check the account with the bank just now. Please try again in a little while.",
+  "provider_unavailable": "This service provider is no longer available.",
+  "cannot_request_own_service": "This is your own service or provider page.",
+  "request_not_service": "Service requests can only be sent for service listings or provider pages.",
+  "quote_already_accepted": "A quote has already been accepted for this request.",
+  "quote_superseded": "The provider sent a newer quote. Review the latest quote before accepting.",
+  "quote_not_accepted": "Wait for the customer to accept your quote before starting work.",
+  "job_entitlement_required": "Your first free job post has been used. Additional paid job posts are coming soon.",
+  "vacancy_incomplete": "Please complete the highlighted fields before publishing this job.",
+  "deadline_past": "The application deadline must be in the future.",
+  "job_closed": "This job is closed and is no longer accepting applications.",
+  "seeker_profile_incomplete": "Fill in your headline, summary, skills or work experience on your job seeker profile before generating a CV.",
+  "cv_processing": "Your CV file is still being checked. We will try again shortly.",
+  "cv_rejected": "Your CV file couldn't be read. Please upload a valid PDF or Word (.docx) document.",
+  "cv_limit_reached": "You can save up to {{limit}} CVs on your account. Remove an older CV first.",
+  "cannot_apply_own_job": "This is your own job vacancy.",
+  "already_applied": "You have already applied for this job.",
+  "cv_required": "Choose or upload a CV before applying for this job."
 }

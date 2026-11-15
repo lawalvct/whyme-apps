@@ -6,7 +6,7 @@ import type { OutboxAction } from '@whyme/sync';
 import { isUploadRef, type PhotoRef, type PhotoUploadPayload } from '@/lib/listing-queue';
 import { cn } from '@/components/ui/cn';
 import { useT } from '@/lib/i18n';
-import { shrinkPhoto, uploadPhoto, waitForUpload } from '@/lib/uploads';
+import { shrinkPhoto, uploadPhoto, waitForUpload, type UploadPurpose } from '@/lib/uploads';
 import styles from './SellerWorkspace.module.css';
 
 /** `waiting`: picked without a connection; kept on this device and sent with the draft (OFF05). */
@@ -63,7 +63,13 @@ const identity = (list: PhotoItem[]) => list.filter((i) => i.state !== 'failed')
  * the browser first), and the form saves only the upload IDs in display order.
  * `restored` reopens an offline draft's tiles, including photos still waiting to upload.
  */
-export function usePhotoList(initial: readonly OwnerPhoto[], limit: number, single = false, restored?: PhotoItem[]) {
+export function usePhotoList(
+  initial: readonly OwnerPhoto[],
+  limit: number,
+  single = false,
+  restored?: PhotoItem[],
+  purpose: UploadPurpose = 'listing_photo',
+) {
   const api = useApi();
   // A restored draft's photos are shown from the copies kept on this device.
   const [start] = useState(() => {
@@ -92,7 +98,7 @@ export function usePhotoList(initial: readonly OwnerPhoto[], limit: number, sing
       patch(key, { state: 'uploading' });
       let arrived = false;
       try {
-        let upload = await uploadPhoto(file, key);
+        let upload = await uploadPhoto(file, key, purpose);
         arrived = true;
         patch(key, { id: upload.id, state: upload.status === 'processing' ? 'processing' : upload.status === 'ready' ? 'ready' : 'rejected' });
         if (upload.status === 'processing') upload = await waitForUpload(api, upload.id);
@@ -106,7 +112,7 @@ export function usePhotoList(initial: readonly OwnerPhoto[], limit: number, sing
         patch(key, { state: isConnectionError(e) ? 'waiting' : 'failed' });
       }
     },
-    [api, patch],
+    [api, patch, purpose],
   );
 
   /** Replaces the list with what the server has (after loading or saving). */

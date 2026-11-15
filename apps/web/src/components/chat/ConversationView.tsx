@@ -292,7 +292,11 @@ function Header({ conversation }: { conversation: Conversation }) {
   const href =
     subject.type === 'listing'
       ? routes.listing({ id: subject.id })
-      : routes.profile({ id: subject.id });
+      : subject.type === 'service_request'
+        ? routes.request(subject.id)
+        : subject.type === 'job_application'
+          ? routes.application(subject.id)
+          : routes.profile({ id: subject.id });
 
   const body = (
     <>

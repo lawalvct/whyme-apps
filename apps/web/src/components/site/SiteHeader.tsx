@@ -5,7 +5,19 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { chatKeys, orderKeys, queryKeys, savedKeys, sellerKeys, useApi, useOrderCounts, useUnreadMessages } from '@whyme/data';
+import {
+  chatKeys,
+  jobKeys,
+  orderKeys,
+  queryKeys,
+  requestKeys,
+  savedKeys,
+  sellerKeys,
+  useApi,
+  useOrderCounts,
+  useServiceRequestCounts,
+  useUnreadMessages,
+} from '@whyme/data';
 import { isSupportedLanguage, languages } from '@whyme/i18n';
 import { useSignOutGuard } from '@/components/auth/SignOutGuard';
 import { buttonClass } from '@/components/ui/button';
@@ -91,6 +103,7 @@ export function SiteHeader() {
             <div className={styles.categoryMenu}>
               <Link href={routes.search({ kind: 'product' })}><Icon name="bag" />{t('products')}</Link>
               <Link href={routes.search({ kind: 'service' })}><Icon name="tools" />{t('services')}</Link>
+              <Link href={routes.jobs()}><Icon name="list" />{t('jobs')}</Link>
               <Link href={routes.search({ type: 'people', kind: 'business' })}><Icon name="shop" />{t('businesses')}</Link>
               <Link href={routes.search({ type: 'people', kind: 'provider' })}><Icon name="user" />{t('providers')}</Link>
             </div>
@@ -99,6 +112,7 @@ export function SiteHeader() {
             <Link href={routes.home} aria-current={pathname === '/' ? 'page' : undefined}>{t('home')}</Link>
             <Link href={routes.search({ kind: 'product' })}>{t('products')}</Link>
             <Link href={routes.search({ kind: 'service' })}>{t('services')}</Link>
+            <Link href={routes.jobs()} aria-current={pathname.startsWith('/jobs') ? 'page' : undefined}>{t('jobs')}</Link>
             <Link href={routes.search({ type: 'people', kind: 'business' })}>{t('businesses')}</Link>
             <Link href={routes.search({ type: 'people', kind: 'provider' })}>{t('providers')}</Link>
           </div>
@@ -182,13 +196,15 @@ function AccountArea({
     await forgetAccountOnThisDevice();
     // Leaving a private page (seller centre, messages): a full load of the home page drops
     // everything the account had in memory (and beats those pages' own sign-in redirect).
-    if ([routes.sell, routes.messages, routes.orders(), routes.saved, '/checkout'].some((path) => window.location.pathname.startsWith(path))) {
+    if ([routes.sell, routes.messages, routes.orders(), routes.requests(), routes.saved, '/checkout'].some((path) => window.location.pathname.startsWith(path))) {
       window.location.assign(routes.home);
       return;
     }
     queryClient.removeQueries({ queryKey: sellerKeys.all });
     queryClient.removeQueries({ queryKey: chatKeys.all });
     queryClient.removeQueries({ queryKey: orderKeys.all });
+    queryClient.removeQueries({ queryKey: requestKeys.all });
+    queryClient.removeQueries({ queryKey: jobKeys.all });
     queryClient.removeQueries({ queryKey: savedKeys.all });
     queryClient.setQueryData(queryKeys.me, null);
     await queryClient.invalidateQueries({ queryKey: queryKeys.me });
@@ -201,6 +217,7 @@ function AccountArea({
       <SavedLink />
       <MessagesLink enabled={Boolean(user.phone_verified_at)} />
       <OrdersLink enabled={Boolean(user.phone_verified_at)} />
+      <RequestsLink enabled={Boolean(user.phone_verified_at)} />
       <Link href={routes.sell} className={buttonClass('ghost', 'min-h-11 px-3 text-sm')}>
         {sellerLabel}
       </Link>
@@ -230,6 +247,29 @@ function OrdersLink({ enabled }: { enabled: boolean }) {
         <path d="M9 8V6a3 3 0 0 1 6 0v2" />
       </svg>
       <span className="hidden md:inline">{t('orders')}</span>
+      {waiting > 0 ? (
+        <span className="absolute top-1 right-1 min-w-5 rounded-full bg-accent px-1.5 text-center text-xs font-bold text-text">
+          {waiting > 99 ? '99+' : waiting}
+        </span>
+      ) : null}
+    </Link>
+  );
+}
+
+/** Service requests requested and received, with how many wait for you. */
+function RequestsLink({ enabled }: { enabled: boolean }) {
+  const { t } = useT('requests');
+  const counts = useServiceRequestCounts(enabled).data;
+  const waiting = (counts?.provider ?? 0) + (counts?.customer ?? 0);
+
+  return (
+    <Link
+      href={routes.requests(counts && counts.provider > 0 && counts.customer === 0 ? 'received' : undefined)}
+      aria-label={waiting > 0 ? t('requestsWaiting', { count: waiting }) : t('requestsTitle')}
+      className={buttonClass('ghost', 'relative min-h-11 px-3 text-sm')}
+    >
+      <Icon name="tools" className="size-5" />
+      <span className="hidden lg:inline">{t('requests')}</span>
       {waiting > 0 ? (
         <span className="absolute top-1 right-1 min-w-5 rounded-full bg-accent px-1.5 text-center text-xs font-bold text-text">
           {waiting > 99 ? '99+' : waiting}

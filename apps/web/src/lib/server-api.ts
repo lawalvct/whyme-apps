@@ -104,7 +104,7 @@ export async function getLatestProfiles(kind: 'business' | 'provider'): Promise<
 
 export async function getTaxonomy(): Promise<Taxonomy | null> {
   'use cache';
-  cacheLife('hours');
+  cacheLife('minutes');
   cacheTag('taxonomy');
 
   try {

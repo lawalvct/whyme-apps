@@ -34,14 +34,16 @@ export async function shrinkPhoto(file: File): Promise<Blob> {
   return blob ?? file;
 }
 
+export type UploadPurpose = 'listing_photo' | 'request_photo' | 'cv_document';
+
 /**
  * POST /v1/uploads as multipart. The typed client only sends JSON, so this
  * uses fetch with the same cookie session and headers. Returns at once with
  * `status: processing`; `waitForUpload` follows it until it's ready.
  */
-export async function uploadPhoto(photo: Blob, clientId: string): Promise<Upload> {
+export async function uploadPhoto(photo: Blob, clientId: string, purpose: UploadPurpose = 'listing_photo'): Promise<Upload> {
   const form = new FormData();
-  form.append('purpose', 'listing_photo');
+  form.append('purpose', purpose);
   form.append('client_id', clientId);
   form.append('file', photo, photo instanceof File ? photo.name : 'photo.jpg');
 
@@ -53,6 +55,10 @@ export async function uploadPhoto(photo: Blob, clientId: string): Promise<Upload
   });
   const body: unknown = await response.json().catch(() => null);
   return unwrap({ data: (body as { data?: Upload } | null)?.data, error: body, response });
+}
+
+export async function uploadCvDocument(file: File, clientId: string): Promise<Upload> {
+  return uploadPhoto(file, clientId, 'cv_document');
 }
 
 /** Polls GET /me/uploads/{id} until the photo is ready or rejected (about a minute at most). */

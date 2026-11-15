@@ -2,9 +2,11 @@ import { createHttpTransport, SyncEngine } from '@whyme/sync';
 import { DexieOutboxStore } from '@whyme/sync/dexie';
 import { createSyncController } from '@whyme/data';
 import { API_BASE_URL, appHeaders } from './api';
+import { applicationRoutes } from './application-queue';
 import { chatRoutes } from './chat-routes';
 import { listingRoutes } from './listing-queue';
 import { profileRoutes } from './profile-queue';
+import { requestRoutes } from './request-queue';
 import { LocalDb } from './local-db';
 
 /**
@@ -33,6 +35,10 @@ export function createWebSync(accountId: string) {
         ...chatRoutes,
         // Business and provider pages saved offline (lib/profile-queue.ts).
         ...profileRoutes,
+        // Service requests and photos queued offline (lib/request-queue.ts).
+        ...requestRoutes,
+        // Job applications and CV uploads queued offline (lib/application-queue.ts).
+        ...applicationRoutes,
       },
     }),
   });
