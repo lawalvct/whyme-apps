@@ -195,7 +195,10 @@ function CompanyProfileSection() {
               : t('freeJobUsedTitle')}
           </strong>
           {' — '}
-          {entitlement.free_job_available ? t('freeJobBannerBody') : t('freeJobUsedBody')}
+          {entitlement.free_job_available ? t('freeJobBannerBody') : t('freeJobUsedBody')}{' '}
+          <Link href={routes.sellBilling} className="font-semibold text-primary hover:underline">
+            {t('buyJobPosts')}
+          </Link>
         </Notice>
       ) : null}
 

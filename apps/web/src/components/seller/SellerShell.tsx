@@ -38,6 +38,7 @@ export function SellerShell({ children }: { children: ReactNode }) {
     ...(caps.provider ? [{ href: routes.requests('received'), label: t('navRequests'), icon: 'tools' as const, exact: false }] : []),
     { href: routes.sellJobs, label: t('navEmployer'), icon: 'user' as const, exact: false },
     ...(caps.vendor || caps.provider ? [{ href: routes.sellPayouts, label: t('navPayouts'), icon: 'wallet' as const, exact: false }] : []),
+    { href: routes.sellBilling, label: t('navBilling'), icon: 'sparkle' as const, exact: false },
   ];
 
   return (

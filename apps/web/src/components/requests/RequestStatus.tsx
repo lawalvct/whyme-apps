@@ -28,8 +28,8 @@ export function requestEventLabel(
   event: { to: string; actor: string; quote_version?: number | null; amount_kobo?: number | null },
 ): string {
   const options =
-    event.quote_version != null && event.amount_kobo != null
-      ? { version: event.quote_version, amount: formatNaira(event.amount_kobo) }
+    event.amount_kobo != null
+      ? { version: event.quote_version ?? undefined, amount: formatNaira(event.amount_kobo) }
       : undefined;
   return optional(t, `event.${event.to}`, options) ?? event.to;
 }

@@ -324,5 +324,9 @@
   "deadlineBuyer": "Please confirm, or report a problem, by {{date}}.",
   "deadlineSeller": "The buyer has until {{date}} to confirm or report a problem.",
   "deadlineOverdueBuyer": "The deadline to confirm has passed. WHY ME is looking at this order and may contact you. Confirm now, or report a problem.",
-  "deadlineOverdueSeller": "The buyer hasn't answered by the deadline. WHY ME is looking at this order and will contact the buyer. Nothing is released automatically."
+  "deadlineOverdueSeller": "The buyer hasn't answered by the deadline. WHY ME is looking at this order and will contact the buyer. Nothing is released automatically.",
+  "serviceFulfilmentTitle": "Service agreement",
+  "serviceFulfilmentNote": "Agreed scope from service request {{number}}.",
+  "viewServiceRequest": "View service request ({{number}})",
+  "messageProvider": "Message provider"
 }

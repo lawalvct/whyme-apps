@@ -27,7 +27,7 @@ const searchParams = {
 
 type Filters = { kind?: string; category_id?: number; location_id?: number; min_price?: number; max_price?: number };
 type Page =
-  | { type: 'offers'; items: PublicListing[]; next: string | null; categories: { id: number; slug: string }[] }
+  | { type: 'offers'; items: PublicListing[]; next: string | null; categories: { id: number; slug: string }[]; sponsored?: PublicListing[] }
   | { type: 'people'; items: PublicProfile[]; next: string | null; categories: { id: number; slug: string }[] };
 
 function nextParam(next: string | null | undefined): string | null {
@@ -73,7 +73,8 @@ export function SearchView() {
         const kindFilter = filters.kind as 'product' | 'service' | undefined;
         if (q.length >= 2) {
           const body = unwrap(await api.GET('/v1/search/listings', { params: { query: { q, ...filters, kind: kindFilter, page } } }));
-          return { type: 'offers', items: body.data, next: body.links.next, categories: body.categories };
+          // Featured listings come in their own slot, never mixed into the ranked results (MON05).
+          return { type: 'offers', items: body.data, next: body.links.next, categories: body.categories, sponsored: body.sponsored as PublicListing[] };
         }
         // Cursor is omitted from the generated browse request type.
         const query = { ...filters, kind: kindFilter, cursor: pageParam ?? undefined };
@@ -102,6 +103,8 @@ export function SearchView() {
   const pages = offline ? [] : (results.data?.pages ?? []);
   const items = offline ? keptMatches : pages.flatMap((page): Array<PublicListing | PublicProfile> => page.items);
   const suggested = pages[0]?.categories ?? [];
+  const firstPage = pages[0];
+  const sponsored = firstPage?.type === 'offers' ? (firstPage.sponsored ?? []) : [];
   const activeCount = Number(Boolean(kind)) + Number(state.category_id !== null) + Number(state.location_id !== null) + Number(minPrice !== null || maxPrice !== null);
   const resetPatch = { kind: null, category_id: null, location_id: null, min_price: null, max_price: null };
   const updateFilters = (patch: SearchFilterPatch) => { void setState(patch); };
@@ -146,6 +149,12 @@ export function SearchView() {
           {chips.length > 0 && <div className={styles.activeFilters} aria-label={t('searchActiveFilters')}>{chips.map((chip) => <button type="button" key={chip.key} onClick={chip.remove} aria-label={t('searchRemoveFilter', { filter: chip.label })}><span>{chip.label}</span><Icon name="close" /></button>)}<button type="button" className={styles.clearAll} onClick={clearAll}>{t('searchClearAll')}</button></div>}
 
           {suggested.length > 0 && <div className={styles.suggestions}><span>{t('matchingCategories')}:</span>{suggested.map((value) => <button key={value.id} type="button" onClick={() => updateFilters({ category_id: value.id })}>{categoryLabel(taxonomy?.categories.find((category) => category.id === value.id), language) ?? value.slug}<Icon name="arrow" /></button>)}</div>}
+          {!offline && sponsored.length > 0 && (
+            <section aria-label={t('sponsored')} className="mb-6 flex flex-col gap-3 rounded-2xl border border-border bg-accent-soft p-3">
+              <div className="flex flex-wrap items-baseline gap-2"><h3 className="text-sm font-bold uppercase tracking-wide text-accent-text">{t('sponsored')}</h3><p className="text-xs text-text-muted">{t('sponsoredHint')}</p></div>
+              <div className={styles.resultsGrid} data-layout={view} data-type="offers">{sponsored.map((listing) => <SearchListingCard key={`sponsored-${listing.id}`} listing={listing} list={view === 'list'} />)}</div>
+            </section>
+          )}
 
           {offline ? <OfflineResults type={state.type} kept={kept} matches={keptMatches} view={view} />
             : q.length === 1 ? <SearchMessage icon="search" title={t('searchKeepTyping')} body={t('searchMinimumQuery')} />

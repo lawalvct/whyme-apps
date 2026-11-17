@@ -16,8 +16,9 @@ import {
 import { errorKey } from '@whyme/i18n';
 import { useStartConversation } from '@/components/chat/useStartConversation';
 import { PhotoGallery } from '@/components/market/PhotoGallery';
+import { PaymentMethods } from '@/components/payments/PaymentMethods';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Button, buttonClass } from '@/components/ui/button';
 import { TextAreaField, TextField } from '@/components/ui/field';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatNaira, koboToNaira, nairaToKobo, routes } from '@/lib/format';
@@ -211,6 +212,33 @@ export function RequestView({ id }: { id: string }) {
     }
   }
 
+  async function payAgreedQuote() {
+    if (!item || inFlight.current) return;
+    inFlight.current = true;
+    setBusy(true);
+    setError(null);
+    try {
+      const result = unwrap(
+        await api.POST('/v1/requests/{serviceRequest}/pay', {
+          params: { path: { serviceRequest: item.id } },
+          body: {},
+          headers: { 'Idempotency-Key': crypto.randomUUID() },
+        }),
+      ).data;
+      if (result.checkout_url) {
+        window.location.assign(result.checkout_url);
+        return;
+      }
+      queryClient.setQueryData(requestKeys.request(id), result.request);
+      void queryClient.invalidateQueries({ queryKey: requestKeys.all });
+    } catch (e) {
+      handleConflictOrError(e);
+    } finally {
+      inFlight.current = false;
+      setBusy(false);
+    }
+  }
+
   if (request.isPending) {
     return (
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
@@ -282,6 +310,8 @@ export function RequestView({ id }: { id: string }) {
       <StatusBanner request={item} />
 
       <QuotesSection request={item} busy={busy} onSendQuote={sendQuote} onActOnQuote={actOnQuote} />
+
+      <ProtectedPaymentSection request={item} busy={busy} onPay={payAgreedQuote} />
 
       {item.role === 'provider' ? (
         <ProviderActions request={item} busy={busy} onAction={runAction} />
@@ -906,7 +936,9 @@ function CustomerActions({
   const [cancelNote, setCancelNote] = useState('');
 
   const canConfirm = request.status === 'completion_submitted';
-  const canCancel = request.status === 'held' || request.status === 'submitted' || request.status === 'accepted';
+  const canCancel =
+    !request.order?.paid_at &&
+    (request.status === 'held' || request.status === 'submitted' || request.status === 'accepted');
 
   if (!canConfirm && !canCancel) return null;
 
@@ -974,6 +1006,84 @@ function CustomerActions({
         </section>
       ) : null}
     </div>
+  );
+}
+
+function ProtectedPaymentSection({
+  request,
+  busy,
+  onPay,
+}: {
+  request: ServiceRequest;
+  busy: boolean;
+  onPay: () => Promise<void>;
+}) {
+  const { t } = useT('requests');
+  const { t: tOrders } = useT('orders');
+
+  if (request.agreed_amount_kobo === null) return null;
+  if (request.status === 'cancelled' || request.status === 'declined' || request.status === 'rejected') {
+    return null;
+  }
+
+  const amount = formatNaira(request.agreed_amount_kobo);
+  const order = request.order;
+  const paid = Boolean(order?.paid_at);
+
+  if (!paid) {
+    if (request.role !== 'customer') return null;
+
+    return (
+      <section className="flex flex-col gap-3 rounded-2xl border border-primary/35 bg-primary-soft/35 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-bold text-text">{t('protectedPaymentTitle')}</h2>
+          <Badge tone="accent">{tOrders('funds.awaiting_collection')}</Badge>
+        </div>
+        <p className="text-sm text-text">
+          {t('protectedPaymentUnpaidBody', { amount, provider: request.other_party.name })}
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="button" disabled={busy} onClick={() => void onPay()}>
+            {busy ? t('openingPayment') : t('payAgreedAmount', { amount })}
+          </Button>
+          {order ? (
+            <Link href={routes.order(order.id)} className={buttonClass('secondary', 'min-h-9 px-3 text-xs')}>
+              {t('viewProtectedOrder', { number: order.number })}
+            </Link>
+          ) : null}
+        </div>
+        <PaymentMethods />
+      </section>
+    );
+  }
+
+  const fundsState = order?.funds_state ?? 'held';
+  const released = fundsState === 'released' || fundsState === 'payout_reserved';
+  const releaseEligible = fundsState === 'release_eligible';
+
+  const body = released
+    ? t('paymentReleasedBody', { amount })
+    : releaseEligible
+      ? t('paymentReleaseEligibleBody', { amount })
+      : request.role === 'provider'
+        ? t('paymentHeldProviderBody', { customer: request.other_party.name, amount })
+        : t('paymentHeldBody', { provider: request.other_party.name, amount });
+
+  return (
+    <section className="flex flex-col gap-3 rounded-2xl border border-primary/35 bg-primary-soft/35 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-bold text-text">{t('protectedPaymentTitle')}</h2>
+        <Badge tone="primary">{tOrders(`funds.${fundsState}`)}</Badge>
+      </div>
+      <p className="text-sm text-text">{body}</p>
+      {order ? (
+        <div>
+          <Link href={routes.order(order.id)} className={buttonClass('secondary', 'min-h-9 px-3 text-xs')}>
+            {t('viewProtectedOrder', { number: order.number })}
+          </Link>
+        </div>
+      ) : null}
+    </section>
   );
 }
 

@@ -574,13 +574,17 @@ function MessageSeller({ order }: { order: Order }) {
   const startConversation = useStartConversation();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  if (!order.listing_id) return null;
+  if (!order.listing_id && !order.service_request_id) return null;
 
   async function open() {
     setBusy(true);
     setError(null);
     try {
-      await startConversation({ type: 'listing', id: order.listing_id! });
+      if (order.service_request_id) {
+        await startConversation({ type: 'service_request', id: order.service_request_id });
+      } else if (order.listing_id) {
+        await startConversation({ type: 'listing', id: order.listing_id });
+      }
     } catch (e) {
       setError(t(errorKey(e instanceof ApiRequestError ? e.code : 'network_error')));
       setBusy(false);
@@ -590,7 +594,7 @@ function MessageSeller({ order }: { order: Order }) {
   return (
     <div className="flex flex-col gap-1">
       <Button variant="secondary" disabled={busy} onClick={() => void open()} className="self-start">
-        {busy ? t('common:loading') : t('messageSeller')}
+        {busy ? t('common:loading') : t(order.kind === 'service' ? 'messageProvider' : 'messageSeller')}
       </Button>
       {error ? (
         <p role="alert" className="text-sm text-danger">
@@ -635,7 +639,19 @@ function Fulfilment({ order }: { order: Order }) {
   const { t } = useT('orders');
   return (
     <section className="rounded-2xl border border-border p-4 text-sm">
-      {order.fulfilment_method === 'delivery' && order.delivery ? (
+      {order.fulfilment_method === 'service' ? (
+        <>
+          <h2 className="mb-1 text-base font-bold">{t('serviceFulfilmentTitle')}</h2>
+          {order.service_request_number ? (
+            <p className="text-xs text-text-muted">
+              {t('serviceFulfilmentNote', { number: order.service_request_number })}
+            </p>
+          ) : null}
+          {order.agreed_scope ? (
+            <p className="mt-2 whitespace-pre-line">{order.agreed_scope}</p>
+          ) : null}
+        </>
+      ) : order.fulfilment_method === 'delivery' && order.delivery ? (
         <>
           <h2 className="mb-2 text-base font-bold">{t('deliveryTo')}</h2>
           <p>{order.delivery.address}</p>
@@ -648,12 +664,21 @@ function Fulfilment({ order }: { order: Order }) {
           <p className="text-text-muted">{t('pickupNote')}</p>
         </>
       )}
-      <ReturnsPolicy terms={order.refund_policy} label={t('returnsAgreed')} className="mt-3" />
-      {order.listing_id ? (
-        <Link href={routes.listing({ id: order.listing_id })} className="mt-3 inline-block font-semibold text-primary hover:underline">
-          {t('viewItem')}
-        </Link>
+      {order.kind === 'product' ? (
+        <ReturnsPolicy terms={order.refund_policy} label={t('returnsAgreed')} className="mt-3" />
       ) : null}
+      <div className="mt-3 flex flex-wrap gap-4">
+        {order.service_request_id ? (
+          <Link href={routes.request(order.service_request_id)} className="inline-block font-semibold text-primary hover:underline">
+            {t('viewServiceRequest', { number: order.service_request_number ?? order.number })}
+          </Link>
+        ) : null}
+        {order.listing_id ? (
+          <Link href={routes.listing({ id: order.listing_id })} className="inline-block font-semibold text-primary hover:underline">
+            {t('viewItem')}
+          </Link>
+        ) : null}
+      </div>
     </section>
   );
 }

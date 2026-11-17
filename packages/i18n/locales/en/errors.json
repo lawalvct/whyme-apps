@@ -77,5 +77,9 @@
   "cv_limit_reached": "You can save up to {{limit}} CVs on your account. Remove an older CV first.",
   "cannot_apply_own_job": "This is your own job vacancy.",
   "already_applied": "You have already applied for this job.",
-  "cv_required": "Choose or upload a CV before applying for this job."
+  "cv_required": "Choose or upload a CV before applying for this job.",
+  "price_mismatch": "The price changed. Check the new price and try again.",
+  "billing_surface_not_allowed": "Buy this on the WHY ME website.",
+  "purchase_already_paid": "This purchase is already paid.",
+  "purchase_cancelled": "This purchase was cancelled. Start a new one."
 }

@@ -348,5 +348,105 @@
     "waitingPublish": "Your changes are saved on this device. They will be sent and published when you're back online.",
     "publishQueued": "Publishes when sent",
     "sentPage": "Sent. Your page is saved."
-  }
+  },
+  "navBilling": "Business Center",
+  "billing": {
+    "title": "Business Center",
+    "intro": "Grow on WHY ME with Pro plans, featured listings and job posts. You pay through Paystack, and nothing renews by itself.",
+    "loadFailed": "Couldn't load your plans. Check your connection and try again.",
+    "sku": {
+      "vendor_pro_30d": "Vendor Pro, 30 days",
+      "provider_pro_30d": "Service Provider Pro, 30 days",
+      "featured_listing_7d": "Featured listing, 7 days",
+      "featured_listing_30d": "Featured listing, 30 days",
+      "job_standard_30d": "Job post, 30 days",
+      "job_featured_30d": "Featured job post, 30 days"
+    },
+    "plans": {
+      "title": "Your plans",
+      "hint": "Pro raises how many listings can be live at once and how many photos each one can have.",
+      "vendor": "Selling products",
+      "provider": "Offering services",
+      "basic": "Free plan",
+      "pro": "Pro",
+      "proUntil": "Pro until {{date}}",
+      "usage": "{{used}} of {{cap}} listings live",
+      "compare": "Free plan: {{basic}} live listings. Pro: {{pro}}.",
+      "photos": "Up to {{count}} photos per listing",
+      "buy": "Get Pro for 30 days · {{price}}",
+      "extend": "Add 30 days · {{price}}",
+      "extendHint": "The extra days start after your current end date.",
+      "overLimit_one": "{{count}} listing is paused because it's above your plan's limit.",
+      "overLimit_other": "{{count}} listings are paused because they're above your plan's limit.",
+      "choose": "Choose which stay live",
+      "none": "Start selling products or offering services to use Pro plans and featured listings."
+    },
+    "keep": {
+      "title": "Which listings stay live?",
+      "hint_product": "Your plan allows {{cap}} live product listings. The others are paused, never deleted, and you can swap them any time.",
+      "hint_service": "Your plan allows {{cap}} live service listings. The others are paused, never deleted, and you can swap them any time.",
+      "selected": "{{count}} of {{cap}} chosen",
+      "full": "You've chosen as many as your plan allows. Untick one to pick another.",
+      "save": "Save my choice",
+      "saved": "Saved: {{kept}} live, {{paused}} paused.",
+      "live": "Live",
+      "review": "Being checked",
+      "paused": "Paused",
+      "none": "No listings to choose from.",
+      "close": "Close"
+    },
+    "featured": {
+      "title": "Featured listings",
+      "hint": "A featured listing shows in a separate \"Sponsored\" row at the top of search. It ends by itself.",
+      "listing": "Listing",
+      "chooseListing": "Choose a listing",
+      "duration": "How long",
+      "days": "{{count}} days · {{price}}",
+      "buy": "Feature it · {{price}}",
+      "noListings": "You have no live listings to feature yet.",
+      "history": "Your featured listings",
+      "active": "Featured until {{date}}",
+      "pending": "Starts when WHY ME approves the listing",
+      "expired": "Ended {{date}}",
+      "cancelled": "Cancelled"
+    },
+    "jobs": {
+      "title": "Job posts",
+      "hint": "Your first standard job post is free for {{days}} days. After that, each vacancy needs a job post.",
+      "free": "Free job post available",
+      "freeUsed": "Free job post used",
+      "standard_one": "{{count}} job post to use",
+      "standard_other": "{{count}} job posts to use",
+      "featured_one": "{{count}} featured job post to use",
+      "featured_other": "{{count}} featured job posts to use",
+      "buyStandard": "Buy a job post · {{price}}",
+      "buyFeatured": "Buy a featured job post · {{price}}",
+      "useHint": "Job posts are used when you publish a vacancy in the Employer centre. A featured post shows the vacancy at the top of job search.",
+      "needEmployer": "Set up your employer page first, then buy job posts.",
+      "setUp": "Go to the Employer centre"
+    },
+    "history": {
+      "title": "Purchases",
+      "empty": "No purchases yet.",
+      "paid": "Paid",
+      "awaiting": "Waiting for payment",
+      "cancelled": "Cancelled",
+      "for": "For: {{title}}",
+      "check": "Check payment",
+      "payNow": "Pay now"
+    },
+    "pay": {
+      "redirecting": "Taking you to Paystack…",
+      "priceChanged": "The price has changed to {{price}}. Check it and try again."
+    },
+    "return": {
+      "checking": "Checking your payment with Paystack…",
+      "paid": "Paid: {{item}}. It's on your account now.",
+      "pending": "Your bank is still confirming the payment. This page updates when it is done.",
+      "failed": "The payment didn't go through, so nothing was charged. You can try again.",
+      "unknown": "We couldn't check the payment just now. Use \"Check payment\" under Purchases in a moment."
+    }
+  },
+  "listingFeaturedUntil": "Featured until {{date}}",
+  "featureListing": "Feature"
 }

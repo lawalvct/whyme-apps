@@ -195,7 +195,8 @@
     "rejected": "Refused by moderator",
     "quote_sent": "Quote v{{version}} sent ({{amount}})",
     "quote_accepted": "Quote v{{version}} accepted ({{amount}})",
-    "quote_declined": "Quote v{{version}} revision requested ({{amount}})"
+    "quote_declined": "Quote v{{version}} revision requested ({{amount}})",
+    "paid": "Paid into WHY ME protection ({{amount}})"
   },
   "by": {
     "customer": "by the customer",
@@ -204,5 +205,14 @@
     "system": ""
   },
   "editOfflineDraft": "Edit request",
-  "discardOfflineDraft": "Discard"
+  "discardOfflineDraft": "Discard",
+  "protectedPaymentTitle": "WHY ME Protected Payment",
+  "protectedPaymentUnpaidBody": "Pay the agreed {{amount}} through WHY ME. We hold your money safely until {{provider}} completes the job and you confirm.",
+  "payAgreedAmount": "Pay {{amount}} with WHY ME protection",
+  "openingPayment": "Opening secure payment…",
+  "paymentHeldBody": "{{amount}} is paid and held by WHY ME. It will only be released to {{provider}} after you confirm the work is complete.",
+  "paymentHeldProviderBody": "{{customer}} has paid {{amount}} into WHY ME protection. WHY ME holds it and releases it to you once the customer confirms the work is complete.",
+  "paymentReleaseEligibleBody": "Work confirmed complete. {{amount}} is ready for WHY ME to release to the provider.",
+  "paymentReleasedBody": "{{amount}} has been released to the provider.",
+  "viewProtectedOrder": "View protected order ({{number}})"
 }

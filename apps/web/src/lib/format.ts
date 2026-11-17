@@ -69,6 +69,9 @@ export const routes = {
   newVacancy: '/sell/jobs/new',
   editVacancy: (id: string) => `/sell/jobs/${id}`,
   sellPayouts: '/sell/payouts',
+  /** The Business Center: Pro plans, featured listings, job posts (PAY03). */
+  sellBilling: '/sell/billing',
+  featureListing: (listingId: string) => `/sell/billing?feature=${encodeURIComponent(listingId)}#featured`,
   sellProfile: (kind: 'business' | 'provider') => `/sell/profile/${kind}`,
   sellListings: (status?: string) => (status ? `/sell/listings?status=${status}` : '/sell/listings'),
   newListing: (kind: 'product' | 'service') => `/sell/listings/new?kind=${kind}`,

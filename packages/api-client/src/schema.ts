@@ -294,6 +294,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/billing/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["v1.billing.catalog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/billing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["v1.me.billing.overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/billing/purchases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["v1.me.billing.purchases.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/billing/purchases/{purchase}/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["v1.me.billing.purchases.check"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/billing/keep-listings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["v1.me.billing.keep-listings"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/broadcasting/auth": {
         parameters: {
             query?: never;
@@ -1688,6 +1768,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/requests/{serviceRequest}/pay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Customer: open protected checkout for the agreed quote amount on this service request (ORD05, JRN02).
+         *     Creates or reuses the linked protected order (`kind = service`) and returns Paystack's `checkout_url`
+         */
+        post: operations["requests.pay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/sitemap": {
         parameters: {
             query?: never;
@@ -1889,6 +1989,12 @@ export interface components {
             is_default?: boolean;
         };
         /**
+         * BillingSku
+         * @description Digital feature SKUs sold on the website Business Center (MON01–MON03, PAY03, PAY09).
+         * @enum {string}
+         */
+        BillingSku: "vendor_pro_30d" | "provider_pro_30d" | "featured_listing_7d" | "featured_listing_30d" | "job_standard_30d" | "job_featured_30d";
+        /**
          * Capability
          * @description Selling, service and employer features are added to the one account (ACC01, ACC07). Buying, requesting services and applying need no capability.
          * @enum {string}
@@ -1976,6 +2082,17 @@ export interface components {
             } | null;
             unread_count: number;
             created_at: string | null;
+        };
+        /** CreateBillingPurchaseRequest */
+        CreateBillingPurchaseRequest: {
+            sku: components["schemas"]["BillingSku"];
+            listing_id?: string | null;
+            vacancy_id?: string | null;
+            expected_price_kobo?: number | null;
+            /** @enum {string|null} */
+            gateway?: "paystack" | "flutterwave" | "nomba" | null;
+            /** Format: uuid */
+            client_id?: string | null;
         };
         /** CvResource */
         CvResource: {
@@ -2089,6 +2206,11 @@ export interface components {
             locale?: "en" | "ig" | null;
             is_default?: boolean;
         };
+        /** KeepListingsRequest */
+        KeepListingsRequest: {
+            kind: components["schemas"]["ListingKind"];
+            listing_ids: string[];
+        };
         /**
          * ListingKind
          * @enum {string}
@@ -2171,6 +2293,10 @@ export interface components {
             kind: "product" | "service";
             title: string;
             listing_id: string | null;
+            service_request_id: string | null;
+            service_request_number: string | null;
+            agreed_scope: string | null;
+            quote_version: number | null;
             thumb: string | null;
             /** @description The seller's approved returns policy when the order was placed. Null: standard WHY ME protection only. */
             refund_policy: {
@@ -2191,7 +2317,7 @@ export interface components {
             /** @description What the seller is owed on release. Null for the buyer. */
             seller_net_kobo: number | null;
             /** @enum {string} */
-            fulfilment_method: "pickup" | "delivery";
+            fulfilment_method: "pickup" | "delivery" | "service";
             delivery: {
                 area: string | null;
                 address: string;
@@ -2312,6 +2438,8 @@ export interface components {
             version: number;
             submitted_at: string | null;
             published_at: string | null;
+            is_featured: boolean;
+            featured_until: string | null;
             expires_at: string | null;
             created_at: string | null;
             updated_at: string | null;
@@ -2406,6 +2534,8 @@ export interface components {
             deadline_at: string;
             application_method: string;
             is_open: boolean;
+            is_featured: boolean;
+            featured_until: string | null;
             applications_count: number;
             version: number;
             submitted_at: string | null;
@@ -2523,6 +2653,8 @@ export interface components {
                 verified: boolean;
             };
             published_at: string | null;
+            is_featured: boolean;
+            featured_until: string | null;
         };
         /** PublicProfileResource */
         PublicProfileResource: {
@@ -2588,6 +2720,8 @@ export interface components {
             deadline_at: string;
             application_method: string;
             is_open: boolean;
+            is_featured: boolean;
+            featured_until: string | null;
             category: {
                 id: number;
                 slug: string;
@@ -2822,6 +2956,19 @@ export interface components {
             agreed_amount_kobo: number | null;
             agreed_scope: string | null;
             quote_accepted_at: string | null;
+            order_id: string | null;
+            order: {
+                id: string;
+                number: string;
+                total_kobo: number;
+                /** @enum {string} */
+                fulfilment_state: "awaiting_payment" | "paid" | "accepted" | "in_progress" | "dispatched" | "completion_submitted" | "completed" | "cancelled";
+                /** @enum {string} */
+                funds_state: "awaiting_collection" | "held" | "release_eligible" | "payout_reserved" | "released" | "refund_reserved" | "refunded";
+                paid_at: string | null;
+                /** @enum {string|null} */
+                payment_state: "created" | "awaiting_payment" | "pending_verification" | "succeeded" | "failed" | "cancelled" | "unknown" | "reconciliation_required" | null;
+            } | null;
             latest_quote: {
                 id: string;
                 version: number;
@@ -2880,6 +3027,8 @@ export interface components {
                 note: string | null;
                 quote_version: number | null;
                 amount_kobo: number | null;
+                order_id: string | null;
+                order_number: string | null;
                 at: string;
             }[];
         };
@@ -3092,6 +3241,7 @@ export interface components {
         /** VacancyTransitionRequest */
         VacancyTransitionRequest: {
             version: number;
+            prefer_featured?: boolean | null;
         };
         /**
          * VerifyOtpRequest
@@ -3109,6 +3259,18 @@ export interface components {
         };
     };
     responses: {
+        /** @description Unauthenticated */
+        AuthenticationException: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": {
+                    /** @description Error overview. */
+                    message: string;
+                };
+            };
+        };
         /** @description Validation error */
         ValidationException: {
             headers: {
@@ -3122,18 +3284,6 @@ export interface components {
                     errors: {
                         [key: string]: string[];
                     };
-                };
-            };
-        };
-        /** @description Unauthenticated */
-        AuthenticationException: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": {
-                    /** @description Error overview. */
-                    message: string;
                 };
             };
         };
@@ -3677,6 +3827,259 @@ export interface operations {
             401: components["responses"]["AuthenticationException"];
         };
     };
+    "v1.billing.catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            items: {
+                                sku: string;
+                                kind: string;
+                                title: string;
+                                description: string;
+                                price_kobo: number;
+                                /** @constant */
+                                currency: "NGN";
+                                term_days: string;
+                                ios_store_sku: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "v1.me.billing.overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            catalog: {
+                                sku: string;
+                                kind: string;
+                                title: string;
+                                description: string;
+                                price_kobo: number;
+                                /** @constant */
+                                currency: "NGN";
+                                term_days: string;
+                                ios_store_sku: string;
+                            }[];
+                            summary: {
+                                vendor_plan: {
+                                    /** @enum {string} */
+                                    tier: "pro" | "basic";
+                                    ends_at: string | null;
+                                    cap: number;
+                                    used: number;
+                                    basic_cap: number;
+                                    pro_cap: number;
+                                    over_limit_count: number;
+                                    max_listing_photos: number;
+                                    max_profile_photos: number;
+                                };
+                                provider_plan: {
+                                    /** @enum {string} */
+                                    tier: "pro" | "basic";
+                                    ends_at: string | null;
+                                    cap: number;
+                                    used: number;
+                                    basic_cap: number;
+                                    pro_cap: number;
+                                    over_limit_count: number;
+                                    max_listing_photos: number;
+                                    max_profile_photos: number;
+                                };
+                                jobs: {
+                                    free_job_available: boolean;
+                                    free_job_consumed_at: string | null;
+                                    free_term_days: number;
+                                    standard_credits_available: number;
+                                    featured_credits_available: number;
+                                };
+                            };
+                            subscriptions: unknown[];
+                            featured_placements: unknown[];
+                            purchases: unknown[];
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "v1.me.billing.purchases.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateBillingPurchaseRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            checkout_url: string | null;
+                            reference: string;
+                            purchase: unknown[];
+                            summary: {
+                                vendor_plan: {
+                                    /** @enum {string} */
+                                    tier: "pro" | "basic";
+                                    ends_at: string | null;
+                                    cap: number;
+                                    used: number;
+                                    basic_cap: number;
+                                    pro_cap: number;
+                                    over_limit_count: number;
+                                    max_listing_photos: number;
+                                    max_profile_photos: number;
+                                };
+                                provider_plan: {
+                                    /** @enum {string} */
+                                    tier: "pro" | "basic";
+                                    ends_at: string | null;
+                                    cap: number;
+                                    used: number;
+                                    basic_cap: number;
+                                    pro_cap: number;
+                                    over_limit_count: number;
+                                    max_listing_photos: number;
+                                    max_profile_photos: number;
+                                };
+                                jobs: {
+                                    free_job_available: boolean;
+                                    free_job_consumed_at: string | null;
+                                    free_term_days: number;
+                                    standard_credits_available: number;
+                                    featured_credits_available: number;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "v1.me.billing.purchases.check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                purchase: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            purchase: unknown[];
+                            summary: {
+                                vendor_plan: {
+                                    /** @enum {string} */
+                                    tier: "pro" | "basic";
+                                    ends_at: string | null;
+                                    cap: number;
+                                    used: number;
+                                    basic_cap: number;
+                                    pro_cap: number;
+                                    over_limit_count: number;
+                                    max_listing_photos: number;
+                                    max_profile_photos: number;
+                                };
+                                provider_plan: {
+                                    /** @enum {string} */
+                                    tier: "pro" | "basic";
+                                    ends_at: string | null;
+                                    cap: number;
+                                    used: number;
+                                    basic_cap: number;
+                                    pro_cap: number;
+                                    over_limit_count: number;
+                                    max_listing_photos: number;
+                                    max_profile_photos: number;
+                                };
+                                jobs: {
+                                    free_job_available: boolean;
+                                    free_job_consumed_at: string | null;
+                                    free_term_days: number;
+                                    standard_credits_available: number;
+                                    featured_credits_available: number;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "v1.me.billing.keep-listings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KeepListingsRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: unknown[];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "broadcast.authenticate": {
         parameters: {
             query?: never;
@@ -4064,6 +4467,8 @@ export interface operations {
                                 free_job_available: boolean;
                                 free_job_consumed_at: string | null;
                                 free_term_days: number;
+                                standard_credits_available: number;
+                                featured_credits_available: number;
                             };
                         };
                     };
@@ -4097,6 +4502,8 @@ export interface operations {
                                 free_job_available: boolean;
                                 free_job_consumed_at: string | null;
                                 free_term_days: number;
+                                standard_credits_available: number;
+                                featured_credits_available: number;
                             };
                         };
                     };
@@ -5469,6 +5876,7 @@ export interface operations {
                 location_id?: number | null;
                 min_price?: number | null;
                 max_price?: number | null;
+                featured?: boolean | null;
             };
             header?: never;
             path?: never;
@@ -5793,6 +6201,7 @@ export interface operations {
                 location_id?: number | null;
                 min_price?: number | null;
                 max_price?: number | null;
+                featured?: boolean | null;
                 q: string;
                 page?: number | null;
             };
@@ -5832,6 +6241,7 @@ export interface operations {
                             type: string;
                             name: string;
                         }[];
+                        sponsored: unknown[];
                     };
                 };
             };
@@ -6473,6 +6883,41 @@ export interface operations {
                 content: {
                     "application/json": {
                         data: components["schemas"]["ServiceRequestResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "requests.pay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                serviceRequest: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PayOrderRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            checkout_url: string | null;
+                            reference: string;
+                            order_id: string;
+                            order: components["schemas"]["OrderResource"];
+                            request: components["schemas"]["ServiceRequestResource"] & Record<string, never>;
+                        };
                     };
                 };
             };

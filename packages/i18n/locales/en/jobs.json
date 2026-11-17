@@ -219,5 +219,7 @@
   "clearSelectedCvFile": "Use saved CV instead",
   "queuedApplicationTitle": "Application saved on this device",
   "editQueuedApplication": "Edit / retry",
-  "discardQueuedApplication": "Discard draft"
+  "discardQueuedApplication": "Discard draft",
+  "preferFeatured": "Publish as featured (uses a featured job post)",
+  "buyJobPosts": "Buy job posts"
 }

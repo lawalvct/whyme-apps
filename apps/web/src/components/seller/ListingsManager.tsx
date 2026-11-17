@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { parseAsStringLiteral, useQueryState } from 'nuqs';
-import { ensureOk, sellerKeys, unwrap, useApi, useOfflineCopy, useOfflineFetcher, type OwnerListing } from '@whyme/data';
+import { ensureOk, sellerKeys, unwrap, useApi, useBillingOverview, useOfflineCopy, useOfflineFetcher, type OwnerListing } from '@whyme/data';
 import { Price } from '@/components/market/Price';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -101,6 +101,8 @@ export function ListingsManager() {
 
       <PendingDrafts onNotice={setNotice} />
 
+      <PlanLimitNotice />
+
       {copyAt ? <OfflineCopyNote at={copyAt} /> : null}
 
       {listings.isPending ? (
@@ -127,6 +129,23 @@ export function ListingsManager() {
         </Button>
       ) : null}
     </div>
+  );
+}
+
+/** Listings paused because a Pro plan ended (MON04): the seller chooses which stay live in the Business Center. */
+function PlanLimitNotice() {
+  const { t } = useT('seller');
+  const billing = useBillingOverview();
+  const summary = billing.data?.summary;
+  const count = (summary?.vendor_plan.over_limit_count ?? 0) + (summary?.provider_plan.over_limit_count ?? 0);
+  if (count === 0) return null;
+  return (
+    <Notice tone="info">
+      {t('billing.plans.overLimit', { count })}{' '}
+      <Link href={routes.sellBilling} className="font-semibold text-primary hover:underline">
+        {t('billing.plans.choose')}
+      </Link>
+    </Notice>
   );
 }
 
@@ -249,6 +268,9 @@ function ListingRow({
   const errorText = useErrorText();
   const [busy, setBusy] = useState<Action | null>(null);
   const cover = listing.photos[0]?.urls.thumb ?? null;
+  const featuredUntil = listing.featured_until
+    ? new Intl.DateTimeFormat(language === 'ig' ? 'ig-NG' : 'en-NG', { day: 'numeric', month: 'short' }).format(new Date(listing.featured_until))
+    : null;
   const updated = listing.updated_at
     ? new Intl.DateTimeFormat(language === 'ig' ? 'ig-NG' : 'en-NG', { day: 'numeric', month: 'short', year: 'numeric' }).format(
         new Date(listing.updated_at),
@@ -298,6 +320,9 @@ function ListingRow({
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge status={listing.status} />
             <span className="text-xs text-text-muted">{listing.kind === 'product' ? t('market:products') : t('market:services')}</span>
+            {listing.is_featured && featuredUntil ? (
+              <span className="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent-text">{t('listingFeaturedUntil', { date: featuredUntil })}</span>
+            ) : null}
           </div>
           <p className="truncate font-semibold text-text">{listing.title}</p>
           <Price kobo={listing.price_kobo} kind={listing.kind} className="text-sm font-semibold text-primary" />
@@ -327,6 +352,9 @@ function ListingRow({
           <>
             <ButtonLink href={routes.listing(listing)} variant="ghost" className="min-h-11 px-3 text-sm">
               {t('view')}
+            </ButtonLink>
+            <ButtonLink href={routes.featureListing(listing.id)} variant="secondary" className="min-h-11 px-4 text-sm">
+              {t('featureListing')}
             </ButtonLink>
             <Button variant="secondary" className="min-h-11 px-4 text-sm" disabled={busy !== null} onClick={() => void act('pause')}>
               {busy === 'pause' ? t('common:loading') : t('pause')}

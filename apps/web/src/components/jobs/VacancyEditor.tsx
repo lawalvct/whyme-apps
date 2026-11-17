@@ -9,6 +9,7 @@ import {
   jobKeys,
   unwrap,
   useApi,
+  useBillingOverview,
   useEmployerOverview,
   useMyVacancy,
   useTaxonomy,
@@ -52,6 +53,10 @@ export function VacancyEditor({ vacancyId }: { vacancyId?: string }) {
   const [requirementsInput, setRequirementsInput] = useState<string | null>(null);
 
   const [busy, setBusy] = useState(false);
+  // A featured job post bought in the Business Center can be used when publishing (MON03).
+  const billing = useBillingOverview();
+  const featuredCredits = billing.data?.summary.jobs.featured_credits_available ?? 0;
+  const [preferFeatured, setPreferFeatured] = useState(false);
   const [message, setMessage] = useState<{ tone: 'success' | 'error'; text: string } | null>(null);
 
   const [defaultDeadline] = useState(() => {
@@ -144,7 +149,7 @@ export function VacancyEditor({ vacancyId }: { vacancyId?: string }) {
         saved = unwrap(
           await api.POST('/v1/me/vacancies/{vacancy}/submit', {
             params: { path: { vacancy: saved.id } },
-            body: { version: saved.version },
+            body: { version: saved.version, ...(preferFeatured && featuredCredits > 0 ? { prefer_featured: true } : {}) },
           }),
         ).data;
       }
@@ -324,6 +329,13 @@ export function VacancyEditor({ vacancyId }: { vacancyId?: string }) {
             <div className="md:col-span-2">
               <Notice tone={message.tone}>{message.text}</Notice>
             </div>
+          ) : null}
+
+          {canSubmitForReview && featuredCredits > 0 && !existing?.is_featured ? (
+            <label className="flex min-h-11 items-center gap-3 md:col-span-2">
+              <input type="checkbox" className="size-5 accent-primary" checked={preferFeatured} onChange={(e) => setPreferFeatured(e.target.checked)} disabled={busy} />
+              <span className="text-sm">{t('preferFeatured')}</span>
+            </label>
           ) : null}
 
           <div className="flex flex-wrap gap-3 md:col-span-2">
