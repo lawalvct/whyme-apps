@@ -1,26 +1,22 @@
 import { Image } from 'expo-image';
-import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
-import { chatKeys, unwrap, useApi, type Conversation } from '@whyme/data';
+import type { Conversation } from '@whyme/data';
 import { AppHeader } from '@/components/app-header';
 import { Icon } from '@/components/icon';
 import { SignedOut } from '@/components/signed-out';
 import { EmptyState, ListLoading, ui } from '@/components/ui';
 import { useAccount } from '@/lib/session';
+import { useInbox } from '@/lib/chat';
 import { color, gutter, radius, space, type } from '@/theme';
 
-/** Chats with sellers, buyers and employers. Opening a chat comes in the next app update. */
+/** Chats with sellers, buyers and employers. */
 export default function MessagesScreen() {
   const { t } = useTranslation();
-  const api = useApi();
   const { status } = useAccount();
-  const inbox = useQuery({
-    queryKey: chatKeys.inbox,
-    queryFn: async () => unwrap(await api.GET('/v1/me/conversations')).data as unknown as Conversation[],
-    enabled: status === 'signed_in',
-  });
+  const inbox = useInbox(true);
 
   return (
     <SafeAreaView edges={['top']} style={styles.screen}>
@@ -32,7 +28,6 @@ export default function MessagesScreen() {
         ListHeaderComponent={
           <View style={{ gap: 2 }}>
             <Text style={type.display} accessibilityRole="header">{t('app.messages.title')}</Text>
-            {status === 'signed_in' ? <Text style={type.small}>{t('app.messages.openSoon')}</Text> : null}
           </View>
         }
         renderItem={({ item }) => <Row conversation={item} />}
@@ -49,7 +44,7 @@ function Row({ conversation }: { conversation: Conversation }) {
   const last = conversation.last_message;
   const thumb = 'thumb' in conversation.subject ? conversation.subject.thumb : null;
   return (
-    <View style={[ui.card, styles.row]}>
+    <Pressable accessibilityRole="button" accessibilityLabel={`${conversation.other_party.name}, ${conversation.subject.title}`} onPress={() => router.push({ pathname: '/chat/[id]', params: { id: conversation.id } })} style={[ui.card, styles.row]}>
       {thumb ? <Image source={{ uri: thumb }} style={styles.thumb} contentFit="cover" /> : <View style={[styles.thumb, styles.noThumb]}><Icon name="message" size={24} tint={color.green} /></View>}
       <View style={{ flex: 1, gap: 2 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
@@ -68,7 +63,7 @@ function Row({ conversation }: { conversation: Conversation }) {
           </Text>
         ) : null}
       </View>
-    </View>
+    </Pressable>
   );
 }
 

@@ -1,7 +1,7 @@
 import * as Crypto from 'expo-crypto';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -36,6 +36,8 @@ export default function ChatScreen() {
   const [draft, setDraft] = useState('');
   const [pending, setPending] = useState<Pending[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const sending = useRef(new Set<string>());
+  const submitLock = useRef(false);
 
   const items = (messages.data?.pages ?? []).flatMap((page) => page.data);
   const confirmed = new Set(items.filter((m) => m.mine && m.client_id).map((m) => m.client_id));
@@ -57,6 +59,8 @@ export default function ChatScreen() {
   }, [api, id, newestTheirs, queryClient]);
 
   async function send(body: string, clientId: string = Crypto.randomUUID()) {
+    if (sending.current.has(clientId)) return;
+    sending.current.add(clientId);
     setError(null);
     setPending((list) => [...list.filter((p) => p.clientId !== clientId), { clientId, body, state: 'sending' }]);
     try {
@@ -76,14 +80,17 @@ export default function ChatScreen() {
       // No connection or a server hiccup: shown as "Not sent", and Try again reuses the same id.
       setPending((list) => list.map((p) => (p.clientId === clientId ? { ...p, state: 'failed' } : p)));
       if (!isConnectionError(e) && !isRetryable(e)) setError(t(errorKey(e instanceof ApiRequestError ? e.code : 'network_error')));
+    } finally {
+      sending.current.delete(clientId);
     }
   }
 
   function submit() {
     const body = draft.trim();
-    if (!body || body.length > MAX_LENGTH || closed) return;
+    if (!body || body.length > MAX_LENGTH || closed || !c || submitLock.current) return;
+    submitLock.current = true;
     setDraft('');
-    void send(body);
+    void send(body).finally(() => { submitLock.current = false; });
   }
 
   return (
@@ -120,10 +127,10 @@ export default function ChatScreen() {
               </View>
             </View>
           }
-          ListEmptyComponent={messages.isPending ? <ListLoading /> : messages.isError ? <EmptyState icon="message" title={t('loadFailed')} /> : <View />}
+          ListEmptyComponent={messages.isPending ? <ListLoading /> : messages.isError ? <EmptyState icon="message" title={t('loadFailed')} /> : <EmptyState icon="message" title={t('startConversation')} />}
         />
 
-        {closed ? (
+        {!c ? null : closed ? (
           <View style={styles.closed} accessibilityRole="alert">
             <Text style={type.bodyStrong}>{t('closedNote', { reason: c?.closed_reason ?? '' })}</Text>
           </View>

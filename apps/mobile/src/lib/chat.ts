@@ -5,13 +5,15 @@ import { ApiRequestError, chatKeys, unwrap, useApi, type ApiClient, type Convers
 import { useAccount } from './session';
 
 /** The signed-in person's chats, newest first. */
-export function useInbox() {
+export function useInbox(poll = false) {
   const api = useApi();
   const { status } = useAccount();
   return useQuery({
     queryKey: chatKeys.inbox,
     queryFn: async () => unwrap(await api.GET('/v1/me/conversations')).data as unknown as Conversation[],
     enabled: status === 'signed_in',
+    refetchInterval: poll ? 15_000 : false,
+    refetchIntervalInBackground: false,
   });
 }
 

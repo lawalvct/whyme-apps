@@ -46,6 +46,7 @@ function SessionGate() {
         <Stack.Screen name="account" />
         <Stack.Screen name="notifications" />
         <Stack.Screen name="orders/[id]" />
+        <Stack.Screen name="chat/[id]" />
       </Stack>
       <SplashOverlay ready={ready} />
     </>

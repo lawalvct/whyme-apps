@@ -5,6 +5,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useOrder } from '@whyme/data';
 import { Icon } from '@/components/icon';
+import { OrderActions } from '@/components/order-actions';
+import { OrderProblem } from '@/components/order-problem';
+import { OrderPayout } from '@/components/order-payout';
+import { OrderDispute } from '@/components/order-dispute';
 import { orderStatus } from '@/components/order-card';
 import { EmptyState, IconButton, Pill, Reassurance, ui } from '@/components/ui';
 import { formatNaira } from '@/lib/format';
@@ -74,7 +78,10 @@ export default function OrderScreen() {
               </View>
             ) : null}
 
-            <Text style={[type.small, { textAlign: 'center' }]}>{t('app.orderDetail.actionsOnWeb')}</Text>
+            <OrderActions key={`${o.id}:${o.version}`} order={o} />
+            <OrderProblem order={o} />
+            <OrderDispute order={o} />
+            <OrderPayout order={o} />
           </>
         )}
       </ScrollView>

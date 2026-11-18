@@ -89,6 +89,7 @@ export default function SearchScreen() {
     <SafeAreaView edges={['top']} style={styles.screen}>
       {results.data?.listings || (results.isPending && (scope === 'product' || scope === 'service')) ? (
         <FlatList
+          key="listings-grid"
           data={results.data?.listings ?? []}
           keyExtractor={(l) => l.id}
           numColumns={2}
@@ -104,6 +105,7 @@ export default function SearchScreen() {
         />
       ) : results.data?.jobs ? (
         <FlatList
+          key="jobs-list"
           data={results.data.jobs}
           keyExtractor={(j) => j.id}
           contentContainerStyle={styles.content}
@@ -119,6 +121,7 @@ export default function SearchScreen() {
         />
       ) : (
         <FlatList
+          key="profiles-list"
           data={results.data?.profiles ?? []}
           keyExtractor={(p) => p.id}
           contentContainerStyle={styles.content}

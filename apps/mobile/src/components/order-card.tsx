@@ -3,9 +3,11 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { Order } from '@whyme/data';
+import { errorKey } from '@whyme/i18n';
 import { Icon } from '@/components/icon';
 import { Button, Pill, ui } from '@/components/ui';
 import { formatNaira } from '@/lib/format';
+import { useOrderChat } from '@/lib/chat';
 import { color, radius, space, type } from '@/theme';
 
 type Status = { label: string; tone: 'gold' | 'green' | 'grey' | 'red' };
@@ -45,6 +47,7 @@ function reached(order: Order): number {
 /** One order on the Orders tab, as in the approved design. */
 export function OrderCard({ order }: { order: Order }) {
   const { t } = useTranslation(['common', 'orders']);
+  const chat = useOrderChat(order);
   const status = orderStatus(order, t);
   const done = order.fulfilment_state === 'completed';
   const cancelled = order.fulfilment_state === 'cancelled';
@@ -118,15 +121,17 @@ export function OrderCard({ order }: { order: Order }) {
           ) : null}
           <View style={styles.actions}>
             <Button label={t('app.orders.viewOrder')} onPress={open} dense style={{ flex: 0.85 }} />
-            <Button
+            {chat.available ? <Button
               label={order.role === 'buyer' ? t('app.orders.messageSeller') : t('app.orders.messageBuyer')}
               tone="outline"
               icon="message"
-              onPress={() => router.push('/messages')}
+              onPress={() => void chat.open()}
+              busy={chat.busy}
               dense
               style={{ flex: 1.15 }}
-            />
+            /> : null}
           </View>
+          {chat.error ? <Text style={{ color: color.danger }} accessibilityRole="alert">{t(errorKey(chat.error))}</Text> : null}
         </>
       )}
     </View>
