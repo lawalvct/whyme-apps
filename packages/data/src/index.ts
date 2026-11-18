@@ -90,6 +90,18 @@ export {
 } from './offline';
 export { savedKeys, useSavedListings } from './saved';
 export {
+  markAllNotificationsRead,
+  markNotificationRead,
+  notificationKeys,
+  saveNotificationPreferences,
+  useNotificationPreferences,
+  useNotifications,
+  useUnreadNotifications,
+  type AppNotification,
+  type NotificationPreferences,
+  type NotificationPreferencesPatch,
+} from './notifications';
+export {
   billingKeys,
   checkPurchase,
   keepListingsLive,

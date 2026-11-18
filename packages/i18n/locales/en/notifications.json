@@ -1,0 +1,24 @@
+{
+  "title": "Notifications",
+  "intro": "Updates about your orders, requests, jobs and listings. They stay here even if a text never arrived.",
+  "nav": "Notifications",
+  "navUnread_one": "Notifications, {{count}} unread",
+  "navUnread_other": "Notifications, {{count}} unread",
+  "markAll": "Mark all as read",
+  "empty": "Nothing yet. Updates about your orders, requests and listings will show here.",
+  "loadFailed": "Couldn't load your notifications. Check your connection and try again.",
+  "loadMore": "Show older",
+  "unread": "Unread",
+  "settings": {
+    "title": "What we tell you about",
+    "hint": "Orders, payments, refunds and payouts are always on, so you never miss anything about your money.",
+    "requests": "Service requests and quotes",
+    "jobs": "Jobs and applications",
+    "listings": "Listings approved, needing changes or taken down",
+    "plans": "Pro plan and featured listing reminders",
+    "sms": "Text me about essential things: a new paid order, please confirm delivery, refund or payout problems",
+    "smsOff": "WHY ME isn't sending text messages yet. Everything shows here in your notifications.",
+    "saved": "Saved.",
+    "saveFailed": "Couldn't save that. Try again."
+  }
+}

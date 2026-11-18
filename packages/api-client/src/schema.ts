@@ -630,6 +630,62 @@ export interface paths {
         patch: operations["me.update"];
         trace?: never;
     };
+    "/v1/me/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Changes the password with the current one; every other session is signed out */
+        post: operations["me.password"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/deletion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Whether the account can be deleted now, and if not what must be finished first */
+        get: operations["me.deletion"];
+        put?: never;
+        /** Deletes the account (needs the password). 409 `account_deletion_blocked` lists what is still open */
+        post: operations["me.destroy"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/terms/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accepts the current Platform Terms (after sign-up, when a new version is published). The
+         *     version in the request must still be the current one: a person who was shown an older text
+         *     is told to read the new one first
+         */
+        post: operations["me.terms.accept"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me/capabilities": {
         parameters: {
             query?: never;
@@ -640,6 +696,87 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["me.capabilities.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Newest first, 20 at a time (cursor) */
+        get: operations["me.notifications.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/notifications/unread": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["me.notifications.unread"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["me.notifications.read-all"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/notifications/{notification}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["me.notifications.read"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/notification-preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["me.notification-preferences.show"];
+        put: operations["me.notification-preferences.update"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1895,6 +2032,16 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AcceptTermsRequest */
+        AcceptTermsRequest: {
+            /**
+             * @description Only the platform terms are accepted this way; seller terms go with activating selling and buyer terms with checkout.
+             * @enum {string}
+             */
+            type: "platform";
+            /** @description The version the person was shown: refused if a newer one has been published since (they must read it). */
+            version: string;
+        };
         /** ActivateCapabilityRequest */
         ActivateCapabilityRequest: {
             capability: components["schemas"]["Capability"];
@@ -2011,6 +2158,11 @@ export interface components {
             verification_state: "unverified" | "pending" | "verified" | "rejected";
             activated_at: string;
         };
+        /** ChangePasswordRequest */
+        ChangePasswordRequest: {
+            current_password: string;
+            password: string;
+        };
         /** ConfirmPhoneRequest */
         ConfirmPhoneRequest: {
             code: string;
@@ -2123,6 +2275,11 @@ export interface components {
         DeclineServiceRequestRequest: {
             version: number;
             note: string;
+        };
+        /** DeleteAccountRequest */
+        DeleteAccountRequest: {
+            /** @description The person types their password again: deletion cannot be undone. */
+            password: string;
         };
         /**
          * DevicePlatform
@@ -2254,6 +2411,21 @@ export interface components {
             status: "sent" | "held" | "rejected" | "removed";
             rejection_reason: string | null;
             created_at: string;
+        };
+        /** NotificationResource */
+        NotificationResource: {
+            id: string;
+            /** @enum {string} */
+            type: "order_paid_seller" | "order_paid_buyer" | "order_accepted" | "order_declined" | "order_dispatched" | "order_delivered" | "order_confirm_reminder" | "order_confirmed" | "order_release_queued" | "dispute_opened" | "dispute_evidence" | "dispute_decided" | "dispute_withdrawn" | "refund_sent" | "refund_needs_details" | "payout_paid" | "payout_problem" | "purchase_paid" | "request_new" | "request_rejected" | "request_accepted" | "request_declined" | "request_started" | "request_cancelled" | "quote_sent" | "quote_accepted" | "quote_declined" | "application_new" | "application_reviewing" | "application_shortlisted" | "application_accepted" | "application_rejected" | "vacancy_approved" | "vacancy_rejected" | "listing_approved" | "listing_rejected" | "listing_hidden" | "plan_ending" | "plan_ended" | "featured_ending";
+            /** @description money (always on), requests, jobs, listings or plans. */
+            category: string;
+            /** @description In the reader's language (Accept-Language). */
+            title: string;
+            body: string;
+            /** @description A path on the website, e.g. /orders/{id}; the apps open the same screen. */
+            link: string | null;
+            read_at: string | null;
+            created_at: string | null;
         };
         /** OpenDisputeRequest */
         OpenDisputeRequest: {
@@ -2746,6 +2918,11 @@ export interface components {
             last_name: string;
             phone: string;
             password: string;
+            /**
+             * @description The Platform Terms tick box (ACC07): recorded with the version in force.
+             * @enum {unknown}
+             */
+            accept_terms: "yes" | "on" | "1" | 1 | "true" | true;
             /** @description The pass from POST /auth/otp/verify (sign-up in steps), or the code itself in one go. */
             registration_token?: string | null;
             code?: string | null;
@@ -3161,6 +3338,14 @@ export interface components {
              */
             photo_ids?: string[];
         };
+        /** UpdateNotificationPreferencesRequest */
+        UpdateNotificationPreferencesRequest: {
+            requests?: boolean;
+            jobs?: boolean;
+            listings?: boolean;
+            plans?: boolean;
+            sms?: boolean;
+        };
         /** UpdateProfileRequest */
         UpdateProfileRequest: {
             version: number;
@@ -3229,6 +3414,10 @@ export interface components {
             version: number;
             phone_verified_at: string | null;
             email_verified_at: string | null;
+            /** @description Terms to accept now: ["platform"] when a newer version was published (or never accepted). POST /me/terms/accept. */
+            pending_terms: [
+                "platform"
+            ] | string[];
             capabilities?: components["schemas"]["CapabilityResource"][];
             created_at: string | null;
         };
@@ -4599,6 +4788,109 @@ export interface operations {
             422: components["responses"]["ValidationException"];
         };
     };
+    "me.password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangePasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.deletion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            can_delete: boolean;
+                            blockers: {
+                                [key: string]: number;
+                            };
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeleteAccountRequest"];
+            };
+        };
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.terms.accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcceptTermsRequest"];
+            };
+        };
+        responses: {
+            /** @description `UserResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["UserResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "me.capabilities.store": {
         parameters: {
             query?: never;
@@ -4618,6 +4910,184 @@ export interface operations {
                 };
                 content: {
                     "application/json": string;
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "me.notifications.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `NotificationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["NotificationResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description The "cursor" that points to the next set of items. */
+                            next_cursor: string | null;
+                            /** @description The "cursor" that points to the previous set of items. */
+                            prev_cursor: string | null;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.notifications.unread": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            count: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.notifications.read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            /** @constant */
+                            count: 0;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.notifications.read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                notification: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `NotificationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["NotificationResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.notification-preferences.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            requests: boolean;
+                            jobs: boolean;
+                            listings: boolean;
+                            plans: boolean;
+                            sms: boolean;
+                            /** @description WHY ME has text messages switched on for essential notices. */
+                            sms_available: boolean;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "me.notification-preferences.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["UpdateNotificationPreferencesRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            requests: boolean;
+                            jobs: boolean;
+                            listings: boolean;
+                            plans: boolean;
+                            sms: boolean;
+                            /** @description WHY ME has text messages switched on for essential notices. */
+                            sms_available: boolean;
+                        };
+                    };
                 };
             };
             401: components["responses"]["AuthenticationException"];

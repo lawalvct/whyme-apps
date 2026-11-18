@@ -4,7 +4,7 @@ import { RequireAccount } from '@/components/auth/RequireAccount';
 import { BusinessCenter } from '@/components/seller/BusinessCenter';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export const metadata: Metadata = { title: 'Business Center' };
+export const metadata: Metadata = { title: 'Plans & promotion' };
 
 /** Paystack sends buyers back here with `?purchase=` (PayForBillingPurchase's callback URL). */
 export default function SellerBillingPage() {

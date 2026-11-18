@@ -81,5 +81,8 @@
   "price_mismatch": "The price changed. Check the new price and try again.",
   "billing_surface_not_allowed": "Buy this on the WHY ME website.",
   "purchase_already_paid": "This purchase is already paid.",
-  "purchase_cancelled": "This purchase was cancelled. Start a new one."
+  "purchase_cancelled": "This purchase was cancelled. Start a new one.",
+  "password_incorrect": "That password is not right.",
+  "password_unchanged": "Choose a password you have not used for this account.",
+  "account_deletion_blocked": "Finish your open orders, service requests, problem reports and payouts first."
 }

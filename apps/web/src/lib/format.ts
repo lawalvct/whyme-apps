@@ -69,6 +69,13 @@ export const routes = {
   newVacancy: '/sell/jobs/new',
   editVacancy: (id: string) => `/sell/jobs/${id}`,
   sellPayouts: '/sell/payouts',
+  notifications: '/notifications',
+  terms: (type: 'platform' | 'seller' | 'buyer') => `/terms/${type}`,
+  privacy: '/privacy',
+  /** The signed-in person's details, password and account deletion (ACC03, ACC05). */
+  account: '/account',
+  accountDelete: '/account/delete',
+  accountDeleted: '/account/deleted',
   /** The Business Center: Pro plans, featured listings, job posts (PAY03). */
   sellBilling: '/sell/billing',
   featureListing: (listingId: string) => `/sell/billing?feature=${encodeURIComponent(listingId)}#featured`,

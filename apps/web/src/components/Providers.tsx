@@ -6,6 +6,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { ApiProvider, createQueryClient, OfflineCacheProvider, syncStatusStore } from '@whyme/data';
 import { createWebApiClient } from '@/lib/api';
 import { webOfflineCache } from '@/lib/offline';
+import { TermsGate } from './auth/TermsGate';
 import { OfflineAccount } from './pwa/OfflineAccount';
 import { OfflineBanner } from './pwa/OfflineBanner';
 import { ServiceWorkerSetup } from './pwa/ServiceWorkerSetup';
@@ -35,6 +36,7 @@ export function Providers({ children }: { children: ReactNode }) {
           <NuqsAdapter>
             <I18nProvider>
               <OfflineAccount />
+              <TermsGate />
               <OfflineBanner />
               {children}
               <ServiceWorkerSetup />

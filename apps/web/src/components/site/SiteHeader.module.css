@@ -61,7 +61,7 @@
 .navLocation svg { width: 16px; height: 16px; color: #027f45; }
 @media (min-width: 1600px) { .container { width: min(100%, 1440px); } }
 @media (max-width: 1150px) {
-  .mainRow { gap: 22px; }
+  .mainRow { gap: 16px; }
   .searchLocation { display: none; }
   .account { gap: 16px; }
   .brand img { width: 148px; }

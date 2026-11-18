@@ -29,7 +29,13 @@ const phoneStep = z
     }
   });
 const codeStep = z.object({ code: otpSchema });
-const detailsStep = z.object({ first_name: personNameSchema, last_name: personNameSchema, password: passwordSchema });
+const detailsStep = z.object({
+  first_name: personNameSchema,
+  last_name: personNameSchema,
+  password: passwordSchema,
+  // The Platform Terms tick box (ACC07): the account isn't created without it.
+  accept_terms: z.boolean().refine((v) => v, { message: 'auth:termsRequired' }),
+});
 
 /** Where the code went: always a phone, plus the email when the person chose email. */
 type Destination = { phone: string; email: string | null };
@@ -318,7 +324,7 @@ function DetailsStep({
   const done = useAuthDone();
   const errorText = useErrorText();
   const [error, setError] = useState<string | null>(null);
-  const form = useZodForm(detailsStep, { defaultValues: { first_name: '', last_name: '', password: '' } });
+  const form = useZodForm(detailsStep, { defaultValues: { first_name: '', last_name: '', password: '', accept_terms: false } });
   const fieldError = (message: string | undefined) => translateFieldError(t, message);
   const { errors, isSubmitting } = form.formState;
 
@@ -327,7 +333,7 @@ function DetailsStep({
     try {
       await prepareSession();
       const body = unwrap(
-        await api.POST('/v1/auth/register', { body: { ...values, phone: sent.phone, registration_token: pass, device: webDevice() } }),
+        await api.POST('/v1/auth/register', { body: { ...values, accept_terms: true, phone: sent.phone, registration_token: pass, device: webDevice() } }),
       );
       onDone();
       done(body.data.user);
@@ -376,6 +382,28 @@ function DetailsStep({
         error={errors.password?.message ? t(errors.password.message) : undefined}
         {...form.register('password')}
       />
+      <div className="flex flex-col gap-1">
+        <label className={styles.termsRow}>
+          <input type="checkbox" {...form.register('accept_terms')} />
+          <span>
+            {t('acceptPlatformTerms')}{' '}
+            <a href={routes.terms('platform')} target="_blank" rel="noopener noreferrer">
+              {t('termsLink')}
+            </a>
+          </span>
+        </label>
+        <p className="text-xs text-text-muted">
+          {t('privacyNote')}{' '}
+          <a href={routes.privacy} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary underline">
+            {t('common:privacyPolicy')}
+          </a>
+        </p>
+        {errors.accept_terms?.message ? (
+          <p role="alert" className="text-sm text-danger">
+            {fieldError(errors.accept_terms.message)}
+          </p>
+        ) : null}
+      </div>
       <Button type="submit" disabled={isSubmitting} className={styles.primaryButton}>
         {isSubmitting ? t('common:loading') : t('signUp')}
         <Icon name="arrow" />

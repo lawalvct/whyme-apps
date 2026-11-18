@@ -35,6 +35,11 @@
 .formContent input:focus-visible { border-color: #7a9c65; outline: 3px solid #eaf1df; outline-offset: 1px; }
 .formContent input[aria-invalid='true'] { border-color: #b6493d; }
 .formContent input:disabled { opacity: .6; cursor: not-allowed; }
+/* The terms tick box: a small box beside its text, not a full-width input. */
+.termsRow { display: flex; align-items: flex-start; gap: 12px; min-height: 44px; cursor: pointer; }
+.formContent .termsRow input[type='checkbox'] { width: 20px; min-width: 20px; height: 20px; min-height: 20px; flex: none; margin-top: 2px; padding: 0; accent-color: #027f45; }
+.termsRow span { font-size: 13px; line-height: 1.6; color: #4d6c42; }
+.termsRow a { font-weight: 650; color: #027f45; text-decoration: underline; }
 .formContent p { font-size: 12px; line-height: 1.8; }
 .formContent p[role='alert'] { color: #ad4036; }
 .formContent input + p { color: #748765; }

@@ -59,6 +59,12 @@ export function SiteFooter() {
 
         <div className={styles.bottom}>
           <p>{t('footerCopyright')}</p>
+          <nav aria-label={t('common:termsOtherTitle')} className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            <Link href={routes.terms('platform')}>{t('common:termsPlatform')}</Link>
+            <Link href={routes.terms('buyer')}>{t('common:termsBuyer')}</Link>
+            <Link href={routes.terms('seller')}>{t('common:termsSeller')}</Link>
+            <Link href={routes.privacy}>{t('common:privacyPolicy')}</Link>
+          </nav>
           <span className={styles.madeForDelta}><Icon name="heart" />{t('madeForDelta')}</span>
           <button type="button" className={styles.backToTop} onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}>{t('footerBackToTop')}<span><Icon name="arrow" /></span></button>
         </div>

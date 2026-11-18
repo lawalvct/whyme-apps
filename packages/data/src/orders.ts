@@ -55,12 +55,13 @@ export function useOrder(id: string, options: { refetchInterval?: number | false
 }
 
 /** Orders bought or sold. Readable offline from the device's copy of the last load. */
-export function useOrders(role: 'buying' | 'selling') {
+export function useOrders(role: 'buying' | 'selling', enabled = true) {
   const api = useApi();
   const fetcher = useOfflineFetcher('orders', role, async () => unwrap(await api.GET('/v1/me/orders', { params: { query: { role } } })).data);
   return useQuery({
     queryKey: orderKeys.list(role),
     queryFn: fetcher,
+    enabled,
   });
 }
 

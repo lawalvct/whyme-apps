@@ -13,10 +13,12 @@ import {
   requestKeys,
   savedKeys,
   sellerKeys,
+  notificationKeys,
   useApi,
   useOrderCounts,
   useServiceRequestCounts,
   useUnreadMessages,
+  useUnreadNotifications,
 } from '@whyme/data';
 import { isSupportedLanguage, languages } from '@whyme/i18n';
 import { useSignOutGuard } from '@/components/auth/SignOutGuard';
@@ -26,6 +28,7 @@ import { useRotatingContent } from '@/components/ui/useRotatingContent';
 import { routes } from '@/lib/format';
 import { setLanguage, useLanguage, useT } from '@/lib/i18n';
 import { forgetAccountOnThisDevice } from '@/lib/offline';
+import { useUserEvents } from '@/lib/realtime';
 import { useAccount } from '@/lib/session';
 import styles from './SiteHeader.module.css';
 
@@ -169,6 +172,7 @@ function AccountArea({
   signOutLabel: string;
 }) {
   const { t } = useT('market');
+  const { t: tSettings } = useT('settings');
   const { user } = useAccount();
   const api = useApi();
   const queryClient = useQueryClient();
@@ -196,7 +200,7 @@ function AccountArea({
     await forgetAccountOnThisDevice();
     // Leaving a private page (seller centre, messages): a full load of the home page drops
     // everything the account had in memory (and beats those pages' own sign-in redirect).
-    if ([routes.sell, routes.messages, routes.orders(), routes.requests(), routes.saved, '/checkout'].some((path) => window.location.pathname.startsWith(path))) {
+    if ([routes.sell, routes.messages, routes.notifications, routes.orders(), routes.requests(), routes.saved, routes.account, '/checkout'].some((path) => window.location.pathname.startsWith(path))) {
       window.location.assign(routes.home);
       return;
     }
@@ -206,6 +210,7 @@ function AccountArea({
     queryClient.removeQueries({ queryKey: requestKeys.all });
     queryClient.removeQueries({ queryKey: jobKeys.all });
     queryClient.removeQueries({ queryKey: savedKeys.all });
+    queryClient.removeQueries({ queryKey: notificationKeys.all });
     queryClient.setQueryData(queryKeys.me, null);
     await queryClient.invalidateQueries({ queryKey: queryKeys.me });
     router.refresh();
@@ -215,13 +220,17 @@ function AccountArea({
     <div className="flex items-center gap-2">
       {guard.dialog}
       <SavedLink />
+      <NotificationsLink userId={user.id} />
       <MessagesLink enabled={Boolean(user.phone_verified_at)} />
       <OrdersLink enabled={Boolean(user.phone_verified_at)} />
       <RequestsLink enabled={Boolean(user.phone_verified_at)} />
       <Link href={routes.sell} className={buttonClass('ghost', 'min-h-11 px-3 text-sm')}>
         {sellerLabel}
       </Link>
-      <span className="hidden max-w-32 truncate text-sm font-medium text-text lg:inline">{user.first_name}</span>
+      <Link href={routes.account} className={buttonClass('ghost', 'min-h-11 gap-2 px-3 text-sm')} aria-label={tSettings('account.menuLabel')} title={tSettings('account.menuLabel')}>
+        <Icon name="user" />
+        <span className="hidden max-w-32 truncate font-medium xl:inline">{user.first_name}</span>
+      </Link>
       <button type="button" onClick={() => void signOut()} className={buttonClass('secondary', 'min-h-11 px-3 text-sm')}>
         {signOutLabel}
       </button>
@@ -246,7 +255,7 @@ function OrdersLink({ enabled }: { enabled: boolean }) {
         <path d="M5 8h14l-1 12H6L5 8z" />
         <path d="M9 8V6a3 3 0 0 1 6 0v2" />
       </svg>
-      <span className="hidden md:inline">{t('orders')}</span>
+      <span className="hidden xl:inline">{t('orders')}</span>
       {waiting > 0 ? (
         <span className="absolute top-1 right-1 min-w-5 rounded-full bg-accent px-1.5 text-center text-xs font-bold text-text">
           {waiting > 99 ? '99+' : waiting}
@@ -269,7 +278,7 @@ function RequestsLink({ enabled }: { enabled: boolean }) {
       className={buttonClass('ghost', 'relative min-h-11 px-3 text-sm')}
     >
       <Icon name="tools" className="size-5" />
-      <span className="hidden lg:inline">{t('requests')}</span>
+      <span className="hidden xl:inline">{t('requests')}</span>
       {waiting > 0 ? (
         <span className="absolute top-1 right-1 min-w-5 rounded-full bg-accent px-1.5 text-center text-xs font-bold text-text">
           {waiting > 99 ? '99+' : waiting}
@@ -291,6 +300,31 @@ function SavedLink() {
   );
 }
 
+/** The bell: unread notifications, refreshed live when one arrives (and every minute as a safety net). */
+function NotificationsLink({ userId }: { userId: string }) {
+  const { t } = useT('notifications');
+  const queryClient = useQueryClient();
+  const unread = useUnreadNotifications(true).data ?? 0;
+  useUserEvents(userId, {
+    'notification.created': () => void queryClient.invalidateQueries({ queryKey: notificationKeys.all }),
+  });
+
+  return (
+    <Link
+      href={routes.notifications}
+      aria-label={unread > 0 ? t('navUnread', { count: unread }) : t('nav')}
+      className={buttonClass('ghost', 'relative min-h-11 px-3 text-sm')}
+    >
+      <Icon name="bell" className="size-5" />
+      {unread > 0 ? (
+        <span className="absolute top-1 right-1 min-w-5 rounded-full bg-accent px-1.5 text-center text-xs font-bold text-text">
+          {unread > 99 ? '99+' : unread}
+        </span>
+      ) : null}
+    </Link>
+  );
+}
+
 function MessagesLink({ enabled }: { enabled: boolean }) {
   const { t } = useT('chat');
   const unread = useUnreadMessages(enabled).data ?? 0;
@@ -304,7 +338,7 @@ function MessagesLink({ enabled }: { enabled: boolean }) {
       <svg aria-hidden viewBox="0 0 24 24" className="size-5 fill-none stroke-current" strokeWidth={1.8} strokeLinejoin="round">
         <path d="M4 5h16v11H9l-5 4V5z" />
       </svg>
-      <span className="hidden md:inline">{t('messages')}</span>
+      <span className="hidden xl:inline">{t('messages')}</span>
       {unread > 0 ? (
         <span className="absolute top-1 right-1 min-w-5 rounded-full bg-accent px-1.5 text-center text-xs font-bold text-text">
           {unread > 99 ? '99+' : unread}

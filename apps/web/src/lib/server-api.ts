@@ -114,3 +114,24 @@ export async function getTaxonomy(): Promise<Taxonomy | null> {
     return null;
   }
 }
+
+export interface PublishedTerms {
+  type: string;
+  version: string;
+  title: string;
+  body: string;
+  published_at: string | null;
+}
+
+/** The current published terms of one kind (English on the server), or null before they are published. */
+export async function getTerms(type: 'platform' | 'seller' | 'buyer' | 'privacy'): Promise<PublishedTerms | null> {
+  'use cache';
+  // Minutes, not hours: newly published terms should show soon after they are published.
+  cacheLife('minutes');
+  cacheTag('terms');
+
+  const { data, response } = await api.GET('/v1/terms/{type}', { params: { path: { type } } });
+  if (response.status === 404) return null;
+  if (!data) throw new Error(`Terms ${type}: HTTP ${response.status}`);
+  return data.data;
+}
