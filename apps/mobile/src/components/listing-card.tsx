@@ -12,23 +12,11 @@ export function ListingCard({ listing, saved, onToggleSave, onPress }: { listing
   const { t } = useTranslation(['common', 'market']);
   const photo = listing.photos[0]?.urls.medium;
   const price = listing.price_kobo != null ? `${listing.kind === 'service' ? `${t('market:searchPriceFrom', { price: '' }).trim()} ` : ''}${formatNaira(listing.price_kobo)}` : t('market:priceOnRequest');
-
-  return (
-    <Pressable accessibilityRole="button" accessibilityLabel={`${listing.title}, ${price}`} onPress={onPress} style={({ pressed }) => [ui.card, styles.card, pressed && { opacity: 0.9 }]}>
+  const content = (
+    <>
       <View style={styles.photoWrap}>
         {photo ? <Image source={{ uri: photo }} style={styles.photo} contentFit="cover" transition={150} /> : <View style={[styles.photo, styles.noPhoto]}><Icon name="image" size={32} tint={color.faint} /></View>}
         {listing.is_featured ? <View style={styles.featured}><Pill label={t('app.featured')} /></View> : null}
-        {onToggleSave ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={saved ? t('app.saved') : t('app.save')}
-            accessibilityState={{ selected: saved }}
-            onPress={onToggleSave}
-            hitSlop={8}
-            style={styles.save}>
-            <Icon name={saved ? 'bookmarkFilled' : 'bookmark'} size={22} tint={saved ? color.green : color.ink} />
-          </Pressable>
-        ) : null}
       </View>
       <View style={styles.body}>
         <Text style={styles.title} numberOfLines={1}>{listing.title}</Text>
@@ -40,7 +28,28 @@ export function ListingCard({ listing, saved, onToggleSave, onPress }: { listing
           </View>
         ) : null}
       </View>
-    </Pressable>
+    </>
+  );
+
+  return (
+    <View style={[ui.card, styles.card]}>
+      {onPress ? (
+        <Pressable accessibilityRole="button" accessibilityLabel={`${listing.title}, ${price}`} onPress={onPress} style={({ pressed }) => pressed && { opacity: 0.9 }}>
+          {content}
+        </Pressable>
+      ) : content}
+      {onToggleSave ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={saved ? t('app.saved') : t('app.save')}
+          accessibilityState={{ selected: saved }}
+          onPress={onToggleSave}
+          hitSlop={8}
+          style={styles.save}>
+          <Icon name={saved ? 'bookmarkFilled' : 'bookmark'} size={22} tint={saved ? color.green : color.ink} />
+        </Pressable>
+      ) : null}
+    </View>
   );
 }
 

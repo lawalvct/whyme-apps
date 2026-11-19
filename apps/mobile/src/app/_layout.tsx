@@ -42,6 +42,8 @@ function SessionGate() {
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.canvas } }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="sign-in" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="sign-up" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="terms/[type]" />
         <Stack.Screen name="search" />
         <Stack.Screen name="account" />
         <Stack.Screen name="notifications" />

@@ -73,6 +73,32 @@ export async function signIn(api: ApiClient, queryClient: QueryClient, values: {
   return { done: true };
 }
 
+/** Finish native registration with the verified phone pass and sign in this device. */
+export async function registerAccount(api: ApiClient, queryClient: QueryClient, values: {
+  phone: string;
+  registrationToken: string;
+  firstName: string;
+  lastName: string;
+  password: string;
+}): Promise<void> {
+  const body = unwrap(await api.POST('/v1/auth/register', {
+    body: {
+      phone: values.phone,
+      registration_token: values.registrationToken,
+      first_name: values.firstName,
+      last_name: values.lastName,
+      password: values.password,
+      accept_terms: true,
+      device: appDevice(),
+    },
+  }));
+  if (body.data.token) await setToken(body.data.token);
+  const user = body.data.user;
+  remember(user);
+  queryClient.setQueryData(queryKeys.me, user);
+  signedIn(user);
+}
+
 export async function signOut(api: ApiClient, queryClient: QueryClient): Promise<void> {
   try {
     await api.POST('/v1/auth/logout');

@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
@@ -12,7 +12,7 @@ import { Button, FieldLabel, FormError, IconButton, Input } from '@/components/u
 import { signIn } from '@/lib/session';
 import { color, gutter, space, type } from '@/theme';
 
-/** Sign in with phone and password; a new phone may be asked for a code first. Sign-up stays on the website for now. */
+/** Sign in with phone and password; a new phone may be asked for a code first. */
 export default function SignInScreen() {
   const { t } = useTranslation(['common', 'auth']);
   const api = useApi();
@@ -79,7 +79,12 @@ export default function SignInScreen() {
           ) : null}
 
           <Button label={busy ? t('common:loading') : t('auth:signIn')} busy={busy} onPress={() => void submit()} style={{ marginTop: space.md }} />
-          <Text style={[type.small, { textAlign: 'center' }]}>{t('app.createAccount')}</Text>
+          <View style={styles.signUpRow}>
+            <Text style={type.small}>{t('auth:noAccount')}</Text>
+            <Pressable accessibilityRole="link" accessibilityLabel={t('auth:signUp')} onPress={() => router.push('/sign-up')} hitSlop={8}>
+              <Text style={styles.signUpLink}>{t('auth:signUp')}</Text>
+            </Pressable>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -90,4 +95,6 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: color.canvas },
   content: { paddingHorizontal: gutter, paddingBottom: space.xxxl, gap: space.md, maxWidth: 520, width: '100%', alignSelf: 'center' },
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: space.sm },
+  signUpRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: space.xs, marginTop: space.sm },
+  signUpLink: { ...type.small, color: color.green, fontWeight: '700', textDecorationLine: 'underline' },
 });
