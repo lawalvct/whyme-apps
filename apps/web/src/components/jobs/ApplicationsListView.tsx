@@ -16,7 +16,7 @@ import {
   useQueuedApplications,
   type ApplicationQueuePayload,
 } from '@/lib/application-queue';
-import { routes } from '@/lib/format';
+import { formatDay, routes } from '@/lib/format';
 import { useLanguage, useT } from '@/lib/i18n';
 import { useAccountRuntime } from '@/lib/offline';
 import { ApplicationStatusBadge, formatSalaryRange } from './JobFormat';
@@ -187,6 +187,7 @@ function QueuedApplicationCard({ action }: { action: OutboxAction }) {
 
 function ApplicationCard({ app, role }: { app: JobApplication; role: 'applicant' | 'employer' }) {
   const { t } = useT('jobs');
+  const language = useLanguage();
   const vacancy = app.vacancy;
   const salary = vacancy
     ? formatSalaryRange(vacancy.salary_min_kobo, vacancy.salary_max_kobo, t)
@@ -207,12 +208,12 @@ function ApplicationCard({ app, role }: { app: JobApplication; role: 'applicant'
           <span className="text-xs font-medium text-text-muted">{app.number}</span>
           {preparedOffline && app.client_created_at ? (
             <span className="text-xs text-text-muted">
-              · {t('preparedOfflineAt', { date: new Date(app.client_created_at).toLocaleDateString() })}
+              · {t('preparedOfflineAt', { date: formatDay(app.client_created_at, language) })}
             </span>
           ) : null}
           {app.submitted_at ? (
             <span className="text-xs text-text-muted">
-              · {t('submittedAt', { date: new Date(app.submitted_at).toLocaleDateString() })}
+              · {t('submittedAt', { date: formatDay(app.submitted_at, language) })}
             </span>
           ) : null}
         </div>

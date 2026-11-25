@@ -105,6 +105,11 @@ export async function signOut(api: ApiClient, queryClient: QueryClient): Promise
   } catch {
     // Offline: the token is forgotten on this phone either way.
   }
+  await forgetSession(queryClient);
+}
+
+/** Forgets the account on this phone without asking the server (after the account was deleted). */
+export async function forgetSession(queryClient: QueryClient): Promise<void> {
   await clearToken();
   remember(null);
   queryClient.clear();

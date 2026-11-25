@@ -21,9 +21,36 @@ pane this is the `mobile-web` server in `.claude/launch.json`. Details:
 - What the browser can't show: camera and photo picker as on a phone, push notifications, the
   Android back button, keyboard behaviour, and the real keychain. Check those on a phone.
 
-**On a real phone without a cable.** Install Expo Go, run `pnpm exec expo start`, and scan the QR code
-(same Wi-Fi as the PC, or add `--tunnel`). Set `EXPO_PUBLIC_API_URL` in `.env` to your PC's LAN address,
-e.g. `http://192.168.1.20:8000/api`, and start the API with `php artisan serve --host=0.0.0.0`.
+**On a real phone (Expo Go, same Wi-Fi, no cable).** This is how the app should be judged.
+
+1. On the PC, find its Wi-Fi address (`ipconfig`, "IPv4 Address" under Wi-Fi) and put it in
+   `apps/mobile/.env.local` (git ignores it):
+   `EXPO_PUBLIC_API_URL=http://<pc-address>:8000/api`.
+2. Start the API so the phone can reach it: launch config `api-lan`, or
+   `php whyme-api/artisan serve --host=0.0.0.0 --port=8000` from the repo root.
+3. Start Expo: launch config `mobile-web`, or `pnpm exec expo start --port 8081` here. Restart it
+   after changing `.env.local`.
+4. Let the phone in through Windows Firewall (you do this; it is a security setting). On a home or
+   office Wi-Fi you trust: Settings → Network & internet → Wi-Fi → your network → Network profile
+   type → **Private**, then allow ports 8000 and 8081 on Private networks only, from an
+   administrator PowerShell:
+   `New-NetFirewallRule -DisplayName "WHY ME dev API 8000" -Direction Inbound -Protocol TCP -LocalPort 8000 -Action Allow -Profile Private`
+   and the same with `8081` / "WHY ME dev Expo 8081". Never allow them on a Public network.
+   Remove them later with `Remove-NetFirewallRule -DisplayName "WHY ME dev*"`.
+5. On the phone: install **Expo Go** (it must support Expo SDK 58), join the same Wi-Fi, then open
+   `exp://<pc-address>:8081` (Android: Expo Go → "Enter URL manually"; iPhone: scan the QR code
+   that `expo start` prints in a terminal with the Camera, and allow Expo Go to find devices on the
+   local network).
+6. Quick check from the phone's browser first: `http://<pc-address>:8000/api/v1/health` should
+   answer. If it doesn't, the firewall or the Wi-Fi (some guest and office networks keep devices
+   apart) is blocking it.
+
+Sign in with the local test accounts from `whyme-api/database/seeders/DemoCatalogueSeeder.php`. A phone is a new device, so the
+API asks for a code: locally it is written to `whyme-api/storage/logs/laravel.log` (no SMS is sent),
+or use the local bypass code in `whyme-api/.env` (`OTP_BYPASS_CODE`, local only). Photos load from the
+PC because development builds swap `localhost` in photo links for the address above
+(`src/lib/api.ts`, `mediaUrl`). When the PC can't share its network, the alternative is a staging API
+and `expo start --tunnel`.
 
 ## Get started
 

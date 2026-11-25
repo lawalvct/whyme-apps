@@ -1,4 +1,5 @@
 import * as Crypto from 'expo-crypto';
+import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -62,6 +63,7 @@ export function OrderPayout({ order }: { order: Order }) {
       </View>
       {b.bank ? <Text style={type.small}>{t('orders:payout.toBank', { bank: b.bank.bank_name, last4: b.bank.account_last4, name: b.bank.account_name })}</Text> : null}
       {!b.request && b.blockers.map((code) => <Text key={code} style={type.small}>{t(`orders:payout.blocker.${code}`, { defaultValue: t('orders:payout.blocker.other') })}</Text>)}
+      {!b.request && b.blockers.includes('no_payout_account') ? <Button label={t('seller:payouts.add')} tone="outline" onPress={() => router.push('/payouts')} /> : null}
       {b.can_request ? (
         <>
           <Text style={type.small}>{t('orders:payout.requestHint')}</Text>

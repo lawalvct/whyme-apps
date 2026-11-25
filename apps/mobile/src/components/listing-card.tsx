@@ -6,6 +6,7 @@ import { Icon } from '@/components/icon';
 import { Button, Pill, ui } from '@/components/ui';
 import { formatNaira } from '@/lib/format';
 import { color, radius, space, type } from '@/theme';
+import { mediaUrl } from '@/lib/api';
 
 /** A product or service in a two-column grid: photo, title, green price, location. */
 export function ListingCard({ listing, saved, onToggleSave, onPress }: { listing: PublicListing; saved?: boolean; onToggleSave?: () => void; onPress?: () => void }) {
@@ -15,7 +16,7 @@ export function ListingCard({ listing, saved, onToggleSave, onPress }: { listing
   const content = (
     <>
       <View style={styles.photoWrap}>
-        {photo ? <Image source={{ uri: photo }} style={styles.photo} contentFit="cover" transition={150} /> : <View style={[styles.photo, styles.noPhoto]}><Icon name="image" size={32} tint={color.faint} /></View>}
+        {photo ? <Image source={{ uri: mediaUrl(photo) }} style={styles.photo} contentFit="cover" transition={150} /> : <View style={[styles.photo, styles.noPhoto]}><Icon name="image" size={32} tint={color.faint} /></View>}
         {listing.is_featured ? <View style={styles.featured}><Pill label={t('app.featured')} /></View> : null}
       </View>
       <View style={styles.body}>
@@ -60,7 +61,7 @@ export function ProviderRow({ profile, onPress }: { profile: PublicProfile; onPr
   const meta = [profile.category?.name, profile.location?.name].filter(Boolean).join(' · ');
   return (
     <View style={[ui.card, styles.provider]}>
-      {photo ? <Image source={{ uri: photo }} style={styles.providerPhoto} contentFit="cover" /> : <View style={[styles.providerPhoto, styles.noPhoto]}><Icon name="user" size={30} tint={color.faint} /></View>}
+      {photo ? <Image source={{ uri: mediaUrl(photo) }} style={styles.providerPhoto} contentFit="cover" /> : <View style={[styles.providerPhoto, styles.noPhoto]}><Icon name="user" size={30} tint={color.faint} /></View>}
       <View style={{ flex: 1, gap: 2 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <Text style={[type.heading, { flexShrink: 1 }]} numberOfLines={1}>{profile.display_name}</Text>

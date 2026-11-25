@@ -17,8 +17,8 @@ import { Button, buttonClass } from '@/components/ui/button';
 import { CheckboxField, SelectField, TextAreaField, TextField } from '@/components/ui/field';
 import { MarketplaceIcon as Icon } from '@/components/ui/MarketplaceIcon';
 import { Skeleton } from '@/components/ui/skeleton';
-import { routes } from '@/lib/format';
-import { useT } from '@/lib/i18n';
+import { formatDay, routes } from '@/lib/format';
+import { useLanguage, useT } from '@/lib/i18n';
 import { uploadCvDocument, waitForUpload } from '@/lib/uploads';
 
 interface ExperienceItem {
@@ -361,6 +361,7 @@ function SeekerProfileForm() {
 
 function SeekerCvsSection() {
   const { t } = useT('jobs');
+  const language = useLanguage();
   const api = useApi();
   const queryClient = useQueryClient();
   const errorText = useErrorText();
@@ -520,7 +521,7 @@ function SeekerCvsSection() {
                 </div>
                 <p className="mt-1 text-xs text-text-muted">
                   {cv.extension.toUpperCase()} · {Math.max(1, Math.round(cv.size_bytes / 1024))} KB
-                  {cv.created_at ? ` · ${new Date(cv.created_at).toLocaleDateString()}` : ''}
+                  {cv.created_at ? ` · ${formatDay(cv.created_at, language)}` : ''}
                 </p>
               </div>
 

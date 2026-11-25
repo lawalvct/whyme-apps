@@ -36,6 +36,7 @@ const applicationStatusTones: Record<ApplicationStatus, 'neutral' | 'primary' | 
   shortlisted: 'primary',
   accepted: 'primary',
   rejected: 'warning',
+  refused: 'warning',
   withdrawn: 'neutral',
 };
 

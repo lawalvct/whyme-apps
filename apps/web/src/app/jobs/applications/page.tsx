@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { SignedInOnly } from '@/components/seller/SellerShell';
+import { RequireAccount } from '@/components/auth/RequireAccount';
 import { ApplicationsListView } from '@/components/jobs/ApplicationsListView';
 
 export const metadata: Metadata = {
@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 
 export default function ApplicationsPage() {
   return (
-    <SignedInOnly>
+    <RequireAccount phone="jobs">
       <ApplicationsListView />
-    </SignedInOnly>
+    </RequireAccount>
   );
 }

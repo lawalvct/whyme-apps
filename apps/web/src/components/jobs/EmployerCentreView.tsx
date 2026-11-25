@@ -19,7 +19,7 @@ import { Button, buttonClass } from '@/components/ui/button';
 import { CheckboxField, SelectField, TextAreaField, TextField } from '@/components/ui/field';
 import { MarketplaceIcon as Icon } from '@/components/ui/MarketplaceIcon';
 import { Skeleton } from '@/components/ui/skeleton';
-import { routes } from '@/lib/format';
+import { formatDay, routes } from '@/lib/format';
 import { useLanguage, useT } from '@/lib/i18n';
 import { useAccount } from '@/lib/session';
 import { formatSalaryRange, VacancyStatusBadge } from './JobFormat';
@@ -260,6 +260,7 @@ function CompanyProfileSection() {
 
 function EmployerVacanciesSection() {
   const { t } = useT('jobs');
+  const language = useLanguage();
   const api = useApi();
   const queryClient = useQueryClient();
   const errorText = useErrorText();
@@ -338,7 +339,7 @@ function EmployerVacanciesSection() {
                 <p className="mt-0.5 text-xs text-text-muted">
                   {formatSalaryRange(vacancy.salary_min_kobo, vacancy.salary_max_kobo, t)}
                   {vacancy.deadline_at
-                    ? ` · ${t('deadlineDate', { date: new Date(vacancy.deadline_at).toLocaleDateString() })}`
+                    ? ` · ${t('deadlineDate', { date: formatDay(vacancy.deadline_at, language) })}`
                     : ''}
                 </p>
                 <p className="mt-1 text-xs text-text-muted">

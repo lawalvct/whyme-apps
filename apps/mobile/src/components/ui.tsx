@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { ActivityIndicator, FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View, type TextInputProps, type ViewStyle } from 'react-native';
+import { ActivityIndicator, FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View, useWindowDimensions, type TextInputProps, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, type IconName } from '@/components/icon';
 import { color, gutter, radius, space, touch, type } from '@/theme';
@@ -34,7 +34,7 @@ export function Button({ label, onPress, tone = 'green', icon, trailingIcon, bus
       onPress={onPress}
       style={({ pressed }) => [styles.button, compact && styles.buttonCompact, dense && styles.buttonDense, toneStyle[tone], pressed && styles.pressed, off && styles.disabled, style]}>
       {busy ? <ActivityIndicator color={fg} /> : icon ? <Icon name={icon} size={20} tint={fg} /> : null}
-      <Text style={[styles.buttonText, (compact || dense) && styles.buttonTextCompact, dense && { fontSize: 16 }, { color: fg }]} numberOfLines={1}>
+      <Text style={[styles.buttonText, (compact || dense) && styles.buttonTextCompact, dense && { fontSize: 16 }, { color: fg }]} numberOfLines={2}>
         {label}
       </Text>
       {trailingIcon && !busy ? <Icon name={trailingIcon} size={20} tint={fg} /> : null}
@@ -152,7 +152,7 @@ export function Input({ error, style, ...props }: TextInputProps & { error?: str
 }
 
 /** A field that opens a bottom sheet of choices (category, location). */
-export function SelectField<T extends string | number>({ value, options, onChange, placeholder, title, icon, error }: {
+export function SelectField<T extends string | number>({ value, options, onChange, placeholder, title, icon, error, searchPlaceholder, disabled }: {
   value: T | null;
   options: { value: T; label: string }[];
   onChange: (value: T) => void;
@@ -160,25 +160,44 @@ export function SelectField<T extends string | number>({ value, options, onChang
   title: string;
   icon?: IconName;
   error?: string;
+  /** Long lists (banks, areas) get a search box at the top of the sheet. */
+  searchPlaceholder?: string;
+  disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const { height } = useWindowDimensions();
+  const [query, setQuery] = useState('');
+  const needle = query.trim().toLowerCase();
+  const shown = needle ? options.filter((o) => o.label.toLowerCase().includes(needle)) : options;
+  const close = () => {
+    setOpen(false);
+    setQuery('');
+  };
   const insets = useSafeAreaInsets();
   const current = options.find((o) => o.value === value);
   return (
     <View style={{ gap: space.xs }}>
-      <Pressable accessibilityRole="button" accessibilityLabel={`${title}: ${current?.label ?? placeholder}`} onPress={() => setOpen(true)} style={[styles.input, styles.select, error ? styles.inputError : null]}>
+      <Pressable accessibilityRole="button" accessibilityLabel={`${title}: ${current?.label ?? placeholder}`} accessibilityState={{ disabled }} disabled={disabled} onPress={() => setOpen(true)} style={[styles.input, styles.select, error ? styles.inputError : null, disabled && { opacity: 0.55 }]}>
         {icon ? <Icon name={icon} size={22} tint={color.forest} /> : null}
         <Text style={[type.body, { flex: 1 }, !current && { color: color.faint }]} numberOfLines={1}>{current?.label ?? placeholder}</Text>
         <Icon name="chevronDown" size={22} tint={color.forest} />
       </Pressable>
       {error ? <Text style={styles.error} accessibilityRole="alert">{error}</Text> : null}
-      <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
-        <Pressable style={styles.sheetBackdrop} onPress={() => setOpen(false)} accessibilityLabel="Close" />
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + space.md }]}>
+      <Modal visible={open} transparent animationType="slide" onRequestClose={close}>
+        {/* A fixed share of the screen: a percentage height doesn't resolve for long lists in every renderer. */}
+        <View style={styles.sheetFrame}>
+        <Pressable style={styles.sheetBackdrop} onPress={close} accessibilityLabel="Close" />
+        <View style={[styles.sheet, { maxHeight: Math.round(height * 0.75), paddingBottom: insets.bottom + space.md }]}>
           <View style={styles.sheetHandle} />
           <Text style={[type.heading, { paddingHorizontal: gutter, marginBottom: space.sm }]}>{title}</Text>
+          {searchPlaceholder ? (
+            <View style={{ paddingHorizontal: gutter, marginBottom: space.sm }}>
+              <TextInput value={query} onChangeText={setQuery} placeholder={searchPlaceholder} placeholderTextColor={color.faint} accessibilityLabel={searchPlaceholder} style={styles.input} autoCorrect={false} />
+            </View>
+          ) : null}
           <FlatList
-            data={options}
+            data={shown}
+            keyboardShouldPersistTaps="handled"
             keyExtractor={(o) => String(o.value)}
             renderItem={({ item }) => {
               const selected = item.value === value;
@@ -188,7 +207,7 @@ export function SelectField<T extends string | number>({ value, options, onChang
                   accessibilityState={{ selected }}
                   onPress={() => {
                     onChange(item.value);
-                    setOpen(false);
+                    close();
                   }}
                   style={({ pressed }) => [styles.sheetRow, pressed && { backgroundColor: color.sage }]}>
                   <Text style={[type.body, { flex: 1 }, selected && { color: color.green, fontWeight: '700' }]}>{item.label}</Text>
@@ -197,6 +216,7 @@ export function SelectField<T extends string | number>({ value, options, onChang
               );
             }}
           />
+        </View>
         </View>
       </Modal>
     </View>
@@ -241,10 +261,11 @@ export const ui = StyleSheet.create({
 });
 
 const styles = StyleSheet.create({
-  button: { minHeight: touch + 4, borderRadius: radius.md, paddingHorizontal: space.xl, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.sm },
+  button: { minHeight: touch + 4, borderRadius: radius.md, paddingHorizontal: space.xl, paddingVertical: space.sm, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.sm },
   buttonCompact: { minHeight: 44, paddingHorizontal: space.lg, borderRadius: radius.pill },
   buttonDense: { paddingHorizontal: space.sm, gap: 6 },
-  buttonText: { fontSize: 18, fontWeight: '700' },
+  // A long label (Igbo, or an amount) wraps to a second line instead of being cut off.
+  buttonText: { fontSize: 18, fontWeight: '700', flexShrink: 1, textAlign: 'center' },
   buttonTextCompact: { fontSize: 15 },
   pressed: { opacity: 0.85 },
   disabled: { opacity: 0.55 },
@@ -275,7 +296,8 @@ const styles = StyleSheet.create({
   select: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   error: { color: color.danger, fontSize: 14 },
   sheetBackdrop: { flex: 1, backgroundColor: color.overlay },
-  sheet: { maxHeight: '70%', backgroundColor: color.white, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, paddingTop: space.sm },
+  sheetFrame: { flex: 1, justifyContent: 'flex-end' },
+  sheet: { backgroundColor: color.white, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, paddingTop: space.sm },
   sheetHandle: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: color.border, marginBottom: space.md },
   sheetRow: { minHeight: touch, paddingHorizontal: gutter, flexDirection: 'row', alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: color.border },
   empty: { alignItems: 'center', gap: space.md, paddingVertical: space.xxxl, paddingHorizontal: space.xl },

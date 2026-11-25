@@ -25,7 +25,8 @@
 .brand { display: flex; flex-shrink: 0; flex-direction: column; align-items: center; gap: 6px; }
 .brand img { width: 176px; height: auto; }
 .brand > span { color: #6f7a71; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; }
-.search { display: flex; align-items: center; flex: 1; min-width: 160px; padding: 5px; border: 1px solid #dfe6df; border-radius: 10px; background: #fafbf9; transition: border-color 160ms, box-shadow 160ms; }
+/* Never squeezed below a usable width: the header labels give way first (see SiteHeader). */
+.search { display: flex; align-items: center; flex: 1; min-width: 240px; padding: 5px; border: 1px solid #dfe6df; border-radius: 10px; background: #fafbf9; transition: border-color 160ms, box-shadow 160ms; }
 .search:focus-within { border-color: #027f45; box-shadow: 0 0 0 3px #027f4512; }
 .searchIcon { margin-left: 11px; flex-shrink: 0; color: #748076; }
 .search input { width: 100%; min-width: 0; border: 0; padding: 10px 12px; background: transparent; color: #233c2b; font-size: 13px; outline: none; }
@@ -67,11 +68,14 @@
   .brand img { width: 148px; }
   .navLinks { gap: 24px; }
 }
-@media (max-width: 950px) {
+/* Below this a signed-in header's links leave too little room: the search gets its own row. */
+@media (max-width: 1100px) {
   .mainRow { flex-wrap: wrap; padding-block: 15px 12px; gap: 13px; }
   .search { order: 3; flex-basis: 100%; }
   .searchLocation { display: flex; }
   .account { margin-left: auto; }
+}
+@media (max-width: 950px) {
   .navigation { gap: 22px; }
   .navLocation { display: none; }
   .navLinks { gap: 26px; }

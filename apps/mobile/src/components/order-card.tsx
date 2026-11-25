@@ -9,6 +9,7 @@ import { Button, Pill, ui } from '@/components/ui';
 import { formatNaira } from '@/lib/format';
 import { useOrderChat } from '@/lib/chat';
 import { color, radius, space, type } from '@/theme';
+import { mediaUrl } from '@/lib/api';
 
 type Status = { label: string; tone: 'gold' | 'green' | 'grey' | 'red' };
 
@@ -26,7 +27,7 @@ export function orderStatus(order: Order, t: (key: string) => string): Status {
     case 'dispatched':
       return { label: order.fulfilment_method === 'pickup' ? t('app.orders.readyForPickup') : t('app.orders.onTheWay'), tone: 'gold' };
     case 'completion_submitted':
-      return { label: t('app.orders.toConfirm'), tone: 'gold' };
+      return { label: seller ? t('app.orders.waitingBuyer') : t('app.orders.toConfirm'), tone: 'gold' };
     case 'completed':
       return { label: t('app.orders.completed'), tone: 'green' };
     default:
@@ -64,7 +65,7 @@ export function OrderCard({ order }: { order: Order }) {
       <View style={ui.divider} />
 
       <Pressable accessibilityRole="button" onPress={open} style={styles.item}>
-        {order.thumb ? <Image source={{ uri: order.thumb }} style={styles.thumb} contentFit="cover" /> : <View style={[styles.thumb, styles.noThumb]}><Icon name="image" size={26} tint={color.faint} /></View>}
+        {order.thumb ? <Image source={{ uri: mediaUrl(order.thumb) }} style={styles.thumb} contentFit="cover" /> : <View style={[styles.thumb, styles.noThumb]}><Icon name="image" size={26} tint={color.faint} /></View>}
         <View style={{ flex: 1, gap: 2 }}>
           <Text style={type.heading} numberOfLines={2}>{order.title}</Text>
           <Text style={type.price}>{formatNaira(order.total_kobo)}</Text>

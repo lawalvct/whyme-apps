@@ -9,11 +9,11 @@ import { useAccount } from '@/lib/session';
 import { PhoneConfirmed } from './ConfirmPhone';
 
 /**
- * Private pages (messages; later orders): signed-out visitors go to sign-in and
- * come back here. With `phone`, an account whose phone isn't confirmed yet
+ * Private pages (messages, orders, requests, the seller centre, CVs and job
+ * applications): signed-out visitors go to sign-in and come back here. With `phone`, an account whose phone isn't confirmed yet
  * confirms it by SMS first (the API requires it for these actions).
  */
-export function RequireAccount({ children, phone }: { children: ReactNode; phone?: 'seller' | 'buy' }) {
+export function RequireAccount({ children, phone }: { children: ReactNode; phone?: 'seller' | 'buy' | 'jobs' }) {
   const { t } = useT('seller');
   const { status } = useAccount();
   const router = useRouter();

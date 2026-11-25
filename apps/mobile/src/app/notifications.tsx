@@ -1,10 +1,12 @@
 import { router } from 'expo-router';
 import { useEffect } from 'react';
-import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { markAllNotificationsRead, notificationKeys, useApi, useNotifications } from '@whyme/data';
+import { Icon } from '@/components/icon';
+import { appRoute } from '@/lib/links';
 import { EmptyState, ListLoading, IconButton, ui } from '@/components/ui';
 import { useAccount } from '@/lib/session';
 import { color, gutter, space, type } from '@/theme';
@@ -38,12 +40,20 @@ export default function NotificationsScreen() {
             <Text style={type.display} accessibilityRole="header">{t('app.notifications')}</Text>
           </View>
         }
-        renderItem={({ item }) => (
-          <View style={[ui.card, styles.row, !item.read_at && styles.unread]}>
-            <Text style={type.bodyStrong}>{item.title}</Text>
-            {item.body ? <Text style={type.small}>{item.body}</Text> : null}
-          </View>
-        )}
+        renderItem={({ item }) => {
+          // Opens the order, listing or payouts screen it is about; the rest (requests, jobs, plans) stay notices.
+          const target = appRoute(item.link);
+          return (
+            <Pressable accessibilityRole={target ? 'link' : undefined} disabled={!target} onPress={target ? () => router.push(target) : undefined} style={[ui.card, styles.row, !item.read_at && styles.unread]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+                <Text style={[type.bodyStrong, { flex: 1 }]}>{item.title}</Text>
+                {target ? <Icon name="chevronRight" size={20} tint={color.green} /> : null}
+              </View>
+              {item.body ? <Text style={type.small}>{item.body}</Text> : null}
+              {!target && item.link ? <Text style={[type.small, { color: color.faint }]}>{t('app.notificationsWebOnly')}</Text> : null}
+            </Pressable>
+          );
+        }}
         onEndReached={() => list.hasNextPage && !list.isFetchingNextPage && void list.fetchNextPage()}
         ListEmptyComponent={list.isPending ? <ListLoading /> : <EmptyState icon="bell" title={list.isError ? t('app.loadFailed') : t('notifications:empty')} />}
         refreshControl={<RefreshControl refreshing={list.isRefetching} onRefresh={() => void list.refetch()} tintColor={color.green} />}

@@ -30,7 +30,7 @@ import {
   useQueuedApplications,
   type ApplicationQueuePayload,
 } from '@/lib/application-queue';
-import { routes } from '@/lib/format';
+import { formatDay, routes } from '@/lib/format';
 import { useLanguage, useT } from '@/lib/i18n';
 import { useAccountRuntime } from '@/lib/offline';
 import { useAccount } from '@/lib/session';
@@ -39,6 +39,7 @@ import { ApplicationStatusBadge, formatSalaryRange } from './JobFormat';
 
 export function JobDetailView({ slugOrId }: { slugOrId: string }) {
   const { t } = useT('jobs');
+  const language = useLanguage();
   const router = useRouter();
   const vacancyQuery = usePublicVacancy(slugOrId);
   const job = vacancyQuery.data;
@@ -71,7 +72,7 @@ export function JobDetailView({ slugOrId }: { slugOrId: string }) {
   }
 
   const salary = formatSalaryRange(job.salary_min_kobo, job.salary_max_kobo, t);
-  const deadline = job.deadline_at ? new Date(job.deadline_at).toLocaleDateString() : null;
+  const deadline = job.deadline_at ? formatDay(job.deadline_at, language) : null;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">

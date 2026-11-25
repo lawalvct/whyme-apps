@@ -2060,7 +2060,7 @@ export interface components {
             /** @enum {string} */
             role: "applicant" | "employer";
             /** @enum {string} */
-            status: "held" | "applied" | "reviewing" | "shortlisted" | "accepted" | "rejected" | "withdrawn";
+            status: "held" | "applied" | "reviewing" | "shortlisted" | "accepted" | "rejected" | "refused" | "withdrawn";
             status_note: string | null;
             cover_note: string | null;
             vacancy: {
@@ -2125,10 +2125,10 @@ export interface components {
         };
         /**
          * ApplicationStatus
-         * @description Lifecycle of a job application (JOB03, JOB04, PRD §5). `held` is for applications whose cover note triggered a ContentGuard hold: only the applicant and staff see them until reviewed.
+         * @description Lifecycle of a job application (JOB03, JOB04, PRD §5). `held` is for applications whose cover note triggered a ContentGuard hold: only the applicant and staff see them until a moderator delivers them (`applied`) or refuses them (`refused`). A refused application never reached the employer; `rejected` is the employer's own decision.
          * @enum {string}
          */
-        ApplicationStatus: "held" | "applied" | "reviewing" | "shortlisted" | "accepted" | "rejected" | "withdrawn";
+        ApplicationStatus: "held" | "applied" | "reviewing" | "shortlisted" | "accepted" | "rejected" | "refused" | "withdrawn";
         /** AttachCvRequest */
         AttachCvRequest: {
             upload_id: string;
@@ -2416,7 +2416,7 @@ export interface components {
         NotificationResource: {
             id: string;
             /** @enum {string} */
-            type: "order_paid_seller" | "order_paid_buyer" | "order_accepted" | "order_declined" | "order_dispatched" | "order_delivered" | "order_confirm_reminder" | "order_confirmed" | "order_release_queued" | "dispute_opened" | "dispute_evidence" | "dispute_decided" | "dispute_withdrawn" | "refund_sent" | "refund_needs_details" | "payout_paid" | "payout_problem" | "purchase_paid" | "request_new" | "request_rejected" | "request_accepted" | "request_declined" | "request_started" | "request_cancelled" | "quote_sent" | "quote_accepted" | "quote_declined" | "application_new" | "application_reviewing" | "application_shortlisted" | "application_accepted" | "application_rejected" | "vacancy_approved" | "vacancy_rejected" | "listing_approved" | "listing_rejected" | "listing_hidden" | "plan_ending" | "plan_ended" | "featured_ending";
+            type: "order_paid_seller" | "order_paid_buyer" | "order_accepted" | "order_declined" | "order_dispatched" | "order_delivered" | "order_confirm_reminder" | "order_confirmed" | "order_release_queued" | "dispute_opened" | "dispute_evidence" | "dispute_decided" | "dispute_withdrawn" | "refund_sent" | "refund_needs_details" | "payout_paid" | "payout_problem" | "purchase_paid" | "request_new" | "request_rejected" | "request_accepted" | "request_declined" | "request_started" | "request_cancelled" | "quote_sent" | "quote_accepted" | "quote_declined" | "application_new" | "application_reviewing" | "application_shortlisted" | "application_accepted" | "application_rejected" | "application_refused" | "vacancy_approved" | "vacancy_rejected" | "listing_approved" | "listing_rejected" | "listing_hidden" | "plan_ending" | "plan_ended" | "featured_ending";
             /** @description money (always on), requests, jobs, listings or plans. */
             category: string;
             /** @description In the reader's language (Accept-Language). */

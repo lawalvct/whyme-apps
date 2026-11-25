@@ -1,5 +1,4 @@
 import * as Crypto from 'expo-crypto';
-import * as Linking from 'expo-linking';
 import { useRef, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +9,7 @@ import { useOrderChat } from '@/lib/chat';
 import { formatNaira } from '@/lib/format';
 import { Button } from '@/components/ui';
 import { color, radius, space, type } from '@/theme';
+import { openPayment } from '@/lib/payments';
 
 /** The actions available for this order's current role and state. */
 export function OrderActions({ order }: { order: Order }) {
@@ -89,7 +89,8 @@ export function OrderActions({ order }: { order: Order }) {
       const result = unwrap(await api.POST('/v1/orders/{order}/pay', {
         params: { path: { order: order.id } }, body: {}, headers: { 'Idempotency-Key': Crypto.randomUUID() },
       })).data;
-      if (result.checkout_url) await Linking.openURL(result.checkout_url);
+      // Paystack in an in-app sheet; back in the app, ask the API whether it went through.
+      if (result.checkout_url) await openPayment(result.checkout_url, () => void checkPayment());
       else void queryClient.invalidateQueries({ queryKey: orderKeys.order(order.id) });
     } catch (cause) {
       setError(t(errorKey(cause instanceof ApiRequestError ? cause.code : 'network_error')));

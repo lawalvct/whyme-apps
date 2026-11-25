@@ -11,12 +11,13 @@ import { OrderPayout } from '@/components/order-payout';
 import { OrderDispute } from '@/components/order-dispute';
 import { orderStatus } from '@/components/order-card';
 import { EmptyState, IconButton, Pill, Reassurance, ui } from '@/components/ui';
-import { formatNaira } from '@/lib/format';
+import { formatDate, formatNaira } from '@/lib/format';
 import { color, gutter, radius, space, type } from '@/theme';
+import { mediaUrl } from '@/lib/api';
 
 /** One order: what was bought, the money, how it is delivered, and what happened when. */
 export default function OrderScreen() {
-  const { t } = useTranslation(['common', 'orders']);
+  const { t, i18n } = useTranslation(['common', 'orders']);
   const { id } = useLocalSearchParams<{ id: string }>();
   const order = useOrder(id);
   const o = order.data;
@@ -37,7 +38,7 @@ export default function OrderScreen() {
             </View>
 
             <View style={[ui.card, styles.item]}>
-              {o.thumb ? <Image source={{ uri: o.thumb }} style={styles.thumb} contentFit="cover" /> : <View style={[styles.thumb, styles.noThumb]}><Icon name="image" size={26} tint={color.faint} /></View>}
+              {o.thumb ? <Image source={{ uri: mediaUrl(o.thumb) }} style={styles.thumb} contentFit="cover" /> : <View style={[styles.thumb, styles.noThumb]}><Icon name="image" size={26} tint={color.faint} /></View>}
               <View style={{ flex: 1, gap: 2 }}>
                 <Text style={type.heading}>{o.title}</Text>
                 <Text style={type.small}>{t('app.orders.qty', { count: o.quantity })} · {formatNaira(o.unit_price_kobo)}</Text>
@@ -50,7 +51,7 @@ export default function OrderScreen() {
               {o.delivery_fee_kobo > 0 ? <Row label={t('app.orderDetail.delivery')} value={formatNaira(o.delivery_fee_kobo)} /> : null}
               {o.buyer_fee_kobo > 0 ? <Row label={t('app.orderDetail.buyerFee')} value={formatNaira(o.buyer_fee_kobo)} /> : null}
               <View style={ui.divider} />
-              <Row label={t('app.orderDetail.total')} value={formatNaira(o.total_kobo)} strong />
+              <Row label={o.paid_at ? t('app.orderDetail.total') : t('orders:total')} value={formatNaira(o.total_kobo)} strong />
             </View>
 
             {o.kind === 'product' ? (
@@ -71,8 +72,8 @@ export default function OrderScreen() {
                 {o.events.map((e, i) => (
                   <View key={i} style={styles.event}>
                     <View style={styles.eventDot} />
-                    <Text style={[type.body, { flex: 1 }]}>{t(`orders:event.${e.to}`, { defaultValue: e.to.replace(/_/g, ' ') })}</Text>
-                    {e.at ? <Text style={type.small}>{new Date(e.at).toLocaleDateString()}</Text> : null}
+                    <Text style={[type.body, { flex: 1 }]}>{t(`orders:${e.domain === 'funds' ? 'eventFunds' : 'event'}.${e.to}`, { defaultValue: e.to.replace(/_/g, ' ') })}</Text>
+                    {e.at ? <Text style={type.small}>{formatDate(e.at, i18n.language)}</Text> : null}
                   </View>
                 ))}
               </View>

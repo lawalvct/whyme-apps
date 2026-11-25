@@ -87,7 +87,7 @@ export default function HomeScreen() {
               ? [0, 1].map((n) => <View key={n} style={styles.placeholder} />)
               : fresh.map((item) => (
                   <View key={item.id} style={styles.gridItem}>
-                    <ListingCard listing={item} saved={save.isSaved(item.id)} onToggleSave={() => void save.toggle(item.id)} />
+                    <ListingCard listing={item} saved={save.isSaved(item.id)} onToggleSave={() => void save.toggle(item.id)} onPress={() => router.push({ pathname: '/listing/[id]', params: { id: item.id } })} />
                   </View>
                 ))}
           </View>
@@ -98,7 +98,7 @@ export default function HomeScreen() {
             <SectionHeader title={t('app.skilledPeople')} action={t('app.seeAll')} onAction={() => router.push({ pathname: '/search', params: { type: 'people', kind: 'provider' } })} />
             <View style={{ gap: space.md }}>
               {pros.map((p) => (
-                <ProviderRow key={p.id} profile={p} />
+                <ProviderRow key={p.id} profile={p} onPress={() => router.push({ pathname: '/profile/[id]', params: { id: p.id } })} />
               ))}
             </View>
           </>

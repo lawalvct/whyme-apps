@@ -13,7 +13,9 @@ import { useT } from '@/lib/i18n';
 import { useAccount } from '@/lib/session';
 import { FormError } from './AuthCard';
 
-type Reason = 'seller' | 'buy';
+type Reason = 'seller' | 'buy' | 'jobs';
+
+const REASON_TEXT = { seller: 'confirmPhoneSeller', buy: 'confirmPhoneBuy', jobs: 'confirmPhoneJobs' } as const;
 
 const schema = z.object({ code: otpSchema });
 
@@ -90,7 +92,7 @@ export function ConfirmPhone({ reason, onConfirmed, className }: { reason: Reaso
         <h2 id="confirm-phone-title" className="text-lg font-bold">
           {t('confirmPhoneTitle')}
         </h2>
-        <p className="mt-1 text-sm text-text-muted">{reason === 'seller' ? t('confirmPhoneSeller') : t('confirmPhoneBuy')}</p>
+        <p className="mt-1 text-sm text-text-muted">{t(REASON_TEXT[reason])}</p>
       </div>
 
       <FormError message={error} />

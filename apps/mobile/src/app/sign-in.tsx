@@ -74,11 +74,14 @@ export default function SignInScreen() {
             <>
               <FieldLabel>{t('auth:code')}</FieldLabel>
               <Text style={type.small}>{needsCode.channel === 'email' ? t('auth:newDeviceCodeEmail', { email: needsCode.sentTo }) : t('auth:newDeviceCode')}</Text>
-              <Input value={code} accessibilityLabel={t('auth:code')} onChangeText={(v) => setCode(v.replace(/\D/g, '').slice(0, 6))} keyboardType="number-pad" autoComplete="one-time-code" textContentType="oneTimeCode" maxLength={6} autoFocus />
+              <Input value={code} accessibilityLabel={t('auth:code')} onChangeText={(v) => setCode(v.replace(/\D/g, '').slice(0, 6))} keyboardType="number-pad" autoComplete="one-time-code" textContentType="oneTimeCode" maxLength={6} autoFocus onSubmitEditing={() => void submit()} />
             </>
           ) : null}
 
           <Button label={busy ? t('common:loading') : t('auth:signIn')} busy={busy} onPress={() => void submit()} style={{ marginTop: space.md }} />
+          <Pressable accessibilityRole="link" accessibilityLabel={t('auth:forgotPassword')} onPress={() => router.push('/forgot-password')} hitSlop={8} style={{ alignSelf: 'center' }}>
+            <Text style={styles.signUpLink}>{t('auth:forgotPassword')}</Text>
+          </Pressable>
           <View style={styles.signUpRow}>
             <Text style={type.small}>{t('auth:noAccount')}</Text>
             <Pressable accessibilityRole="link" accessibilityLabel={t('auth:signUp')} onPress={() => router.push('/sign-up')} hitSlop={8}>

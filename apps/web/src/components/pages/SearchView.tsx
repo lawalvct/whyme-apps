@@ -4,7 +4,9 @@ import Link from 'next/link';
 import { useRef, useState, type ReactNode } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs';
-import { categoryLabel, isConnectionError, unwrap, useApi, useSyncStatus, useTaxonomy, type PublicListing, type PublicProfile } from '@whyme/data';
+import { categoryLabel, isConnectionError, unwrap, useApi, useSyncStatus, useTaxonomy, type EmploymentType, type PublicListing, type PublicProfile, type PublicVacancy } from '@whyme/data';
+import { JobCard } from '@/components/jobs/JobsBrowseView';
+import { EMPLOYMENT_TYPES } from '@/components/jobs/JobFormat';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MarketplaceIcon as Icon } from '@/components/ui/MarketplaceIcon';
 import { formatNaira, routes } from '@/lib/format';
@@ -16,19 +18,28 @@ import styles from './SearchView.module.css';
 
 const searchParams = {
   q: parseAsString.withDefault(''),
-  type: parseAsStringLiteral(['offers', 'people'] as const).withDefault('offers'),
+  type: parseAsStringLiteral(['offers', 'people', 'jobs'] as const).withDefault('offers'),
   kind: parseAsString,
   category_id: parseAsInteger,
   location_id: parseAsInteger,
   // Shareable shop URLs use whole naira; the API expects integer kobo.
   min_price: parseAsInteger,
   max_price: parseAsInteger,
+  // Jobs tab: full-time, part-time… (the same values as the Jobs page and the API).
+  employment_type: parseAsStringLiteral(EMPLOYMENT_TYPES),
 };
 
-type Filters = { kind?: string; category_id?: number; location_id?: number; min_price?: number; max_price?: number };
+const MODES = [
+  { type: 'offers', icon: 'bag', label: 'searchShopOffers' },
+  { type: 'people', icon: 'shop', label: 'searchMeetPeople' },
+  { type: 'jobs', icon: 'briefcase', label: 'searchFindJobs' },
+] as const;
+
+type Filters = { kind?: string; category_id?: number; location_id?: number; min_price?: number; max_price?: number; employment_type?: EmploymentType };
 type Page =
   | { type: 'offers'; items: PublicListing[]; next: string | null; categories: { id: number; slug: string }[]; sponsored?: PublicListing[] }
-  | { type: 'people'; items: PublicProfile[]; next: string | null; categories: { id: number; slug: string }[] };
+  | { type: 'people'; items: PublicProfile[]; next: string | null; categories: { id: number; slug: string }[] }
+  | { type: 'jobs'; items: PublicVacancy[]; next: string | null; categories: { id: number; slug: string }[] };
 
 function nextParam(next: string | null | undefined): string | null {
   if (!next) return null;
@@ -51,8 +62,9 @@ export function SearchView() {
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const dialog = useRef<HTMLDialogElement>(null);
   const q = state.q.trim().slice(0, 100);
-  const kinds = state.type === 'offers' ? (['product', 'service'] as const) : (['business', 'provider'] as const);
+  const kinds = state.type === 'offers' ? (['product', 'service'] as const) : state.type === 'people' ? (['business', 'provider'] as const) : [];
   const kind = kinds.find((value) => value === state.kind);
+  const jobType = state.type === 'jobs' ? state.employment_type : null;
   const minPrice = state.type === 'offers' ? validPrice(state.min_price) : null;
   const maxPrice = state.type === 'offers' ? validPrice(state.max_price) : null;
   const filters: Filters = {
@@ -60,6 +72,7 @@ export function SearchView() {
     category_id: state.category_id ?? undefined,
     location_id: state.location_id ?? undefined,
     ...(state.type === 'offers' ? { min_price: minPrice === null ? undefined : minPrice * 100, max_price: maxPrice === null ? undefined : maxPrice * 100 } : {}),
+    ...(jobType ? { employment_type: jobType } : {}),
   };
 
   const results = useInfiniteQuery({
@@ -69,6 +82,13 @@ export function SearchView() {
     enabled: online && q.length !== 1,
     queryFn: async ({ pageParam }): Promise<Page> => {
       const page = pageParam ? Number(pageParam) : undefined;
+      if (state.type === 'jobs') {
+        // Open jobs, featured first then newest; the keyword matches title, skills and company.
+        // Cursor is omitted from the generated request type, as for listings.
+        const query = { q: q.length >= 2 ? q : undefined, category_id: filters.category_id, location_id: filters.location_id, employment_type: filters.employment_type, cursor: pageParam ?? undefined };
+        const body = unwrap(await api.GET('/v1/jobs', { params: { query: query as never } }));
+        return { type: 'jobs', items: body.data as PublicVacancy[], next: body.links?.next ?? null, categories: [] };
+      }
       if (state.type === 'offers') {
         const kindFilter = filters.kind as 'product' | 'service' | undefined;
         if (q.length >= 2) {
@@ -101,12 +121,12 @@ export function SearchView() {
       ? searchKept(kept, { q, kind: kind as 'product' | 'service' | undefined, category_id: filters.category_id, location_id: filters.location_id, min_price: filters.min_price, max_price: filters.max_price }, taxonomy)
       : [];
   const pages = offline ? [] : (results.data?.pages ?? []);
-  const items = offline ? keptMatches : pages.flatMap((page): Array<PublicListing | PublicProfile> => page.items);
+  const items = offline ? keptMatches : pages.flatMap((page): Array<PublicListing | PublicProfile | PublicVacancy> => page.items);
   const suggested = pages[0]?.categories ?? [];
   const firstPage = pages[0];
   const sponsored = firstPage?.type === 'offers' ? (firstPage.sponsored ?? []) : [];
-  const activeCount = Number(Boolean(kind)) + Number(state.category_id !== null) + Number(state.location_id !== null) + Number(minPrice !== null || maxPrice !== null);
-  const resetPatch = { kind: null, category_id: null, location_id: null, min_price: null, max_price: null };
+  const activeCount = Number(Boolean(kind)) + Number(Boolean(jobType)) + Number(state.category_id !== null) + Number(state.location_id !== null) + Number(minPrice !== null || maxPrice !== null);
+  const resetPatch = { kind: null, category_id: null, location_id: null, min_price: null, max_price: null, employment_type: null };
   const updateFilters = (patch: SearchFilterPatch) => { void setState(patch); };
   const clearFilters = () => { void setState(resetPatch); };
   const clearAll = () => { void setState({ ...resetPatch, q: null }); };
@@ -115,10 +135,11 @@ export function SearchView() {
   const chips: { key: string; label: string; remove: () => void }[] = [];
   if (q) chips.push({ key: 'q', label: q, remove: () => updateFilters({ q: null }) });
   if (kind) chips.push({ key: 'kind', label: t({ product: 'products', service: 'services', business: 'businesses', provider: 'providers' }[kind]), remove: () => updateFilters({ kind: null, category_id: null }) });
+  if (jobType) chips.push({ key: 'job_type', label: t(`jobs:types.${jobType}`), remove: () => updateFilters({ employment_type: null }) });
   if (state.category_id !== null) chips.push({ key: 'category', label: categoryLabel(category, language) ?? t('category'), remove: () => updateFilters({ category_id: null }) });
   if (state.location_id !== null) chips.push({ key: 'location', label: location?.name ?? t('location'), remove: () => updateFilters({ location_id: null }) });
   if (minPrice !== null || maxPrice !== null) chips.push({ key: 'price', label: minPrice !== null && maxPrice !== null ? `${formatNaira(minPrice * 100)} – ${formatNaira(maxPrice * 100)}` : minPrice !== null ? t('searchPriceFrom', { price: formatNaira(minPrice * 100) }) : t('searchPriceUpTo', { price: formatNaira(maxPrice! * 100) }), remove: () => updateFilters({ min_price: null, max_price: null }) });
-  const filterProps = { type: state.type, kind: kind ?? null, q, categoryId: state.category_id, locationId: state.location_id, minPrice, maxPrice, taxonomy, taxonomyError, retryTaxonomy: () => { void refetchTaxonomy(); }, onChange: updateFilters };
+  const filterProps = { type: state.type, kind: kind ?? null, jobType, q, categoryId: state.category_id, locationId: state.location_id, minPrice, maxPrice, taxonomy, taxonomyError, retryTaxonomy: () => { void refetchTaxonomy(); }, onChange: updateFilters };
   const loading = results.isPending && online && q.length !== 1;
 
   return (
@@ -130,7 +151,7 @@ export function SearchView() {
       </header>
 
       <div className={styles.browseModes} role="group" aria-label={t('searchBrowseMode')}>
-        {(['offers', 'people'] as const).map((type) => <button key={type} type="button" aria-pressed={state.type === type} onClick={() => void setState({ type, kind: null, category_id: null, min_price: null, max_price: null })}><Icon name={type === 'offers' ? 'bag' : 'shop'} /><span>{t(type === 'offers' ? 'searchShopOffers' : 'searchMeetPeople')}</span><Icon name="arrow" /></button>)}
+        {MODES.map(({ type, icon, label }) => <button key={type} type="button" aria-pressed={state.type === type} onClick={() => void setState({ type, kind: null, category_id: null, min_price: null, max_price: null, employment_type: null })}><Icon name={icon} /><span>{t(label)}</span><Icon name="arrow" /></button>)}
       </div>
 
       <div className={styles.shopLayout}>
@@ -142,7 +163,7 @@ export function SearchView() {
 
         <section className={styles.results} aria-label={t('results')}>
           <div className={styles.resultsToolbar}>
-            <div className={styles.resultsSummary} role="status" aria-live="polite"><h2>{loading ? t('common:loading') : t(results.hasNextPage ? 'searchLoadedCount' : 'searchResultCount', { count: q.length === 1 ? 0 : items.length })}</h2><span>{t(q.length >= 2 ? 'searchRelevantFirst' : 'searchNewestFirst')}</span></div>
+            <div className={styles.resultsSummary} role="status" aria-live="polite"><h2>{loading ? t('common:loading') : t(results.hasNextPage ? 'searchLoadedCount' : 'searchResultCount', { count: q.length === 1 ? 0 : items.length })}</h2><span>{t(q.length >= 2 && state.type !== 'jobs' ? 'searchRelevantFirst' : 'searchNewestFirst')}</span></div>
             <div className={styles.toolbarActions}><button type="button" className={styles.mobileFilters} onClick={() => dialog.current?.showModal()}><Icon name="filter" />{t('searchFilters')}{activeCount > 0 && <span>{activeCount}</span>}</button><div className={styles.viewToggle} role="group" aria-label={t('searchDisplayMode')}><button type="button" aria-label={t('searchGridView')} aria-pressed={view === 'grid'} onClick={() => setView('grid')}><Icon name="grid" /></button><button type="button" aria-label={t('searchListView')} aria-pressed={view === 'list'} onClick={() => setView('list')}><Icon name="list" /></button></div></div>
           </div>
 
@@ -158,10 +179,10 @@ export function SearchView() {
 
           {offline ? <OfflineResults type={state.type} kept={kept} matches={keptMatches} view={view} />
             : q.length === 1 ? <SearchMessage icon="search" title={t('searchKeepTyping')} body={t('searchMinimumQuery')} />
-            : loading ? <div className={styles.resultsGrid} data-layout={view} data-type={state.type}>{Array.from({ length: 6 }, (_, index) => <Skeleton key={index} className={state.type === 'people' ? 'h-60' : 'h-96'} />)}</div>
+            : loading ? <div className={styles.resultsGrid} data-layout={view} data-type={state.type}>{Array.from({ length: 6 }, (_, index) => <Skeleton key={index} className={state.type === 'people' ? 'h-60' : state.type === 'jobs' ? 'h-44' : 'h-96'} />)}</div>
             : results.isError ? <SearchMessage icon="globe" title={t('errorTitle')} body={t('errorBody')}><button type="button" className={styles.primaryButton} disabled={results.isFetching} onClick={() => void results.refetch()}>{t('common:retry')}</button></SearchMessage>
             : items.length === 0 ? <SearchMessage icon="search" title={t('noResults')} body={t('noResultsHint')}><button type="button" className={styles.primaryButton} onClick={clearAll}>{t('searchResetBrowse')}<Icon name="arrow" /></button></SearchMessage>
-            : <div className={styles.resultsGrid} data-layout={view} data-type={state.type} aria-busy={results.isFetchingNextPage}>{state.type === 'offers' ? (items as PublicListing[]).map((listing) => <SearchListingCard key={listing.id} listing={listing} list={view === 'list'} />) : (items as PublicProfile[]).map((profile) => <SearchProfileCard key={profile.id} profile={profile} />)}</div>}
+            : <div className={styles.resultsGrid} data-layout={view} data-type={state.type} aria-busy={results.isFetchingNextPage}>{state.type === 'offers' ? (items as PublicListing[]).map((listing) => <SearchListingCard key={listing.id} listing={listing} list={view === 'list'} />) : state.type === 'jobs' ? (items as PublicVacancy[]).map((job) => <JobCard key={job.id} job={job} />) : (items as PublicProfile[]).map((profile) => <SearchProfileCard key={profile.id} profile={profile} />)}</div>}
 
           {items.length > 0 && !offline && q.length !== 1 && !results.isError && <div className={styles.resultsEnd}>{results.hasNextPage ? <button type="button" className={styles.loadMore} disabled={results.isFetchingNextPage} onClick={() => void results.fetchNextPage()}>{t(results.isFetchingNextPage ? 'common:loading' : 'loadMore')}<Icon name="plus" /></button> : <span>{t('searchEndOfResults')}</span>}</div>}
         </section>
@@ -175,9 +196,10 @@ export function SearchView() {
 }
 
 /** Results from this device while offline: saved and recently viewed listings only. */
-function OfflineResults({ type, kept, matches, view }: { type: 'offers' | 'people'; kept: PublicListing[] | undefined; matches: PublicListing[]; view: 'grid' | 'list' }) {
+function OfflineResults({ type, kept, matches, view }: { type: 'offers' | 'people' | 'jobs'; kept: PublicListing[] | undefined; matches: PublicListing[]; view: 'grid' | 'list' }) {
   const { t } = useT('market');
   if (type === 'people') return <SearchMessage icon="globe" title={t('offlineSearchTitle')} body={t('offlineSearchPeople')} />;
+  if (type === 'jobs') return <SearchMessage icon="globe" title={t('offlineSearchTitle')} body={t('offlineSearchJobs')} />;
   // Signed out or nothing kept yet: nothing to search on this device.
   if (!kept?.length) return <SearchMessage icon="globe" title={t('searchOfflineTitle')} body={t('onlineOnly')} />;
   return (

@@ -13,6 +13,7 @@ import { EmptyState, IconButton, ListLoading } from '@/components/ui';
 import { useConversation, useMessages } from '@/lib/chat';
 import { formatNaira } from '@/lib/format';
 import { color, gutter, radius, space, type } from '@/theme';
+import { mediaUrl } from '@/lib/api';
 
 const MAX_LENGTH = 2000;
 
@@ -97,7 +98,7 @@ export default function ChatScreen() {
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <IconButton icon="chevronLeft" label={t('common:back')} onPress={() => (router.canGoBack() ? router.back() : router.replace('/messages'))} size={44} bordered={false} />
-        {c?.subject.thumb ? <Image source={{ uri: c.subject.thumb }} style={styles.headerThumb} contentFit="cover" /> : null}
+        {c?.subject.thumb ? <Image source={{ uri: mediaUrl(c.subject.thumb) }} style={styles.headerThumb} contentFit="cover" /> : null}
         <View style={{ flex: 1 }}>
           <Text style={type.heading} numberOfLines={1}>{c?.other_party.name ?? ' '}</Text>
           {c?.subject.title ? (
@@ -140,7 +141,10 @@ export default function ChatScreen() {
             <View style={styles.composerRow}>
               <TextInput
                 value={draft}
-                onChangeText={setDraft}
+                onChangeText={(text) => {
+                  setDraft(text);
+                  if (error) setError(null);
+                }}
                 placeholder={t('writeMessage')}
                 placeholderTextColor={color.faint}
                 accessibilityLabel={t('writeMessage')}

@@ -20,7 +20,7 @@ export const sellerKeys = {
   profile: (kind: ProfileKind) => ['me', 'seller', 'profiles', kind] as const,
   listings: (filters: { status?: ListingStatus | 'all'; kind?: ListingKind }) => ['me', 'seller', 'listings', filters] as const,
   listing: (id: string) => ['me', 'seller', 'listing', id] as const,
-  terms: (type: 'seller' | 'platform' | 'buyer', language: string) => ['terms', type, language] as const,
+  terms: (type: 'seller' | 'platform' | 'buyer' | 'privacy', language: string) => ['terms', type, language] as const,
 };
 
 /** A business profile needs selling turned on; a provider profile needs services (ACC07). */
@@ -60,7 +60,7 @@ export function useMyListing(id: string | null) {
 }
 
 /** The current terms in the reader's language, or English (GET /terms/{type}). */
-export function useTerms(type: 'seller' | 'platform' | 'buyer', language: string, enabled = true) {
+export function useTerms(type: 'seller' | 'platform' | 'buyer' | 'privacy', language: string, enabled = true) {
   const api = useApi();
   return useQuery({
     queryKey: sellerKeys.terms(type, language),

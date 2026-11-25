@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useApi } from '@whyme/data';
 import { AppProviders } from '@/components/app-providers';
 import { SplashOverlay } from '@/components/splash-overlay';
+import { TermsGate } from '@/components/terms-gate';
 import '@/lib/i18n';
 import { bootSession } from '@/lib/session';
 import { color } from '@/theme';
@@ -46,10 +47,23 @@ function SessionGate() {
         <Stack.Screen name="terms/[type]" />
         <Stack.Screen name="search" />
         <Stack.Screen name="account" />
+        <Stack.Screen name="delete-account" />
+        <Stack.Screen name="confirm-phone" />
+        <Stack.Screen name="payouts" />
+        <Stack.Screen name="listing/[id]" />
+        <Stack.Screen name="profile/[id]" />
+        <Stack.Screen name="checkout/[id]" />
+        <Stack.Screen name="my-listings" />
+        <Stack.Screen name="listing-edit/[id]" />
+        <Stack.Screen name="forgot-password" />
+        <Stack.Screen name="requests/index" />
+        <Stack.Screen name="requests/new" />
+        <Stack.Screen name="requests/[id]" />
         <Stack.Screen name="notifications" />
         <Stack.Screen name="orders/[id]" />
         <Stack.Screen name="chat/[id]" />
       </Stack>
+      {ready ? <TermsGate /> : null}
       <SplashOverlay ready={ready} />
     </>
   );

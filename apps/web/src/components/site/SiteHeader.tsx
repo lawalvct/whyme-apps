@@ -229,7 +229,7 @@ function AccountArea({
       </Link>
       <Link href={routes.account} className={buttonClass('ghost', 'min-h-11 gap-2 px-3 text-sm')} aria-label={tSettings('account.menuLabel')} title={tSettings('account.menuLabel')}>
         <Icon name="user" />
-        <span className="hidden max-w-32 truncate font-medium xl:inline">{user.first_name}</span>
+        <span className="hidden max-w-32 truncate font-medium min-[1600px]:inline">{user.first_name}</span>
       </Link>
       <button type="button" onClick={() => void signOut()} className={buttonClass('secondary', 'min-h-11 px-3 text-sm')}>
         {signOutLabel}
@@ -249,13 +249,14 @@ function OrdersLink({ enabled }: { enabled: boolean }) {
     <Link
       href={routes.orders(counts && counts.selling > 0 && counts.buying === 0 ? 'sold' : undefined)}
       aria-label={waiting > 0 ? t('ordersWaiting', { count: waiting }) : t('orders')}
+      title={t('orders')}
       className={buttonClass('ghost', 'relative min-h-11 px-3 text-sm')}
     >
       <svg aria-hidden viewBox="0 0 24 24" className="size-5 fill-none stroke-current" strokeWidth={1.8} strokeLinejoin="round">
         <path d="M5 8h14l-1 12H6L5 8z" />
         <path d="M9 8V6a3 3 0 0 1 6 0v2" />
       </svg>
-      <span className="hidden xl:inline">{t('orders')}</span>
+      <span className="hidden min-[1600px]:inline">{t('orders')}</span>
       {waiting > 0 ? (
         <span className="absolute top-1 right-1 min-w-5 rounded-full bg-accent px-1.5 text-center text-xs font-bold text-text">
           {waiting > 99 ? '99+' : waiting}
@@ -275,10 +276,11 @@ function RequestsLink({ enabled }: { enabled: boolean }) {
     <Link
       href={routes.requests(counts && counts.provider > 0 && counts.customer === 0 ? 'received' : undefined)}
       aria-label={waiting > 0 ? t('requestsWaiting', { count: waiting }) : t('requestsTitle')}
+      title={t('requestsTitle')}
       className={buttonClass('ghost', 'relative min-h-11 px-3 text-sm')}
     >
+      {/* Icon only (the name shows on hover): its label is the widest and never fits beside a usable search box. */}
       <Icon name="tools" className="size-5" />
-      <span className="hidden xl:inline">{t('requests')}</span>
       {waiting > 0 ? (
         <span className="absolute top-1 right-1 min-w-5 rounded-full bg-accent px-1.5 text-center text-xs font-bold text-text">
           {waiting > 99 ? '99+' : waiting}
@@ -288,14 +290,15 @@ function RequestsLink({ enabled }: { enabled: boolean }) {
   );
 }
 
-/** Messages, with the unread count (checked every 30 seconds; chat needs a confirmed phone). */
-/** Saved items: readable offline. An icon on small screens. */
+/**
+ * Saved items: readable offline. The heart alone (its name shows on hover): signed in, the header
+ * has room for text on Messages, Orders and the name only, and the search box comes first.
+ */
 function SavedLink() {
   const { t } = useT('market');
   return (
-    <Link href={routes.saved} aria-label={t('savedTitle')} className={buttonClass('ghost', 'min-h-11 px-3 text-sm')}>
+    <Link href={routes.saved} aria-label={t('savedTitle')} title={t('savedTitle')} className={buttonClass('ghost', 'min-h-11 px-3 text-sm')}>
       <Icon name="heart" className="size-5" />
-      <span className="hidden xl:inline">{t('savedNav')}</span>
     </Link>
   );
 }
@@ -325,6 +328,7 @@ function NotificationsLink({ userId }: { userId: string }) {
   );
 }
 
+/** Messages, with the unread count (checked every 30 seconds; chat needs a confirmed phone). */
 function MessagesLink({ enabled }: { enabled: boolean }) {
   const { t } = useT('chat');
   const unread = useUnreadMessages(enabled).data ?? 0;
@@ -333,12 +337,13 @@ function MessagesLink({ enabled }: { enabled: boolean }) {
     <Link
       href={routes.messages}
       aria-label={unread > 0 ? t('messagesUnread', { count: unread }) : t('messages')}
+      title={t('messages')}
       className={buttonClass('ghost', 'relative min-h-11 px-3 text-sm')}
     >
       <svg aria-hidden viewBox="0 0 24 24" className="size-5 fill-none stroke-current" strokeWidth={1.8} strokeLinejoin="round">
         <path d="M4 5h16v11H9l-5 4V5z" />
       </svg>
-      <span className="hidden xl:inline">{t('messages')}</span>
+      <span className="hidden min-[1600px]:inline">{t('messages')}</span>
       {unread > 0 ? (
         <span className="absolute top-1 right-1 min-w-5 rounded-full bg-accent px-1.5 text-center text-xs font-bold text-text">
           {unread > 99 ? '99+' : unread}

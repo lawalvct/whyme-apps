@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { Suspense, useEffect, useState, type ReactNode } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { ApiProvider, createQueryClient, OfflineCacheProvider, syncStatusStore } from '@whyme/data';
@@ -36,7 +36,10 @@ export function Providers({ children }: { children: ReactNode }) {
           <NuqsAdapter>
             <I18nProvider>
               <OfflineAccount />
-              <TermsGate />
+              {/* It reads the URL (not over /terms), so it streams in after the page instead of blocking it. */}
+              <Suspense fallback={null}>
+                <TermsGate />
+              </Suspense>
               <OfflineBanner />
               {children}
               <ServiceWorkerSetup />

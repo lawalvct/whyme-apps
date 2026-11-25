@@ -95,7 +95,7 @@
 .suggestions button { display: inline-flex; align-items: center; gap: 5px; min-height: 30px; padding-inline: 9px; border: 1px solid #e1e8d6; border-radius: 5px; color: #6d8d54; cursor: pointer; }
 .suggestions button > svg { height: 12px; width: 12px; }
 .resultsGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 17px; }
-.resultsGrid[data-type='people'] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.resultsGrid[data-type='people'], .resultsGrid[data-type='jobs'] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .resultsGrid[data-layout='list'] { grid-template-columns: 1fr; }
 .listingCard { display: flex; flex-direction: column; min-width: 0; border: 1px solid #e2e7da; border-radius: 12px; overflow: hidden; background: #fff; transition: box-shadow 180ms, border-color 180ms, transform 180ms; }
 .listingCard:hover { box-shadow: 0 10px 25px #2e451c0c; border-color: #b5c8a4; transform: translateY(-3px); }
@@ -220,7 +220,7 @@
   .mobileFilters { min-height: 40px; padding-inline: 9px; font-size: 10px; gap: 5px; }
   .viewToggle button { width: 30px; }
   .resultsGrid { gap: 10px; }
-  .resultsGrid[data-type='people'] { grid-template-columns: 1fr; }
+  .resultsGrid[data-type='people'], .resultsGrid[data-type='jobs'] { grid-template-columns: 1fr; }
   .activeFilters { gap: 5px; margin-bottom: 14px; }
   .activeFilters > button { min-height: 34px; font-size: 9px; }
   .listingCard { border-radius: 10px; }

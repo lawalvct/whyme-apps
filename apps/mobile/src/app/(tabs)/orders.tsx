@@ -1,14 +1,19 @@
+import { router, type Href } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useOrders } from '@whyme/data';
 import { AppHeader } from '@/components/app-header';
+import { Icon } from '@/components/icon';
 import { OrderCard } from '@/components/order-card';
 import { SignedOut } from '@/components/signed-out';
 import { Chip, EmptyState, ListLoading, Reassurance, Segmented } from '@/components/ui';
 import { useAccount } from '@/lib/session';
 import { color, gutter, space, type } from '@/theme';
+
+/** The requests list (requests/index.tsx); the generated route types only know it as /requests/index. */
+const REQUESTS = '/requests' as Href;
 
 type Filter = 'all' | 'open' | 'done';
 
@@ -27,7 +32,13 @@ export default function OrdersScreen() {
   const header = (
     <View style={{ gap: space.lg }}>
       <View style={{ gap: 2 }}>
-        <Text style={type.display} accessibilityRole="header">{t('orders:orders')}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
+          <Text style={[type.display, { flex: 1 }]} accessibilityRole="header">{t('orders:orders')}</Text>
+          <Pressable accessibilityRole="link" accessibilityLabel={t('app.requests.linkTitle')} onPress={() => router.push(REQUESTS)} hitSlop={8} style={styles.requestsLink}>
+            <Icon name="tools" size={18} tint={color.green} />
+            <Text style={styles.requestsText}>{t('app.requests.linkTitle')}</Text>
+          </Pressable>
+        </View>
         <Text style={[type.body, { color: color.muted, fontSize: 18 }]}>{t('app.orders.subtitle')}</Text>
       </View>
       <Segmented
@@ -79,4 +90,6 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: color.canvas },
   content: { paddingHorizontal: gutter, paddingBottom: space.xxxl, gap: space.lg, maxWidth: 640, width: '100%', alignSelf: 'center' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
+  requestsLink: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 36 },
+  requestsText: { fontSize: 15, fontWeight: '600', color: color.green },
 });

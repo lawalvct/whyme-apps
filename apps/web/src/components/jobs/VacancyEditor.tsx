@@ -20,7 +20,7 @@ import { Card, Notice, PageTitle, useErrorText } from '@/components/seller/commo
 import { Button, buttonClass } from '@/components/ui/button';
 import { SelectField, TextAreaField, TextField } from '@/components/ui/field';
 import { Skeleton } from '@/components/ui/skeleton';
-import { koboToNaira, nairaToKobo, routes } from '@/lib/format';
+import { formatDay, koboToNaira, nairaToKobo, routes } from '@/lib/format';
 import { useLanguage, useT } from '@/lib/i18n';
 import { ApplicationStatusBadge, EMPLOYMENT_TYPES, VacancyStatusBadge } from './JobFormat';
 
@@ -358,6 +358,7 @@ export function VacancyEditor({ vacancyId }: { vacancyId?: string }) {
 
 function VacancyApplicantsSection({ vacancyId }: { vacancyId: string }) {
   const { t } = useT('jobs');
+  const language = useLanguage();
   const applicationsQuery = useVacancyApplications(vacancyId);
   const applications = applicationsQuery.data ?? [];
 
@@ -393,7 +394,7 @@ function VacancyApplicantsSection({ vacancyId }: { vacancyId: string }) {
                 <p className="mt-0.5 text-xs text-text-muted">
                   {app.cv.title}
                   {app.submitted_at
-                    ? ` · ${t('submittedAt', { date: new Date(app.submitted_at).toLocaleDateString() })}`
+                    ? ` · ${t('submittedAt', { date: formatDay(app.submitted_at, language) })}`
                     : ''}
                 </p>
               </div>

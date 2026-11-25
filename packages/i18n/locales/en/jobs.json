@@ -182,6 +182,7 @@
     "shortlisted": "Shortlisted",
     "accepted": "Accepted",
     "rejected": "Not selected",
+    "refused": "Not sent",
     "withdrawn": "Withdrawn"
   },
   "applicationStatusHint": {
@@ -191,6 +192,7 @@
     "shortlisted": "You have been shortlisted! You and the employer can coordinate next steps in chat.",
     "accepted": "The employer accepted your application.",
     "rejected": "The employer decided not to proceed with this application.",
+    "refused": "A WHY ME moderator did not deliver this application to the employer. The reason is below.",
     "withdrawn": "You withdrew this application. Withdrawal is final for this vacancy."
   },
   "applicantsCount": "{{count}} applicant(s)",

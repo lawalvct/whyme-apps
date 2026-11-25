@@ -7,9 +7,9 @@ import { API_BASE_URL, appHeaders } from './api';
  * Sends one photo to the API's private quarantine (POST /uploads); the listing then points at it
  * by id. On a phone the file goes as { uri, name, type }; in the web preview as the picked File.
  */
-export async function uploadPhoto(asset: ImagePickerAsset, clientId: string): Promise<Upload> {
+export async function uploadPhoto(asset: ImagePickerAsset, clientId: string, purpose: 'listing_photo' | 'request_photo' = 'listing_photo'): Promise<Upload> {
   const form = new FormData();
-  form.append('purpose', 'listing_photo');
+  form.append('purpose', purpose);
   form.append('client_id', clientId);
   const name = asset.fileName ?? `photo-${clientId}.jpg`;
   if (Platform.OS === 'web' && asset.file) {

@@ -20,6 +20,11 @@ export function koboToNaira(kobo: number | null | undefined): string {
   return kobo % 100 === 0 ? String(kobo / 100) : (kobo / 100).toFixed(2);
 }
 
+/** "4 Dec 2026": a day as Nigerians write it, in the page's language, in Lagos time. */
+export function formatDay(iso: string, language: string): string {
+  return new Intl.DateTimeFormat(language === 'ig' ? 'ig-NG' : 'en-NG', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Africa/Lagos' }).format(new Date(iso));
+}
+
 export const routes = {
   home: '/',
   search: (params: Record<string, string | number | undefined> = {}) => {

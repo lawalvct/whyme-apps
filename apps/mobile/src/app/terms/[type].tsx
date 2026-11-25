@@ -10,7 +10,7 @@ import { color, gutter, space, type } from '@/theme';
 export default function TermsScreen() {
   const { type: requestedType } = useLocalSearchParams<{ type: string }>();
   const { t, i18n } = useTranslation(['common', 'auth']);
-  const kind = requestedType === 'buyer' || requestedType === 'seller' ? requestedType : 'platform';
+  const kind = requestedType === 'buyer' || requestedType === 'seller' || requestedType === 'privacy' ? requestedType : 'platform';
   const terms = useTerms(kind, i18n.language);
 
   return (

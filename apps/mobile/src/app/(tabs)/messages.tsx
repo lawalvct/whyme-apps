@@ -11,6 +11,7 @@ import { EmptyState, ListLoading, ui } from '@/components/ui';
 import { useAccount } from '@/lib/session';
 import { useInbox } from '@/lib/chat';
 import { color, gutter, radius, space, type } from '@/theme';
+import { mediaUrl } from '@/lib/api';
 
 /** Chats with sellers, buyers and employers. */
 export default function MessagesScreen() {
@@ -45,7 +46,7 @@ function Row({ conversation }: { conversation: Conversation }) {
   const thumb = 'thumb' in conversation.subject ? conversation.subject.thumb : null;
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={`${conversation.other_party.name}, ${conversation.subject.title}`} onPress={() => router.push({ pathname: '/chat/[id]', params: { id: conversation.id } })} style={[ui.card, styles.row]}>
-      {thumb ? <Image source={{ uri: thumb }} style={styles.thumb} contentFit="cover" /> : <View style={[styles.thumb, styles.noThumb]}><Icon name="message" size={24} tint={color.green} /></View>}
+      {thumb ? <Image source={{ uri: mediaUrl(thumb) }} style={styles.thumb} contentFit="cover" /> : <View style={[styles.thumb, styles.noThumb]}><Icon name="message" size={24} tint={color.green} /></View>}
       <View style={{ flex: 1, gap: 2 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
           <Text style={[type.bodyStrong, { flex: 1 }]} numberOfLines={1}>{conversation.other_party.name}</Text>

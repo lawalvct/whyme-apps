@@ -43,7 +43,7 @@ export function AppHeader() {
         </Pressable>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={status === 'signed_in' ? t('app.account') : t('app.signIn')}
+          accessibilityLabel={status === 'signed_in' ? t('settings:account.menuLabel') : t('app.signIn')}
           onPress={() => router.push(status === 'signed_in' ? '/account' : '/sign-in')}
           style={({ pressed }) => [styles.avatar, pressed && styles.pressed]}>
           {user ? <Text style={styles.avatarText}>{user.first_name.slice(0, 1).toUpperCase()}</Text> : <Icon name="user" size={22} tint={color.green} />}

@@ -29,7 +29,17 @@
     "unread_other": "{{count}} unread",
     "language": "Language: {{name}}. Tap to change.",
     "notifications": "Notifications",
-    "account": "Your account",
+    "account": {
+      "confirmPhone": "Confirm phone number",
+      "codeSent": "We sent a 6-digit code to {{phone}}.",
+      "confirm": "Confirm",
+      "phoneDone": "Phone number confirmed.",
+      "privacy": "Privacy Policy",
+      "signedOutElsewhere": "Password changed. You were signed out on your other devices.",
+      "deletedTitle": "Your account has been deleted",
+      "deletedBody": "Your personal details have been removed and you have been signed out on this phone.",
+      "payoutsHint": "Your earnings and the bank account WHY ME pays you into."
+    },
     "signIn": "Sign in",
     "location": "Delta State, Nigeria",
     "searchPlaceholder": "Search products, services, jobs…",
@@ -88,7 +98,8 @@
       "awaitingPayment": "Waiting for payment",
       "toConfirm": "Delivered: please confirm",
       "newOrder": "New order",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "waitingBuyer": "Waiting for the buyer"
     },
     "sell": {
       "title": "Create listing",
@@ -110,7 +121,7 @@
       "needsSellingBody": "Accept the Seller Terms to list products or services.",
       "acceptSellerTerms": "I accept the Seller Terms",
       "startSelling": "Start selling",
-      "phoneNeeded": "Confirm your phone number on the website before selling.",
+      "phoneNeeded": "Confirm your phone number before selling.",
       "uploadFailed": "Couldn't upload this photo. Tap to try again.",
       "removePhoto": "Remove photo",
       "coverPhoto": "Cover photo"
@@ -133,6 +144,58 @@
       "to": "Buyer",
       "history": "Progress",
       "actionsOnWeb": "To accept, send, confirm or report a problem, use the WHY ME website for now. These buttons come in the next app update."
+    },
+    "listing": {
+      "photo": "Photo {{current}} of {{total}}",
+      "noPhoto": "No photo yet",
+      "soldBy": "Sold by",
+      "offeredBy": "Offered by",
+      "aboutItem": "About this item",
+      "aboutService": "About this service",
+      "returns": "Returns",
+      "returnsYes_one": "Returns accepted within {{count}} day.",
+      "returnsYes_other": "Returns accepted within {{count}} days.",
+      "returnsNo": "The seller does not take returns. WHY ME Protected Payment still covers you if it is not as described or does not arrive.",
+      "standard": "Covered by WHY ME Protected Payment: report a problem before you confirm and WHY ME reviews it.",
+      "gone": "This listing is no longer available.",
+      "messageProvider": "Message provider",
+      "confirmFirst": "Confirm your phone number first. It keeps buyers and sellers safe."
+    },
+    "profile": {
+      "listings": "Listings",
+      "noListings": "No listings yet.",
+      "experience_one": "{{count}} year of experience",
+      "experience_other": "{{count}} years of experience",
+      "rates": "Rates",
+      "gone": "This page is no longer available.",
+      "message": "Send a message"
+    },
+    "checkout": {
+      "gone": "This item can no longer be bought.",
+      "less": "One fewer",
+      "more": "One more",
+      "payReturn": "Back from payment? We are checking it with Paystack."
+    },
+    "reset": {
+      "intro": "Enter your phone number. We'll text you a 6-digit code to set a new password.",
+      "codeSent": "We sent a 6-digit code to {{phone}}.",
+      "done": "Password changed. Sign in with your new password.",
+      "signIn": "Go to sign in"
+    },
+    "notificationsWebOnly": "Open this on the WHY ME website.",
+    "requests": {
+      "requestQuote": "Request a quote",
+      "forWhat": "For {{name}}",
+      "anyDay": "Any day",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "emptyRequested": "No service requests yet. Use \"Request a quote\" on a service or a provider's page.",
+      "open": "Open",
+      "done": "Finished",
+      "linkTitle": "Service requests",
+      "linkHint": "Requests you sent and requests customers sent you.",
+      "quoteFor": "Quote for this job",
+      "photosNeededNot": "Photos help the provider understand the job (optional)."
     }
   },
   "close": "Close"

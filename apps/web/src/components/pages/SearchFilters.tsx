@@ -1,7 +1,8 @@
 'use client';
 
 import { useId, useState, type FormEvent } from 'react';
-import { categoryLabel, type Taxonomy } from '@whyme/data';
+import { categoryLabel, type EmploymentType, type Taxonomy } from '@whyme/data';
+import { EMPLOYMENT_TYPES } from '@/components/jobs/JobFormat';
 import { MarketplaceIcon as Icon, type MarketplaceIconName } from '@/components/ui/MarketplaceIcon';
 import { useLanguage, useT } from '@/lib/i18n';
 import styles from './SearchView.module.css';
@@ -13,11 +14,13 @@ export type SearchFilterPatch = {
   location_id?: number | null;
   min_price?: number | null;
   max_price?: number | null;
+  employment_type?: EmploymentType | null;
 };
 
 type Props = {
-  type: 'offers' | 'people';
+  type: 'offers' | 'people' | 'jobs';
   kind: string | null;
+  jobType: EmploymentType | null;
   q: string;
   categoryId: number | null;
   locationId: number | null;
@@ -42,14 +45,14 @@ const pricePresets = [
   { min: 50000, max: null, label: 'searchBudgetHigh' },
 ] as const;
 
-export function SearchFilters({ type, kind, q, categoryId, locationId, minPrice, maxPrice, taxonomy, taxonomyError, retryTaxonomy, onChange }: Props) {
+export function SearchFilters({ type, kind, jobType, q, categoryId, locationId, minPrice, maxPrice, taxonomy, taxonomyError, retryTaxonomy, onChange }: Props) {
   const { t } = useT('market');
   const language = useLanguage();
   const id = useId();
   const [categoryQuery, setCategoryQuery] = useState('');
   const [expanded, setExpanded] = useState(false);
   const kinds = type === 'offers' ? ['product', 'service'] : ['business', 'provider'];
-  const categoryTypes = kind === 'product' || kind === 'business' ? ['product'] : kind ? ['service'] : ['product', 'service'];
+  const categoryTypes = type === 'jobs' ? ['job'] : kind === 'product' || kind === 'business' ? ['product'] : kind ? ['service'] : ['product', 'service'];
   const categories = (taxonomy?.categories ?? []).filter((category) => categoryTypes.includes(category.type))
     .sort((a, b) => Number(b.type === 'product') - Number(a.type === 'product'));
   const matching = categories.filter((category) => (categoryLabel(category, language) ?? '').toLocaleLowerCase().includes(categoryQuery.trim().toLocaleLowerCase()));
@@ -67,18 +70,33 @@ export function SearchFilters({ type, kind, q, categoryId, locationId, minPrice,
         onChange({ q: value || null });
       }}>
         <label htmlFor={`${id}-keyword`} className={styles.filterLabel}>{t('searchKeyword')}</label>
-        <div className={styles.keywordInput}><input id={`${id}-keyword`} name="keyword" type="search" defaultValue={q} placeholder={t('searchKeywordPlaceholder')} minLength={2} maxLength={100} /><button type="submit" aria-label={t('search')}><Icon name="search" /></button></div>
+        <div className={styles.keywordInput}><input id={`${id}-keyword`} name="keyword" type="search" defaultValue={q} placeholder={t(type === 'jobs' ? 'searchJobsKeywordPlaceholder' : 'searchKeywordPlaceholder')} minLength={2} maxLength={100} /><button type="submit" aria-label={t('search')}><Icon name="search" /></button></div>
       </form>
 
-      <fieldset className={styles.filterGroup}>
-        <legend>{t('searchLookingFor')}</legend>
-        <div className={styles.radioList}>
-          {[null, ...kinds].map((value) => {
-            const option = value ? kindOptions[value] : { label: type === 'offers' ? 'searchAllOffers' : 'searchAllPeople', icon: 'grid' as const };
-            return <label key={value ?? 'all'} className={styles.kindOption}><input type="radio" name={`${id}-kind`} checked={kind === value} onChange={() => { onChange({ kind: value, category_id: null }); setCategoryQuery(''); setExpanded(false); }} /><Icon name={option.icon} /><span>{t(option.label)}</span></label>;
-          })}
-        </div>
-      </fieldset>
+      {type === 'jobs' ? (
+        <fieldset className={styles.filterGroup}>
+          <legend>{t('searchJobType')}</legend>
+          <div className={styles.radioList}>
+            {[null, ...EMPLOYMENT_TYPES].map((value) => (
+              <label key={value ?? 'all'} className={styles.kindOption}>
+                <input type="radio" name={`${id}-job-type`} checked={jobType === value} onChange={() => onChange({ employment_type: value })} />
+                <Icon name={value ? 'briefcase' : 'grid'} />
+                <span>{value ? t(`jobs:types.${value}`) : t('jobs:allTypes')}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ) : (
+        <fieldset className={styles.filterGroup}>
+          <legend>{t('searchLookingFor')}</legend>
+          <div className={styles.radioList}>
+            {[null, ...kinds].map((value) => {
+              const option = value ? kindOptions[value] : { label: type === 'offers' ? 'searchAllOffers' : 'searchAllPeople', icon: 'grid' as const };
+              return <label key={value ?? 'all'} className={styles.kindOption}><input type="radio" name={`${id}-kind`} checked={kind === value} onChange={() => { onChange({ kind: value, category_id: null }); setCategoryQuery(''); setExpanded(false); }} /><Icon name={option.icon} /><span>{t(option.label)}</span></label>;
+            })}
+          </div>
+        </fieldset>
+      )}
 
       <fieldset className={styles.filterGroup}>
         <legend>{t('category')}</legend>

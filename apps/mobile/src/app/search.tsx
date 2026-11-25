@@ -99,7 +99,7 @@ export default function SearchScreen() {
           ListEmptyComponent={empty}
           renderItem={({ item }) => (
             <View style={{ flex: 1, maxWidth: '50%' }}>
-              <ListingCard listing={item} saved={save.isSaved(item.id)} onToggleSave={() => void save.toggle(item.id)} />
+              <ListingCard listing={item} saved={save.isSaved(item.id)} onToggleSave={() => void save.toggle(item.id)} onPress={() => router.push({ pathname: '/listing/[id]', params: { id: item.id } })} />
             </View>
           )}
         />
@@ -127,7 +127,7 @@ export default function SearchScreen() {
           contentContainerStyle={styles.content}
           ListHeaderComponent={header}
           ListEmptyComponent={empty}
-          renderItem={({ item }) => <ProviderRow profile={item} />}
+          renderItem={({ item }) => <ProviderRow profile={item} onPress={() => router.push({ pathname: '/profile/[id]', params: { id: item.id } })} />}
         />
       )}
     </SafeAreaView>

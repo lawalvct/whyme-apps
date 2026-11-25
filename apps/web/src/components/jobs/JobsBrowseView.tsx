@@ -15,7 +15,7 @@ import { Button, buttonClass } from '@/components/ui/button';
 import { SelectField, TextField } from '@/components/ui/field';
 import { MarketplaceIcon as Icon } from '@/components/ui/MarketplaceIcon';
 import { Skeleton } from '@/components/ui/skeleton';
-import { routes } from '@/lib/format';
+import { formatDay, routes } from '@/lib/format';
 import { useLanguage, useT } from '@/lib/i18n';
 import { EMPLOYMENT_TYPES, formatSalaryRange } from './JobFormat';
 
@@ -187,10 +187,12 @@ export function JobsBrowseView() {
   );
 }
 
-function JobCard({ job }: { job: PublicVacancy }) {
+/** One open job: also used in the marketplace search's Jobs tab. */
+export function JobCard({ job }: { job: PublicVacancy }) {
   const { t } = useT('jobs');
+  const language = useLanguage();
   const salary = formatSalaryRange(job.salary_min_kobo, job.salary_max_kobo, t);
-  const deadline = job.deadline_at ? new Date(job.deadline_at).toLocaleDateString() : null;
+  const deadline = job.deadline_at ? formatDay(job.deadline_at, language) : null;
 
   return (
     <Link

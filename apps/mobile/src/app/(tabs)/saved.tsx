@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -28,7 +29,7 @@ export default function SavedScreen() {
         ListHeaderComponent={<Text style={type.display} accessibilityRole="header">{t('app.savedTitle')}</Text>}
         renderItem={({ item }) => (
           <View style={{ flex: 1, maxWidth: '50%' }}>
-            <ListingCard listing={item} saved onToggleSave={() => void save.toggle(item.id)} />
+            <ListingCard listing={item} saved onToggleSave={() => void save.toggle(item.id)} onPress={() => router.push({ pathname: '/listing/[id]', params: { id: item.id } })} />
           </View>
         )}
         ListEmptyComponent={status !== 'signed_in' ? <SignedOut icon="bookmark" /> : save.saved.isPending ? <ListLoading /> : <EmptyState icon="bookmark" title={t('app.savedEmpty')} />}

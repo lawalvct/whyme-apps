@@ -6,6 +6,16 @@ export function formatNaira(kobo: number | null | undefined): string {
   return `₦${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}${fraction ? `.${fraction}` : ''}`;
 }
 
+/** "19 Nov 2026": dates as Nigerians write them, in the app's language. */
+export function formatDate(iso: string, language: string): string {
+  return new Intl.DateTimeFormat(language === 'ig' ? 'ig-NG' : 'en-NG', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Africa/Lagos' }).format(new Date(iso));
+}
+
+/** "20 Nov 2026, 4:08 pm": when something happened, in Lagos time. */
+export function formatDateTime(iso: string, language: string): string {
+  return new Intl.DateTimeFormat(language === 'ig' ? 'ig-NG' : 'en-NG', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Africa/Lagos' }).format(new Date(iso));
+}
+
 /** "18,500" or "18500.50" typed by a seller → kobo. Null when empty, NaN when not a number. */
 export function nairaToKobo(input: string): number | null {
   const cleaned = input.replace(/[₦,\s]/g, '');
